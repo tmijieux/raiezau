@@ -41,7 +41,7 @@ static void str_strip_impl(char *str, char c)
 	str[l - 1] = '\0';
 }
 
-char *str_replace_char(char *str, char from, char to)
+char *str_replace_char(const char *str, char from, char to)
 {
     char *rep = strdup(str);
     for (int i = 0; rep[i] != '\0'; ++i)
