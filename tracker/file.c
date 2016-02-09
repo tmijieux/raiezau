@@ -3,7 +3,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
 struct file {
     off_t st_size;
     uint32_t piece_count;

@@ -17,7 +17,6 @@
 #define CHK2(X_) do { if (NULL == (X_)) { perror(#X_);  \
             exit(EXIT_FAILURE);} } while(0)
 
-
 static void let_space_be_zero(char *buf)
 {
     while (*buf) {
