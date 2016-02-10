@@ -22,7 +22,6 @@ static void deamonize(void)
             exit(EXIT_FAILURE);
         }
         fputs("Daemonizing ...\n", stderr);
-        
         int fd = open("/dev/null", O_RDWR);
         dup2(fd, STDIN_FILENO);
         dup2(fd, STDOUT_FILENO);
@@ -38,13 +37,10 @@ int main(int argc, char *argv[])
     uint16_t port;
     parse_options(&argc, &argv);
     load_config_file();
-
     if ( option_daemonize() )
         deamonize();
-
-
-    port = option_get_port();
     
+    port = option_get_port();
     server_run_bind_any(port);
     return 0;
 }

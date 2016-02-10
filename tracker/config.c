@@ -37,9 +37,9 @@ static void load_option_from_config(
     void *context_ __attribute__((unused))  )
 {
     struct yaml_wrap *value = value_;
-    
+
     if (!ht_has_entry(options, key)) {
-        if (value->type == YAML_SCALAR) { 
+        if (value->type == YAML_SCALAR) {
             ht_add_entry(options, key, value->content.scalar);
             rz_debug(
                 "option '%s' loaded from config with value '%s'\n",
@@ -57,7 +57,7 @@ void load_config_file(void)
         rz_debug("%s: %s\n", path, strerror(errno));
         return; // file doesn't exist; say nothing and skip
     }
-    
+
     ret = yaml2_parse_file(&yw, path);
     if (ret < 0 || yw->type != YAML_MAPPING) {
         fprintf(stderr, "Invalid configuration file %s. Skipping...\n", path);
@@ -88,7 +88,8 @@ static struct option option[] = {
     { "help", 0, NULL, 'h' },
     { "version", 0, NULL, 'v' },
     { "daemon", 0, NULL, 'd' },
-    
+    { "daemonize", 0, NULL, 'd' },
+
     { "port", 1, NULL, 'p' },
     { "conf", 1, NULL, 'c' },
 
@@ -115,7 +116,10 @@ void print_help(void)
 	 "\t-c N, --conf=N\n"
 	 "\t\tset the configuration file path to N\n"
 	 "\t\tdefault is `. (working directory)\n\n"
-	 
+
+         "\t-d, --daemon, --daemonize\n"
+	 "\t\tdetach the server from the console and run in background\n\n"
+
 	 "\t-v, --version\n"
 	 "\t\tshow rz' version\n\n"
 
@@ -165,7 +169,7 @@ static int string_is_positive_integer(const char *str)
 void parse_options(int *argc, char ***argv)
 {
     int c;
-    
+
     while ((c = getopt_long(*argc, *argv, "+vhdc:p:", option, NULL)) != -1) {
 	switch (c) {
 	case 'h':
