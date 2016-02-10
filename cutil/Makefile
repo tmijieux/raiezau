@@ -1,6 +1,8 @@
 CFLAGS=-Wall -std=gnu99
 ifdef DEBUG
-	CFLAGS+=-ggdb -O0
+	CFLAGS+=-ggdb -O0 -DDEBUGo
+else
+	CFLAGS+=-g -O2 -march=native
 endif
 
 SRC=$(wildcard *.c)

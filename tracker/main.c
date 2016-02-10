@@ -39,8 +39,8 @@ int main(int argc, char *argv[])
     load_config_file();
     if ( option_daemonize() )
         deamonize();
-    
+
     port = option_get_port();
-    server_run_bind_any(port);
+    server_run_bind_any_addr(port);
     return 0;
 }

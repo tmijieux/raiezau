@@ -40,7 +40,7 @@ req_handler_t get_request_handler(const char *buf)
     buf = str_replace_char(buf, '\n', '\0');
     
     if (ht_get_entry(request_handlers, buf, &ret) < 0) {
-        rz_error("cannot get handler with key %s\n", buf);
+        rz_error("cannot get handler with key `%s´\n", buf);
         ret = NULL;
     }
     return ret;
@@ -59,7 +59,7 @@ void handle_request(struct client *c)
 
     if (request_handler(c) < 0) {
         char *buf2 = str_replace_char(buf, ' ', '\0');
-        fprintf(stderr, "Handling request %s failed\n", buf2);
+        fprintf(stderr, "Handling request `%s´ failed\n", buf2);
         free(buf2);
     }
 }

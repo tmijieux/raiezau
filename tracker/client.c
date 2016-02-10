@@ -23,14 +23,14 @@ struct client *client_create(const struct sockaddr_in *si)
 {
     struct client *c = calloc(sizeof*c, 1);
     c->addr = *si;
-    rz_debug("new client connection from %s\n", sockaddr_stringify(si));
+    rz_debug("new client connected from %s\n", sockaddr_stringify(si));
     return c;
 }
 
 struct client *get_or_create_client(const struct sockaddr_in *si)
 {
     struct client *c;
-    char *socket_str = sockaddr_stringify(si);
+    char *socket_str = ip_stringify(si->sin_addr.s_addr);
     if (ht_get_entry(clients, socket_str, &c) < 0) {
         c = client_create(si);
         ht_add_entry(clients, socket_str, c);

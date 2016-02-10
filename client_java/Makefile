@@ -6,14 +6,15 @@ re:
 	make -B src
 
 src:
+	mkdir -p build/
 	javac -d build/ $(SRC)
 
 run: src
 	java -cp build Client 
 
 clean:
-	rm -rf build/*
-	rm -rf build-tst/*
+	$(RM) -r build/*
+	$(RM) -r build-tst/*
 
 nc:
-	nc -l 8080
+	nc -l -p 8080

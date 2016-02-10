@@ -2,9 +2,12 @@ TARGET=trackme
 SRC=$(wildcard *.c)
 CFLAGS=-Wall -std=gnu99 -I..
 ifdef DEBUG
-	CFLAGS+=-ggdb -O0
+	CFLAGS+=-ggdb -O0 -DDEBUG
+else
+	CFLAGS+=-g -O2 -march=native
 endif
-LDFLAGS= -lgc -lyaml -lcrypto -lpthread -lrz_cutil
+
+LDFLAGS= -L. -lgc -lyaml -lcrypto -lpthread -lrz_cutil
 
 OBJ=$(SRC:.c=.o) librz_cutil.a
 DEP=$(SRC:.c=.d) 

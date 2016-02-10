@@ -9,7 +9,7 @@
 
 #define HEURISTIC_SIZE 64
 
-char *strdup(const char *s)
+char *strdup2(const char *s)
 {
     char *d = calloc(strlen(s) + 1, 1);
     strcpy(d, s);
