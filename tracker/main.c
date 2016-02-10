@@ -35,17 +35,13 @@ static void deamonize(void)
 
 int main(int argc, char *argv[])
 {
-    uint16_t port = PORT; 
-    if (argc >= 2) {
-        port = atoi(argv[1]);
-    }
-    
-    parse_options(&argc, argv);
+    uint16_t port = PORT;
+    parse_options(&argc, &argv);
     load_config_file();
-    
-    if (option_daemonize())
+
+    if ( option_daemonize() )
         deamonize();
-        
+
     server_run_bind_any(port);
     return 0;
 }

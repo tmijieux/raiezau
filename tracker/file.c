@@ -12,10 +12,10 @@ struct file {
     char *filename;
     char *md5_str;
     off_t st_size;
-    
+
     uint32_t piece_count;
     uint32_t piece_size;
-    
+
     struct list *clients; // seeders or leechers on this file
 };
 
@@ -32,7 +32,7 @@ static void file_init(void)
 void file_add(const struct file *f)
 {
     assert( NULL != f );
-    
+
     ht_add_entry(file_by_name, f->filename, (void*) f);
     ht_add_entry(file_by_hash, f->md5_str, (void*) f);
 }
