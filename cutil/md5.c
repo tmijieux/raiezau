@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <openssl/md5.h>
 
-#include "cutil/error.h"
+#include "error.h"
 
 #ifndef min
 #define min(x, y)  ((x) < (y) ? (x) : (y))

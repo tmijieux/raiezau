@@ -1,23 +1,32 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
 
 #include "protocol.h"
 #include "client.h"
+#include "cutil/error.h"
 
 #define CHK(X_) do { if ((X_) < 0) { perror(#X_);       \
             exit(EXIT_FAILURE);} } while(0)
 #define CHK2(X_) do { if (NULL == (X_)) { perror(#X_);  \
             exit(EXIT_FAILURE);} } while(0)
+
+
+char *sockaddr_stringify(const struct sockaddr_in *si)
+{
+    char *socket_str;
+    asprintf(&socket_str, "%u.%u.%u.%u:%hu",
+             (si->sin_addr.s_addr >> 0) & 0x000000FF,
+             (si->sin_addr.s_addr >> 8) & 0x000000FF,
+             (si->sin_addr.s_addr >> 16) & 0x000000FF,
+             (si->sin_addr.s_addr >> 24) & 0x000000FF,
+             ntohs(si->sin_port));
+    return socket_str;
+}
 
 int make_listener_socket(uint32_t addr, uint16_t port, int *sock)
 {
@@ -34,6 +43,7 @@ int make_listener_socket(uint32_t addr, uint16_t port, int *sock)
 
     CHK(bind(s, (const struct sockaddr*) &si, sizeof si));
     CHK(listen(s, SOMAXCONN));
+    rz_debug("server listening on socket %s\n", sockaddr_stringify(&si));
 
     *sock = s;
     return 1;

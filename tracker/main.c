@@ -11,7 +11,6 @@
 #include "cutil/hash_table.h"
 #include "network.h"
 
-#define PORT 1234
 
 static void deamonize(void)
 {
@@ -22,7 +21,8 @@ static void deamonize(void)
             perror("setsid");
             exit(EXIT_FAILURE);
         }
-
+        fputs("Daemonizing ...\n", stderr);
+        
         int fd = open("/dev/null", O_RDWR);
         dup2(fd, STDIN_FILENO);
         dup2(fd, STDOUT_FILENO);
@@ -35,13 +35,16 @@ static void deamonize(void)
 
 int main(int argc, char *argv[])
 {
-    uint16_t port = PORT;
+    uint16_t port;
     parse_options(&argc, &argv);
     load_config_file();
 
     if ( option_daemonize() )
         deamonize();
 
+
+    port = option_get_port();
+    
     server_run_bind_any(port);
     return 0;
 }

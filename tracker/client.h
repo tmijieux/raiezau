@@ -1,9 +1,18 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-struct client;
+#include <stdint.h>
+#include "network.h"
 
-struct client *get_client(const struct sockaddr_in *si);
+struct client {
+    int sock;
+    struct sockaddr_in addr;
+
+    uint16_t listening_port;
+    struct list *files;
+};
+
+struct client *get_or_create_client(const struct sockaddr_in *si);
 void set_client_sockaddr(
     struct client *c, int sock, const struct sockaddr_in *si);
 

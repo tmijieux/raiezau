@@ -16,7 +16,7 @@ char *strdup(const char *s)
     return d;
 }
 
-int asprintf(void *hint, char **strp, const char *fmt, ...)
+int asprintf(char **strp, const char *fmt, ...)
 {
     va_list ap;
 

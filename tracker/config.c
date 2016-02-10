@@ -1,5 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <ctype.h>
+#include <getopt.h>
+
 #include "config.h"
+#include "cutil/hash_table.h"
+
+extern char *optarg;
+extern int optind, opterr, optopt;
+static struct hash_table *options;
+
+
+__attribute__((constructor))
+static void config_init(void)
+{
+    options = ht_create(0, NULL);
+}
 
 void load_config_file(void)
 {
@@ -8,17 +26,25 @@ void load_config_file(void)
 
 bool option_daemonize(void)
 {
-    return false;
+    uintptr_t daemon;
+    if (ht_get_entry(options, "daemon", &daemon) < 0)
+        return OPTION_DAEMONIZE_DEFAULT;
+    return (bool) daemon;
 }
 
-
-extern char *optarg;
-extern int optopt;
+uint16_t option_get_port(void)
+{
+    char *port;
+    if (ht_get_entry(options, "port", &port) < 0)
+        return OPTION_PORT_DEFAULT;
+    return atoi(port);
+}
 
 static struct option option[] = {
     { "help", 0, NULL, 'h' },
     { "version", 0, NULL, 'v' },
-	
+    { "daemon", 0, NULL, 'd' },
+    
     { "port", 1, NULL, 'p' },
     { "conf", 1, NULL, 'c' },
 
@@ -92,8 +118,6 @@ static int string_is_positive_integer(const char *str)
 #define SET_OPT(field, value)                         \
     ht_add_entry(options, field, value)
 
-
-
 void parse_options(int *argc, char ***argv)
 {
     int c;
@@ -109,10 +133,10 @@ void parse_options(int *argc, char ***argv)
 	    exit(EXIT_SUCCESS);
 	    break;
 	case 'c':
-	    SET_OPT(conf, optstr);
+	    SET_OPT("conf", optarg);
 	    break;
 	case 'p':
-	    SET_OPT(port, optstr);
+	    SET_OPT("port", optarg);
 	    break;
 	case '?':
 	    exit(EXIT_FAILURE);
