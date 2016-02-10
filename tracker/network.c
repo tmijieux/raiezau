@@ -15,16 +15,12 @@
 #define CHK2(X_) do { if (NULL == (X_)) { perror(#X_);  \
             exit(EXIT_FAILURE);} } while(0)
 
-
 char *sockaddr_stringify(const struct sockaddr_in *si)
 {
     char *socket_str;
-    asprintf(&socket_str, "%u.%u.%u.%u:%hu",
-             (si->sin_addr.s_addr >> 0) & 0x000000FF,
-             (si->sin_addr.s_addr >> 8) & 0x000000FF,
-             (si->sin_addr.s_addr >> 16) & 0x000000FF,
-             (si->sin_addr.s_addr >> 24) & 0x000000FF,
-             ntohs(si->sin_port));
+    char addr[20] = {0};
+    inet_ntop(AF_INET, &si->sin_addr.s_addr, addr, 19);
+    asprintf(&socket_str, "%s:%hu", addr, ntohs(si->sin_port));
     return socket_str;
 }
 

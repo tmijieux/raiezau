@@ -6,6 +6,7 @@
 
 #define OPTION_DAEMONIZE_DEFAULT ((bool) false)
 #define OPTION_PORT_DEFAULT      ((uint16_t)8000)
+#define OPTION_CONF_PATH_DEFAULT      ((const char *) "./config.yaml")
 
 #define VERSION_MAJOR_NUMBER  0
 #define VERSION_MINOR_NUMBER  1

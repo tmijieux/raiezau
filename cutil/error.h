@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <errno.h>
+
 #define __FILENAME__ (strrchr(__FILE__, '/') ? \
                       strrchr(__FILE__, '/') + 1 : __FILE__)
 
