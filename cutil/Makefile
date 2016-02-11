@@ -1,6 +1,6 @@
 CFLAGS=-Wall -std=gnu99
 ifdef DEBUG
-	CFLAGS+=-ggdb -O0 -DDEBUGo
+	CFLAGS+=-ggdb -O0 -DDEBUG
 else
 	CFLAGS+=-g -O2 -march=native
 endif

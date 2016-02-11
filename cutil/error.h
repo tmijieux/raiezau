@@ -16,10 +16,14 @@
             __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);
 
 
+#ifdef DEBUG
 #define rz_debug(format, ...)                                        \
     fprintf(stderr, "\e[0;30;43mDEBUG:\e[0;31;1m %s\e[32m:\e[31;1m"    \
             "%d\e[32m|\e[31;1m%s:\e[0m " format, __FILENAME__ ,      \
             __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);
+#else
+#define rz_debug
+#endif
 
 
 #endif //ERROR_H

@@ -11,7 +11,6 @@
 #include "cutil/hash_table.h"
 #include "network.h"
 
-
 static void deamonize(void)
 {
     pid_t p = fork();
@@ -22,7 +21,7 @@ static void deamonize(void)
             exit(EXIT_FAILURE);
         }
         fputs("Daemonizing ...\n", stderr);
-        int fd = open("/dev/null", O_RDWR);
+        int fd = open("./tracker.log", O_CREAT | O_APPEND | O_RDWR, 0600);
         dup2(fd, STDIN_FILENO);
         dup2(fd, STDOUT_FILENO);
         dup2(fd, STDERR_FILENO);
