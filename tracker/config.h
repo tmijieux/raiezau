@@ -1,3 +1,5 @@
+/* config.h -- functions in config.c and default option values */
+
 #ifndef CONFIG_H
 #define CONFIG_H
 

@@ -1,3 +1,5 @@
+/* network.c -- most of code that deals with the socket API */
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,8 +76,12 @@ void server_run(uint32_t addr, uint16_t port)
         socklen_t size = sizeof accept_s;
         struct sockaddr_in accept_si = { 0 };
 
-        CHK(accept, accept_s = accept(
-            s, (struct sockaddr*)&accept_si, &size));
+        accept_s = accept(s, (struct sockaddr*)&accept_si, &size);
+        if (accept_s < 0) {
+            if (EINTR == errno)
+                continue;
+            perror("accept");
+        }
 
         start_server_reqhandler_thread(accept_s, &accept_si);
     }

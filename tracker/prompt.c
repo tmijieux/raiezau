@@ -1,3 +1,5 @@
+/* prompt.c -- code for the command line user interface */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -10,6 +12,8 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <signal.h>
+#include <setjmp.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -39,15 +43,42 @@ static bool is_white(const char *str)
     return true;
 }
 
+static sigjmp_buf ctrlc_buf;
+static bool back_from_signal = false;
+
+static void ctrlc_handler(int signo)
+{
+    if (SIGINT == signo) {
+        back_from_signal = true;
+        siglongjmp(ctrlc_buf, 1);
+    }
+}
+
 void command_prompt(void)
 {
     if ( option_daemonize() )
         return;
 
     rz_debug("Prompt thread started\n");
-    rl_attempted_completion_function = my_completion;
+
+    struct sigaction sa;
+    sa.sa_handler = &ctrlc_handler;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGINT, &sa, NULL);
+
     read_eval_loop();
     exit(EXIT_SUCCESS);
+}
+
+static void setup_readline(void)
+{
+    rl_catch_signals = 1;
+    rl_set_signals();
+
+
+    rl_attempted_completion_function = my_completion;
+    rl_bind_key('\t', rl_complete);
 }
 
 static void read_eval_loop(void)
@@ -55,12 +86,17 @@ static void read_eval_loop(void)
     char *command = "";
     bool quit = false;
 
+    setup_readline();
+    while (sigsetjmp(ctrlc_buf, 1) != 0);
+    if (back_from_signal) {
+        back_from_signal = false;
+        printf("\n");
+    }
+
     while (!quit) {
-        rl_bind_key('\t', rl_complete);
         command = readline("> ");
         if (NULL == command)
             break;
-
         if (strlen(command) > 0 && !is_white(command)) {
             add_history(command);
             quit = prompt_eval(command);

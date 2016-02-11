@@ -27,3 +27,7 @@ apres avoir fait un retour a la ligne juste derriere une parenthèse
 c'est :
     (c-offsets-alist ((arglist-intro '+)))
 
+
+et de préférence
+(setq indent-tabs-mode nil)  ; pas de tabulation
+

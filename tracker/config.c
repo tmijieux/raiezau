@@ -1,3 +1,5 @@
+/* config.c -- code for parsing command line option and config files */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -15,7 +17,6 @@ extern char *optarg;
 extern int optind, opterr, optopt;
 static struct hash_table *options;
 
-
 __attribute__((constructor))
 static void config_init(void)
 {
@@ -29,7 +30,6 @@ const char *option_get_config_file_path(void)
         return OPTION_CONF_PATH_DEFAULT;
     return path;
 }
-
 
 static void load_option_from_config(
     const char *key,
