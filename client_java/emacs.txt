@@ -1,0 +1,29 @@
+
+mon style java:
+
+(defun javahook ()
+  (progn
+    (c-add-style "java-mine" 
+                 '("java"
+                   (c-basic-offset . 4)
+                   (c-hanging-braces-alist
+                    ((substatement-open)
+                     (block-close . c-snug-do-while)
+                     (extern-lang-open after)
+                     (inexpr-class-open after)
+                     (inexpr-class-close before)))
+                   (c-offsets-alist
+                    ((substatement-open . 0)
+                     (innamespace . [0])
+                     (arglist-intro . '+)))))
+    (c-set-style "java-mine")))
+
+(add-hook 'java-mode-hook 'javahook)
+
+
+la ligne qui permet de mettre les arguments en retrait,
+apres avoir fait un retour a la ligne juste derriere une parenthèse
+
+c'est :
+    (c-offsets-alist ((arglist-intro '+)))
+
