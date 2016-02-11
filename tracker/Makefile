@@ -7,7 +7,7 @@ else
 	CFLAGS+=-g -O2 -march=native
 endif
 
-LDFLAGS= -L. -lgc -lyaml -lcrypto -lpthread -lrz_cutil
+LDFLAGS= -L. -lgc -lyaml -lcrypto -lpthread -lrz_cutil -lreadline
 
 OBJ=$(SRC:.c=.o) librz_cutil.a
 DEP=$(SRC:.c=.d) 

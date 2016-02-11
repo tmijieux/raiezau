@@ -7,11 +7,12 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include "util.h"
 #include "protocol.h"
 #include "client.h"
 #include "cutil/error.h"
 
-#define CHK(mesg, X_) do { if ((X_) < 0) { perror(#mesg);  \
+#define CHK(mesg, X_) do { if ((X_) < 0) { perror(#mesg);       \
             exit(EXIT_FAILURE);} } while(0)
 
 char *sockaddr_stringify(const struct sockaddr_in *si)
@@ -52,24 +53,14 @@ static int make_listener_socket(uint32_t addr, uint16_t port, int *sock)
     return 1;
 }
 
-
 static void start_server_reqhandler_thread(
     int accept_s, const struct sockaddr_in *accept_si)
 {
-    pthread_t t;
-    pthread_attr_t attr;
     struct client *c;
 
     c = get_or_create_client(accept_si);
     set_client_sockaddr(c, accept_s, accept_si);
-
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    if (pthread_create(&t, &attr, (void*(*)(void*))handle_request, c) < 0) {
-        fprintf(stderr, "cannot create thread\n");
-            exit(EXIT_FAILURE);
-    }
-    pthread_attr_destroy(&attr);
+    start_detached_thread((void*(*)(void*))handle_request, c, "request");
 }
 
 void server_run(uint32_t addr, uint16_t port)

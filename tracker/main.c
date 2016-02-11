@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include "util.h"
 #include "config.h"
 #include "cutil/hash_table.h"
 #include "network.h"
@@ -31,13 +32,22 @@ static void deamonize(void)
     }
 }
 
+static void start_command_prompt_thread(void)
+{
+    extern void* command_prompt(void*);
+    start_detached_thread(&command_prompt, NULL, "command prompt");
+}
+
 int main(int argc, char *argv[])
 {
     uint16_t port;
     parse_options(&argc, &argv);
     load_config_file();
-    if ( option_daemonize() )
+    if ( option_daemonize() ) {
         deamonize();
+    } else {
+        start_command_prompt_thread();
+    }
 
     port = option_get_port();
     server_run_bind_any_addr(port);

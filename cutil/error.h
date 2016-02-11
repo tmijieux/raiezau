@@ -22,7 +22,7 @@
             "%d\e[32m|\e[31;1m%s:\e[0m " format, __FILENAME__ ,      \
             __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);
 #else
-#define rz_debug
+#define rz_debug(f, ...)
 #endif
 
 
