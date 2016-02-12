@@ -23,7 +23,7 @@ static void deamonize(void)
         }
         fputs("Daemonizing ...\n", stderr);
         int fd = open("./tracker.log", O_CREAT | O_APPEND | O_RDWR, 0600);
-        dup2(fd, STDIN_FILENO);
+        close(STDIN_FILENO);
         dup2(fd, STDOUT_FILENO);
         dup2(fd, STDERR_FILENO);
         close(fd);

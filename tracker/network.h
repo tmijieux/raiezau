@@ -14,4 +14,6 @@ char *ip_stringify(uint32_t ip_addr);
 void server_run_bind_any_addr(uint16_t port);
 void server_run(uint32_t addr, uint16_t port);
 
+int socket_read_string(int sock, char **ret_str);
+
 #endif //NETWORK_H

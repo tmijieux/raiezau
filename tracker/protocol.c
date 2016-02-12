@@ -13,7 +13,7 @@
 #include "cutil/error.h"
 #include "client.h"
 
-typedef int (*req_handler_t)(struct client*);
+typedef int (*req_handler_t)(struct client*, char **split);
 
 int prot_announce(struct client*);
 int prot_update(struct client*);
@@ -33,68 +33,102 @@ static void protocol_init(void)
     ht_add_entry(request_handlers, "getfile", &prot_getfile);
 }
 
-req_handler_t get_request_handler(const char *buf)
+req_handler_t get_request_handler(const char *buf_c)
 {
+    char *tmp, *buf;
     req_handler_t ret;
-    buf = str_replace_char(buf, ' ', '\0');
-    buf = str_replace_char(buf, '\n', '\0');
+    
+    tmp = str_replace_char(buf_c, ' ', '\0');
+    buf = str_replace_char(tmp, '\n', '\0');
+    free(tmp);
     
     if (ht_get_entry(request_handlers, buf, &ret) < 0) {
         rz_error("cannot get handler with key `%s´\n", buf);
         ret = NULL;
     }
+    free(buf);
     return ret;
+}
+
+__attribute__((noreturn))
+static void cancel_request_negative_answer(struct client *c)
+{
+    
+    write(c->sock, "ko\n", 4);
+    close(c->sock);
+    pthread_exit(NULL);
+}
+
+static void free_strings(char *req, int n, char **split)
+{
+    free(req);
+    if (split)
+        for (int i = 0; i < n; ++i)
+            free(split[i]);
+    free(split);
 }
 
 void handle_request(struct client *c)
 {
-    char buf[11] = {0};
-    read(c->sock, buf, 10);
-    req_handler_t request_handler = get_request_handler(buf);
-    if (NULL == request_handler) {
-        write(c->sock, "ko\n", 4);
-        close(c->sock);
-        pthread_exit(NULL);
+    char *client_req = NULL;
+    char **split_req = NULL;
+    int tok_c = 0, ret;
+    req_handler_t request_handler;
+    
+    ret = socket_read_string(c->sock, &client_req);
+    if (ret <= 0) {
+        free_strings(client_req, tok_c, split_req);
+        cancel_request_negative_answer(c);
+    }
+    
+    tok_c = string_split(client_req, " ", &split_req);
+    if (tok_c <= 0) {
+        free_strings(client_req, tok_c, split_req);
+        cancel_request_negative_answer(c);
     }
 
-    if (request_handler(c) < 0) {
-        char *buf2 = str_replace_char(buf, ' ', '\0');
-        fprintf(stderr, "Handling request `%s´ failed\n", buf2);
-        free(buf2);
+    request_handler = get_request_handler(split_req[0]);
+    if (NULL == request_handler) {
+        free_strings(client_req, tok_c, split_req);
+        cancel_request_negative_answer(c);
     }
+
+    if (request_handler(c, split_req) < 0) {
+        fprintf(stderr, "Handling request `%s´ failed\n", split_req[0]);
+    }
+
+    free_strings(client_req, tok_c, split_req);
 }
 
 int prot_announce(struct client *c)
 {
-    write(c->sock, "annouce ok\n", 12);
+    if (write(c->sock, "annouce ok\n", 12) != 12)
+        rz_error("bad write: %s\n", strerror(errno));
     close(c->sock);
-
     return 0;
 }
 
 int prot_update(struct client *c)
 {
-    write(c->sock, "update ok\n", 11);
+    if (write(c->sock, "update ok\n", 11) != 11)
+        rz_error("bad write: %s\n", strerror(errno));
     close(c->sock);
-
     return 0;
 }
 
 int prot_look(struct client *c)
 {
-    write(c->sock, "look ok\n", 9);
+    if (write(c->sock, "look ok\n", 9) != 9)
+        rz_error("bad write: %s\n", strerror(errno));
     close(c->sock);
-
     return 0;
 }
 
 int prot_getfile(struct client *c)
 {
-    write(c->sock, "getfile ok\n", 12);
+    if (write(c->sock, "getfile ok\n", 12) != 12)
+        rz_error("bad write: %s\n", strerror(errno));
     close(c->sock);
     
     return 0;
 }
-
-
-    

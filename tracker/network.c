@@ -14,6 +14,9 @@
 #include "client.h"
 #include "cutil/error.h"
 
+
+#define HEURISTIC_SIZE 3072
+
 #define CHK(mesg, X_) do { if ((X_) < 0) { perror(#mesg);       \
             exit(EXIT_FAILURE);} } while(0)
 
@@ -90,4 +93,32 @@ void server_run(uint32_t addr, uint16_t port)
 void server_run_bind_any_addr(uint16_t port)
 {
     server_run(INADDR_ANY, port);
+}
+
+
+int socket_read_string(int sock, char **ret_str)
+{
+    int r, str_size= 0, str_bufsize = HEURISTIC_SIZE;
+    char buf[1024] = {0};
+    char *str = calloc(HEURISTIC_SIZE, 1);
+    
+    do {
+        r = read(sock, buf, 1000);
+        if (r <= 0) {
+            *ret_str = NULL;
+            return -1;
+        }
+        
+        buf[r] = 0;
+        if (str_size + r > str_bufsize) {
+            str = realloc(str, 2*str_bufsize);
+            str_bufsize *= 2;
+            str_size += r;
+        }
+        strcat(str, buf);
+            
+    } while ( buf[r-1] != 0 );
+
+    *ret_str = str;
+    return 0;
 }
