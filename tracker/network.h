@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include "rz.h"
+
 char *sockaddr_stringify(const struct sockaddr_in *si);
 char *ip_stringify(uint32_t ip_addr);
 

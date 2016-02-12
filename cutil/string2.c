@@ -34,6 +34,15 @@ int asprintf(char **strp, const char *fmt, ...)
     return n;
 }
 
+int character_is_in_string(int c, const char *str)
+{
+    int i;
+    for (i = 0; str[i]; ++i)
+	if (c == str[i])
+	    return 1;
+    return 0;
+}
+
 static void str_strip_impl(char *str, char c)
 {
     size_t l = strlen(str);

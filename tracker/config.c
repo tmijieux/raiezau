@@ -128,15 +128,6 @@ void print_help(void)
         );
 }
 
-static int character_is_in_string(int c, char *str)
-{
-    int i;
-    for (i = 0; str[i]; ++i)
-	if (c == str[i])
-	    return 1;
-    return 0;
-}
-
 static char *rdstr[] = {
     "rand",
     "random",

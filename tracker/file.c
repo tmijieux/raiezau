@@ -46,3 +46,23 @@ void file_add_client(struct file *f, struct client *c)
 {
     list_add(f->clients, c);
 }
+
+
+static struct file *file_get_by_(struct hash_table *ht, const char *what)
+{
+    struct file *f = NULL;
+    if (ht_get_entry(ht, what, &f) < 0) {
+        f = NULL;
+    }
+    return f;
+}
+
+struct file *file_get_by_key(const char *md5_key)
+{
+    return file_get_by_(file_by_hash, md5_key);
+}
+
+struct file *file_get_by_name(const char *name)
+{
+    return file_get_by_(file_by_name, name);
+}

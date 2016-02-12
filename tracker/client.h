@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include <stdint.h>
+#include "rz.h"
 #include "network.h"
 
 struct client {

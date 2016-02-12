@@ -62,7 +62,6 @@ static void start_server_reqhandler_thread(
     int accept_s, const struct sockaddr_in *accept_si)
 {
     struct client *c;
-
     c = get_or_create_client(accept_si);
     set_client_sockaddr(c, accept_s, accept_si);
     start_detached_thread((void*(*)(void*))handle_request, c, "request");
@@ -113,12 +112,19 @@ int socket_read_string(int sock, char **ret_str)
         if (str_size + r > str_bufsize) {
             str = realloc(str, 2*str_bufsize);
             str_bufsize *= 2;
-            str_size += r;
         }
+        str_size += r;
         strcat(str, buf);
-            
-    } while ( buf[r-1] != 0 );
+
+        rz_debug("Debug char is '%c' : %d\n", buf[r-1], (int)buf[r-1]);
+    } while ( buf[r-1] != '\0' && buf[r-1] != '\n' );
+
+
+    while (str_size-1 > 0 && str[str_size-1] == '\n') {
+        str[str_size-1] = '\0';
+        --str_size;
+    }
 
     *ret_str = str;
-    return 0;
+    return str_size;
 }
