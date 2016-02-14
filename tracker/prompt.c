@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "client.h"
 #include "cutil/error.h"
 #include "cutil/string2.h"
 #include "config.h"
@@ -26,7 +27,7 @@
             rz_error("%s: %s\n", #mesg, strerror(errno));       \
             exit(EXIT_FAILURE);} } while(0)
 
-static bool prompt_eval(const char *command);
+static bool eval(const char *command);
 static void read_eval_loop(void);
 static char *my_generator(const char*,int);
 static char **my_completion(const char*, int ,int);
@@ -54,12 +55,14 @@ static void ctrlc_handler(int signo)
     }
 }
 
+// this is the ENTRY POINT in the prompt thread
 void command_prompt(void)
 {
     if ( option_daemonize() )
         return;
 
     rz_debug("Prompt thread started\n");
+    printf("type 'help' to get started!\n");
 
     struct sigaction sa;
     sa.sa_handler = &ctrlc_handler;
@@ -75,7 +78,6 @@ static void setup_readline(void)
 {
     rl_catch_signals = 1;
     rl_set_signals();
-
 
     rl_attempted_completion_function = my_completion;
     rl_bind_key('\t', rl_complete);
@@ -99,13 +101,13 @@ static void read_eval_loop(void)
             break;
         if (strlen(command) > 0 && !is_white(command)) {
             add_history(command);
-            quit = prompt_eval(command);
+            quit = eval(command);
         }
     }
     printf("exiting ...\n");
 }
 
-static bool prompt_eval(const char *command__)
+static bool eval(const char *command__)
 {
     bool ret_quit = false;
     int len;
@@ -113,18 +115,20 @@ static bool prompt_eval(const char *command__)
 
     len = string_split(command__, " ", &command);
 
-    if (!strcmp(command[0], "client")) {
-        prompt_command_client(len, command);
-    } else if (!strcmp(command[0], "file")) {
-        prompt_command_file(len, command);
-    } else if (!strcmp(command[0], "help")) {
-        prompt_command_help(len, command);
-    } else if (!strcmp(command[0], "quit") || !strcmp(command[0], "exit")) {
-        ret_quit = true;
-    } else {
-        printf("unknown command '%s'.\n"
-               "try the 'help' command to get started!\n", command[0]);
-    }
+#define EVAL_I(cmd, val, instr) if (!strcmp(cmd[0], val)) {   instr; }
+#define EVAL_EI(cmd, val, instr) else if (!strcmp(cmd[0], val)) {   instr; }
+#define EVAL_E(instr) else {  instr; }
+
+    EVAL_I(command, "client", prompt_command_client(len, command))
+        EVAL_EI(command, "file", prompt_command_file(len, command))
+        EVAL_EI(command, "help", prompt_command_help(len, command))
+        EVAL_EI(command, "quit", ret_quit = true)
+        EVAL_EI(command, "exit", ret_quit = true)
+        EVAL_E( printf("unknown command '%s'.\n"
+                       "try the 'help' command to get started!\n", command[0]))
+#undef EVAL_I
+#undef EVAL_EI
+#undef EVAL_E
 
     for (int i = 0; i < len; ++i)
         free(command[i]);
@@ -133,21 +137,79 @@ static bool prompt_eval(const char *command__)
     return ret_quit;
 }
 
+static const char *get_command_help(const char *cmd)
+{
+    const char *quit_str =
+        "\tNo help for this command. Sorry.\n"
+        "\tBut this one should be rather obvious ;)";
+
+#define GET_I(cmd, val, str) if (!strcmp(cmd, val)) {   return str; }
+#define GET_EI(cmd, val, str) else if (!strcmp(cmd, val)) { return str; }
+#define GET_E(str) else {  return str; }
+
+    GET_I(cmd, "client",  "\tclient list : print a list of connected client")
+        GET_EI(cmd, "file", "\tfile list : print a list of known files")
+        GET_EI(cmd, "help", "\thelp cmd : display the help for 'cmd'")
+        GET_EI(cmd, "quit", quit_str)
+        GET_EI(cmd, "exit", quit_str)
+        GET_E( "\tNo help for this command. Sorry." )
+#undef GET_I
+#undef GET_EI
+#undef GET_E
+}
+
+static void print_client_list(void)
+{
+    struct list *cl = client_list();
+    unsigned l = list_size(cl);
+    if (l == 0) {
+        puts("No clients.");
+        return;
+    }
+
+    for (unsigned i = 1; i <= l; ++i) {
+        struct client *c = list_get(cl, i);
+        printf("#%d: %s listening on port %hd\n", i,
+               ip_stringify(c->addr.sin_addr.s_addr),
+               c->listening_port);
+    }
+}
+
 static void prompt_command_client(int len, char **command)
 {
-    printf("nothing here\n");
+    if (len <= 1) {
+        printf("%s\n", get_command_help("client"));
+        return;
+    }
+
+    if (!strcmp(command[1], "list"))
+        print_client_list();
 }
 
 static void prompt_command_file(int len, char **command)
 {
-    printf("nothing here\n");
+    if (len <= 1) {
+        printf("%s\n", get_command_help("file"));
+        return;
+    }
+
+    rz_error("sub-command is probably not implemented\n");
 }
 
 static void prompt_command_help(int len, char **command)
 {
-    printf("nothing here ;'(\n");
+    if (len > 1) {
+        for (int i =1; i < len; ++i) {
+            printf("%s:\n%s\n", command[i], get_command_help(command[i]));
+        }
+    } else {
+        printf("Press [tab][tab] (tabulation twice) to see"
+               " a list of available commands\n"
+               "Run 'help cmd' to get help on the given argument `cmd´\n");
+    }
 }
 
+// the two following function are for readline customizable autocompletion
 static char **my_completion(const char *text, int start,  int end)
 {
     char **matches;

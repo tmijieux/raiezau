@@ -7,7 +7,6 @@
 #include <errno.h>
 
 #include "client.h"
-
 #include "cutil/error.h"
 #include "cutil/hash_table.h"
 
@@ -44,4 +43,9 @@ void set_client_sockaddr(
 {
     c->sock = sock;
     c->addr = *si;
+}
+
+struct list *client_list(void)
+{
+    return ht_to_list(clients);
 }

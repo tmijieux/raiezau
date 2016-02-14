@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 import sys
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print("usage: {0} [-t|--terse]".format(sys.argv[0]))
+    print("the --terse option format the color in an array")
+    sys.exit(0)
+
 terse = "-t" in sys.argv[1:] or "--terse" in sys.argv[1:]
 write = sys.stdout.write
 for i in range(2 if terse else 10):

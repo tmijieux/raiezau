@@ -83,8 +83,8 @@ void server_run(uint32_t addr, uint16_t port)
             if (EINTR == errno)
                 continue;
             perror("accept");
+            continue;
         }
-
         start_server_reqhandler_thread(accept_s, &accept_si);
     }
 }
@@ -94,13 +94,14 @@ void server_run_bind_any_addr(uint16_t port)
     server_run(INADDR_ANY, port);
 }
 
-
 int socket_read_string(int sock, char **ret_str)
 {
     int r, str_size= 0, str_bufsize = HEURISTIC_SIZE;
     char buf[1024] = {0};
     char *str = calloc(HEURISTIC_SIZE, 1);
-    
+
+    // loop that read and allocate sufficient memory
+    // This end when a '\0' or '\n' is read at the very end of input
     do {
         r = read(sock, buf, 1000);
         if (r <= 0) {
@@ -116,10 +117,16 @@ int socket_read_string(int sock, char **ret_str)
         str_size += r;
         strcat(str, buf);
 
-        rz_debug("Debug char is '%c' : %d\n", buf[r-1], (int)buf[r-1]);
+        rz_debug("terminating character is '#%d' : (%s)\n",
+                 buf[r-1],
+                 buf[r-1] == '\0'
+                 ? "nul"
+                 : ( buf[r-1] == '\n'
+                     ? "newline"
+                     : "unknown"));
     } while ( buf[r-1] != '\0' && buf[r-1] != '\n' );
 
-
+    // remove '\n' at the end of the line
     while (str_size-1 > 0 && str[str_size-1] == '\n') {
         str[str_size-1] = '\0';
         --str_size;

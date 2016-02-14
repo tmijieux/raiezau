@@ -66,3 +66,14 @@ struct file *file_get_by_name(const char *name)
 {
     return file_get_by_(file_by_name, name);
 }
+
+
+struct file *file_get_or_create(
+    char *filename, uint32_t length, uint32_t piece_size, char *md5_str)
+{
+    struct file *f = file_get_by_key(md5_str);
+    if (NULL == f) {
+        f = file_new(filename, length, piece_size, md5_str);
+    }
+    return f;
+}

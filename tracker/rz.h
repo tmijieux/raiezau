@@ -7,5 +7,4 @@
 #define __no_return
 #endif
 
-
 #endif //RZ_H
