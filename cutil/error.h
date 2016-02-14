@@ -16,20 +16,26 @@
 void rz_error(
     const char *filename, int line,
     const char *pretty_function, const char *format, ...);
-#define rz_error(x, ...)  rz_error(                                     \
+
+#ifndef ERROR_H_IMPLEMENTATION__
+# define rz_error(x, ...)  rz_error(                                    \
     __FILENAME__, __LINE__, __PRETTY_FUNCTION__, x, ##__VA_ARGS__)
+#endif
 
 #ifdef DEBUG
 
 void rz_debug(
     const char *filename, int line,
     const char *pretty_function,const char *format, ...);
-#define rz_debug(x, ...)  rz_debug(                                     \
+
+# ifndef ERROR_H_IMPLEMENTATION__
+#  define rz_debug(x, ...)  rz_debug(                                   \
     __FILENAME__, __LINE__, __PRETTY_FUNCTION__, x, ##__VA_ARGS__)
+# endif
 
 #else
 
-#define rz_debug(f, ...)
+# define rz_debug(f, ...)
 
 #endif
 

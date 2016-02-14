@@ -1,6 +1,3 @@
-#ifndef ERROR_H
-#define ERROR_H
-
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,10 +6,9 @@
 #include <errno.h>
 #include <libintl.h>
 
-
-
-#define _(X) dgettext("rz_domain", (X))
-
+// be sure to do this include first:
+#define ERROR_H_IMPLEMENTATION__
+#include "error.h"
 
 void rz_error(
     const char *filename, int line,
@@ -24,8 +20,8 @@ void rz_error(
     va_start(ap, format);
     vasprintf(&str, format, ap);
 
-    fprintf(stderr, "\e[31;1mERROR: %s\e[32m:\e[31;1m"
-            "%d\e[32m|\e[31;1m%s:\e[0m %s",
+    fprintf(stderr, _("\e[31;1mERROR: %s\e[32m:\e[31;1m"
+                      "%d\e[32m|\e[31;1m%s:\e[0m %s"),
             filename, line, pretty_function, str);
     free(str);
 }
@@ -41,12 +37,11 @@ void rz_debug(
 
     va_start(ap, format);
     vasprintf(&str, format, ap);
-    fprintf(stderr, "\e[6;30;43mDEBUG:\e[0;31;1m %s\e[32m:\e[31;1m"
-            "%d\e[32m|\e[31;1m%s:\e[0m %s",
+    fprintf(stderr, _("\e[6;30;43mDEBUG:\e[0;31;1m %s\e[32m:\e[31;1m"
+                      "%d\e[32m|\e[31;1m%s:\e[0m %s"),
             filename, line, pretty_function, str);
     free(str);
 }
 
 #endif
 
-#endif //ERROR_H

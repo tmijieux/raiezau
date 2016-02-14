@@ -1,4 +1,5 @@
 /* protocol.c -- code for handling our P2P protocol */
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,7 +42,7 @@ static void protocol_init(void)
     ht_add_entry(request_handlers, "getfile", &prot_getfile);
 }
 
-req_handler_t get_request_handler(const char *buf_c)
+static req_handler_t get_request_handler(const char *buf_c)
 {
     char *tmp, *buf;
     req_handler_t ret;
@@ -124,9 +125,6 @@ void handle_request(struct client *c)
     close(c->sock);
 }
 
-int parse_leech_string(struct client *c, char **split, int i, int n);
-int parse_seed_string(struct client *c, char **split, int i, int n);
-
 static struct list *get_seed_file_list(const char *seed_str)
 {
     int n;
@@ -159,7 +157,7 @@ static struct list *get_seed_file_list(const char *seed_str)
 static struct list *get_leech_file_list(const char *leech_str)
 {
     int n;
-    char **tab;
+    char **tab = NULL;
 
     n = string_split(leech_str, " ", &tab);
 
@@ -234,7 +232,7 @@ static int prot_announce(struct client *c, char *req_value)
     return 0;
 }
 
-int prot_update(struct client *c, char *req_value)
+static int prot_update(struct client *c, char *req_value)
 {
     int ret;
     char *regexp;
@@ -249,13 +247,26 @@ int prot_update(struct client *c, char *req_value)
     return 0;
 }
 
-int prot_look(struct client *c, char *req_value)
+static void prot_look_process_criterions(
+    struct client *c, const char *criterion)
 {
+    // split + for loop
+}
+
+static int prot_look(struct client *c, char *req_value)
+{
+    int mc;
+    char *str = NULL;
+    mc = sscanf(req_value, " [%m[^]]] ", &str); // viva el scanf powa
+    if (mc == 1){
+        prot_look_process_criterions(c, str);
+    }
+    free(str);
     write_ok(c->sock);
     return 0;
 }
 
-void str_trim_prot_getfile(char *req)
+static void str_trim_prot_getfile(char *req)
 {
     while (*req != '\0' && *req != '\n')
         ++req;
@@ -282,7 +293,7 @@ static char *client_endpoints_string_list(struct list *cli)
     return out;
 }
 
-int prot_getfile(struct client *c, char *req_value)
+static int prot_getfile(struct client *c, char *req_value)
 {
     size_t len;
     struct file *f;
