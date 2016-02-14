@@ -1,6 +1,8 @@
 .PHONY = clean build recette build-tst run-tst run
 
-SRC=Client.java
+SRC=File.java \
+	P2TProtocole.java \
+	Client.java
 
 re:
 	make -B src
@@ -10,7 +12,7 @@ src:
 	javac -d build/ $(SRC)
 
 run: src
-	java -cp build Client 
+	java -cp build/ RZ.Client 
 
 clean:
 	$(RM) -r build/*

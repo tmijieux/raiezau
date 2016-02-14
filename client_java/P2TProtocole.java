@@ -1,5 +1,12 @@
-import java.io.*;
-import java.net.*;
+package RZ;
+
+import java.io.BufferedReader;
+import java.io.PrintWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 class P2TProtocole {
     private int port = 8080;
@@ -12,32 +19,49 @@ class P2TProtocole {
     P2TProtocole() throws Exception {
         socket = new Socket(ip, port);
         reader = new BufferedReader(
-            new InputStreamReader(socket.getInputStream()));
+	    new InputStreamReader(socket.getInputStream()));
         writer = new PrintWriter(
-            new OutputStreamWriter(socket.getOutputStream()), true);
+	    new OutputStreamWriter(socket.getOutputStream()), true);
     }
 
-    private void seed(String filename, int length, String key) {
-        writer.print("seed ");
-        writer.print(filename + " " + length + " " + key + " ");
+    private void seed(ArrayList<File> files) {
+        writer.print("seed [");
+	for(File file : files) {
+	    if(file.isSeeded()) {
+		writer.print(file.announceSeed());
+		writer.print(" ");
+	    }
+	}
+	writer.print("] ");
+    }
+    
+    private void leech(ArrayList<File> files) {
+        writer.print("leech [");
+	for(File file : files) {
+	    if(!file.isSeeded()) {
+		writer.print(file.announceLeech());
+		writer.print(" ");
+	    }
+	}	
+        writer.print("] ");
     }
 
-    private void leech(String key) {
-        writer.print("seed ");
-        writer.print(key + " ");
-    }
-
-    boolean announce() throws Exception {
+    boolean announce(ArrayList<File> files) throws Exception {
         writer.print("announce listen " + port + " ");
-        seed("file1", 16, "key1");
-        leech("key2");
+        seed(files);
+        leech(files);
         writer.println("");
 
         String response = reader.readLine();
 
-        if (response.compareTo("OK") != 0) {
+        if (response.compareTo("ok") != 0) {
             return false;
         }
         return true;
+    }
+
+    boolean getfile(File file) {
+	writer.print("getfile " + file.announceLeech());
+	return true;
     }
 }
