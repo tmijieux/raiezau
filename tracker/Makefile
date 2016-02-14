@@ -1,5 +1,5 @@
 TARGET=trackme
-SRC=$(wildcard *.c)
+SRC=$(wildcard *.c) $(wildcard ../cutil/*.c)
 CFLAGS=-Wall -std=gnu99 -I..
 ifdef DEBUG
 	CFLAGS+=-ggdb -O0 -DDEBUG
@@ -7,9 +7,9 @@ else
 	CFLAGS+=-g -O2 -march=native
 endif
 
-LDFLAGS= -L. -lgc -lyaml -lcrypto -lpthread -lrz_cutil -lreadline
+LDFLAGS= -L. -lgc -lyaml -lcrypto -lpthread -lreadline
 
-OBJ=$(SRC:.c=.o) librz_cutil.a
+OBJ=$(SRC:.c=.o) 
 DEP=$(SRC:.c=.d) 
 
 all: $(TARGET)
@@ -22,10 +22,6 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	gcc -c $(CFLAGS) $*.c -o $*.o
 	gcc -MM $(CFLAGS) $*.c > $*.d
-
-librz_cutil.a:
-	make -C ../cutil
-	$(AR) cr $@ ../cutil/*.o
 
 clean: 
 	$(RM) $(OBJ) $(DEP)

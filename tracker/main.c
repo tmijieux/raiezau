@@ -11,6 +11,7 @@
 #include "config.h"
 #include "cutil/hash_table.h"
 #include "network.h"
+#include "cutil/error.h"
 
 static void deamonize(void)
 {
@@ -21,7 +22,7 @@ static void deamonize(void)
             perror("setsid");
             exit(EXIT_FAILURE);
         }
-        fputs("Daemonizing ...\n", stderr);
+        fputs(_("Daemonizing ...\n"), stderr);
         int fd = open("./tracker.log", O_CREAT | O_APPEND | O_RDWR, 0600);
         close(STDIN_FILENO);
         dup2(fd, STDOUT_FILENO);
@@ -35,7 +36,7 @@ static void deamonize(void)
 static void start_command_prompt_thread(void)
 {
     extern void* command_prompt(void*);
-    start_detached_thread(&command_prompt, NULL, "command prompt");
+    start_detached_thread(&command_prompt, NULL, _("command prompt"));
 }
 
 int main(int argc, char *argv[])

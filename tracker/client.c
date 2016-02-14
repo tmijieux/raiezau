@@ -22,7 +22,7 @@ struct client *client_create(const struct sockaddr_in *si)
 {
     struct client *c = calloc(sizeof*c, 1);
     c->addr = *si;
-    rz_debug("new client connected from %s\n", sockaddr_stringify(si));
+    rz_debug(_("new client connected from %s\n"), sockaddr_stringify(si));
     return c;
 }
 

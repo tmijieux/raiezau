@@ -6,24 +6,35 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <libintl.h>
 
-#define __FILENAME__ (strrchr(__FILE__, '/') ? \
+
+#define __FILENAME__ (strrchr(__FILE__, '/') ?                  \
                       strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define rz_error(format, ...)                                        \
-    fprintf(stderr, "\e[31;1mERROR: %s\e[32m:\e[31;1m"               \
-            "%d\e[32m|\e[31;1m%s:\e[0m " format, __FILENAME__ ,      \
-            __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);
+#define _(X) dgettext("rz_domain", (X))
 
+
+
+void rz_error(
+    const char *filename, int line,
+    const char *pretty_function, const char *format, ...);
+#define rz_error(x, ...)  rz_error(                                     \
+    __FILENAME__, __LINE__, __PRETTY_FUNCTION__, x, ##__VA_ARGS__)
 
 #ifdef DEBUG
-#define rz_debug(format, ...)                                        \
-    fprintf(stderr, "\e[0;30;43mDEBUG:\e[0;31;1m %s\e[32m:\e[31;1m"    \
-            "%d\e[32m|\e[31;1m%s:\e[0m " format, __FILENAME__ ,      \
-            __LINE__, __PRETTY_FUNCTION__, ##__VA_ARGS__);
-#else
-#define rz_debug(f, ...)
-#endif
 
+
+void rz_debug(
+    const char *filename, int line,
+    const char *pretty_function,const char *format, ...);
+#define rz_debug(x, ...)  rz_debug(                                     \
+    __FILENAME__, __LINE__, __PRETTY_FUNCTION__, x, ##__VA_ARGS__)
+
+#else
+
+#define rz_debug(f, ...)
+
+#endif
 
 #endif //ERROR_H
