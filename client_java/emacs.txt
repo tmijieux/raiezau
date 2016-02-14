@@ -13,9 +13,9 @@ mon style java:
                      (inexpr-class-open after)
                      (inexpr-class-close before)))
                    (c-offsets-alist
-                    ((substatement-open . 0)
-                     (innamespace . [0])
-                     (arglist-intro . '+)))))
+                    (substatement-open . 0)
+                    (innamespace . [0])
+                    (arglist-intro . '+))))
     (c-set-style "java-mine")))
 
 (add-hook 'java-mode-hook 'javahook)

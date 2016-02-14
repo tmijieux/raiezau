@@ -31,5 +31,6 @@ int ht_hash(struct hash_table *ht, const char *key);
 void ht_free(struct hash_table* ht);
 void ht_for_each(struct hash_table* ht,
 		 void (*fun)(const char *, void*, void*), void *args);
+struct list* ht_to_list(const struct hash_table *ht);
 
 #endif //HASH_TABLE_H

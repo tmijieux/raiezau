@@ -1,3 +1,5 @@
+/* protocol.c -- code for handling our P2P protocol */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -7,20 +9,23 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <limits.h>
 
 #include "rz.h"
 #include "file.h"
+#include "client.h"
+#include "util.h"
+
 #include "cutil/string2.h"
 #include "cutil/hash_table.h"
 #include "cutil/error.h"
-#include "client.h"
 
-typedef int (*req_handler_t)(struct client*, int n, char **split);
+typedef int (*req_handler_t)(struct client*, char*);
 
-int prot_announce(struct client*, int n, char **split);
-int prot_update(struct client*, int n, char **split);
-int prot_look(struct client*, int n, char **split);
-int prot_getfile(struct client*, int n, char **split);
+int prot_announce(struct client *c, char *req_value);
+int prot_update(struct client *c, char *req_value);
+int prot_look(struct client *c, char *req_value);
+int prot_getfile(struct client *c, char *req_value);
 
 static struct hash_table *request_handlers;
 
@@ -39,11 +44,11 @@ req_handler_t get_request_handler(const char *buf_c)
 {
     char *tmp, *buf;
     req_handler_t ret;
-    
+
     tmp = str_replace_char(buf_c, ' ', '\0');
     buf = str_replace_char(tmp, '\n', '\0');
     free(tmp);
-    
+
     if (ht_get_entry(request_handlers, buf, &ret) < 0) {
         rz_error("cannot get handler with key `%s´\n", buf);
         ret = NULL;
@@ -55,23 +60,15 @@ req_handler_t get_request_handler(const char *buf_c)
 __no_return
 static void cancel_request_negative_answer(int sock)
 {
-    write(sock, "ko\n", 4);
+    if (write(sock, "ko\n", 4) != 4)
+        rz_error("ko : bad write");
     close(sock);
     pthread_exit(NULL);
 }
 
-static void free_strings(int n, char **split)
+static int read_request(int sock, char **req_name, char **req_value)
 {
-    if (NULL != split) {
-        for (int i = 0; i < n; ++i)
-            free(split[i]);
-        free(split);
-    }
-}
-
-static int read_and_split_request(int sock, char ***splitted)
-{
-    int tok_c, ret;
+    int len, ret;
     char *client_req = NULL;
 
     // read request
@@ -82,81 +79,137 @@ static int read_and_split_request(int sock, char ***splitted)
         cancel_request_negative_answer(sock);
     }
 
-    // split request
-    tok_c = string_split(client_req, " ", splitted);
-    if (tok_c <= 0) {
+    rz_debug("Received request: '%s'\n", client_req);
+
+    int deb;
+    if ((deb = sscanf(client_req, " %ms %n", req_name, &len)) != 1) {
         free(client_req);
-        rz_debug("debug check point 2\n");
+        rz_debug("debug check point 2 : val : %d\n", deb);
         cancel_request_negative_answer(sock);
     }
+
+    *req_value = strdup(client_req + len);
     free(client_req);
-    return tok_c;
+    return 0;
 }
 
-static void get_and_call_handler(struct client *c, int n, char **splitted)
+static void get_and_call_handler(
+    struct client *c, char *req_name, char *req_value)
 {
     req_handler_t request_handler;
     // get handler
-    request_handler = get_request_handler(splitted[0]);
+    request_handler = get_request_handler(req_name);
     if (NULL == request_handler) {
-        free_strings(n, splitted);
+        free(req_name); free(req_value);
         cancel_request_negative_answer(c->sock);
     }
-    
+
     // call handler
-    if (request_handler(c, n, splitted) < 0) {
-        fprintf(stderr, "Handling request `%s´ failed\n", splitted[0]);
+    if (request_handler(c, req_value) < 0) {
+        rz_error("Handling request `%s´ failed\n", req_name);
     }
-    free_strings(n, splitted);
+    free(req_name); free(req_value);
 }
 
 void handle_request(struct client *c)
 {
-    char **split_req = NULL;
-    int tok_c;
+    char *req_name = NULL, *req_value = NULL;
 
-    tok_c = read_and_split_request(c->sock, &split_req);
-    get_and_call_handler(c, tok_c, split_req);
+    read_request(c->sock, &req_name, &req_value);
+    get_and_call_handler(c, req_name, req_value);
+    close(c->sock);
 }
 
 int parse_leech_string(struct client *c, char **split, int i, int n);
 int parse_seed_string(struct client *c, char **split, int i, int n);
 
-int prot_announce(struct client *c, int n, char **split)
+struct list *get_seed_file_list(const char *seed_str)
 {
-    int i = 1;
-    while (i < n) {
-        if (!strcmp("listen", split[i])) {
-            if (i == n-1) {
-                rz_error("bugubugu\n");
-                break;
-            }
-            
-            c->listening_port = (uint16_t) atoi(split[i+1]);
-            i += 2;
-            continue;
-        }
-
-        if (!strcmp("seed", split[i])) {
-            i = parse_seed_string(c, split, i, n);
-            continue;
-        }
-
-        if (!strcmp("seed", split[i])) {
-            i = parse_leech_string(c, split, i, n);
-            continue;
-        }
-
-        rz_debug("unexpected announce argument `%s´\n", split[i]);
+    int n;
+    char **tab;
+    
+    n = string_split(seed_str, " ", &tab);
+    if (n % 4 != 0) {
+        rz_error("Invalid parameter count in seed string\n");
+        return list_new(0);
     }
+
+    struct list *l = list_new(0);
+    for (int i = 0; i < n; i+=4) {
+        struct file *f = file_get_or_create(
+            tab[i],
+            atoi(tab[i+1]),
+            atoi(tab[i+2]),
+            tab[i+3]
+        );
+        list_append(l, f);
+        
+        free(tab[i]); free(tab[i+1]); free(tab[i+2]); free(tab[i+3]); 
+    }
+    free(tab);
+
+    return l;
+}
+
+struct list *get_leech_file_list(const char *leech_str)
+{
+    int n;
+    char **tab;
+    
+    n = string_split(leech_str, " ", &tab);
+    
+    struct list *l = list_new(0);
+    for (int i = 0; i < n; i++) {
+        struct file *f = file_get_by_key(tab[i]);
+        list_append(l, f);
+        free(tab[i]);
+    }
+    free(tab);
+
+    return l;
+}
+
+// parse the element from regexp subexpression
+// defined in function 'prot_announce'.
+void announce_match_and_parse(struct client *c, char *req, regmatch_t pmatch[])
+{
+    c->listening_port = atoi(req+pmatch[1].rm_so);
+
+    char *seed_str = strndup(req+pmatch[2].rm_so,
+                             pmatch[2].rm_eo - pmatch[2].rm_so);
+    char *leech_str = strndup(req+pmatch[3].rm_so,
+                             pmatch[3].rm_eo - pmatch[3].rm_so);
+
+    c->files_seed = get_seed_file_list(seed_str);
+    c->files_leech = get_leech_file_list(leech_str);
+
+    
+    for (int i = 1; i <= list_size(c->files_seed); ++i)
+        file_add_client(list_get(c->files_seed, i), c);
+    for (int i = 1; i <= list_size(c->files_seed); ++i)
+        file_add_client(list_get(c->files_leech, i), c);
+
+    free(seed_str);
+    free(leech_str);
+}
+
+int prot_announce(struct client *c, char *req_value)
+{
+    int ret;
+    char *regexp;
+    regmatch_t match[4];
+
+    regexp = "listen ([1-9]{1,5}) seed \\[(.*)\\] leech \\[(.*)\\]";
+    ret = regex_exec(regexp, req_value, 4, match);
+    if (ret < 0) return -1;
+    announce_match_and_parse(c, req_value, match);
     
     if (write(c->sock, "ok\n", 4) != 4)
         rz_error("bad write: %s\n", strerror(errno));
-    close(c->sock);
     return 0;
 }
 
-int prot_update(struct client *c, int n, char **split)
+int prot_update(struct client *c, char *req_value)
 {
     if (write(c->sock, "update ok\n", 11) != 11)
         rz_error("bad write: %s\n", strerror(errno));
@@ -164,7 +217,7 @@ int prot_update(struct client *c, int n, char **split)
     return 0;
 }
 
-int prot_look(struct client *c, int n, char **split)
+int prot_look(struct client *c, char *req_value)
 {
     if (write(c->sock, "look ok\n", 9) != 9)
         rz_error("bad write: %s\n", strerror(errno));
@@ -172,68 +225,10 @@ int prot_look(struct client *c, int n, char **split)
     return 0;
 }
 
-int prot_getfile(struct client *c, int n, char **split)
+int prot_getfile(struct client *c, char *req_value)
 {
     if (write(c->sock, "getfile ok\n", 12) != 12)
         rz_error("bad write: %s\n", strerror(errno));
     close(c->sock);
-    
     return 0;
-}
-
-int parse_seed_string(struct client *c, char **split, int i, int n)
-{
-    int s;
-    if (!strcmp("[", split[i]))
-        ++i;
-
-    s = i;
-    while (s < n && !character_is_in_string(']', split[s]))
-        ++s;
-    
-    if (!strcmp("]", split[s]))
-        --s;
-    
-    if (s-i % 4 != 0) {
-        rz_error("invalid format for announce seed list"
-                 " (must have multiple of four parameters")
-    }
-
-    for (int a = i; a < s; a+=4) {
-        struct file *f;
-        f = file_new(split[a],
-                     atoi(split[a+1]),
-                     atoi(split[a+2]),
-                     split[a+3]);
-
-        file_add_client(f, c);
-    }
-        
-    return s+1;
-}
-
-int parse_leech_string(struct client *c, char **split, int i, int n)
-{
-    int s;
-    if (!strcmp("[", split[i]))
-        ++i;
-
-    s = i;
-    while (s < n && !character_is_in_string(']', split[s]))
-        ++s;
-    
-    if (!strcmp("]", split[s]))
-        --s;
-    
-    for (int a = i; a < s; ++a) {
-        struct file *f;
-        f = file_get_by_key(split[i]);
-        if (NULL != f) {
-            file_add_client(f, c);
-        } else {
-            rz_error("Invalid file key `%s´\n", split[i]);
-        }
-    }
-        
-    return s+1;
 }
