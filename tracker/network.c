@@ -127,7 +127,7 @@ int socket_read_string(int sock, char **ret_str)
     } while ( buf[r-1] != '\0' && buf[r-1] != '\n' );
 
     // remove '\n' at the end of the line
-    while (str_size-1 > 0 && str[str_size-1] == '\n') {
+    while (str_size-1 >= 0 && str[str_size-1] == '\n') {
         str[str_size-1] = '\0';
         --str_size;
     }

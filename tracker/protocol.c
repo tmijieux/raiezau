@@ -57,40 +57,38 @@ req_handler_t get_request_handler(const char *buf_c)
     return ret;
 }
 
-__no_return
-static void cancel_request_negative_answer(int sock)
+static void negative_answer(int sock)
 {
     if (write(sock, "ko\n", 4) != 4)
         rz_error("ko : bad write");
-    close(sock);
-    pthread_exit(NULL);
 }
 
 static int read_request(int sock, char **req_name, char **req_value)
 {
-    int len, ret;
+    int rd, ret = 0;
     char *client_req = NULL;
 
     // read request
-    ret = socket_read_string(sock, &client_req);
-    if (ret <= 0) {
-        free(client_req);
-        rz_debug("debug check point 1\n");
-        cancel_request_negative_answer(sock);
+    rd = socket_read_string(sock, &client_req);
+    if (rd > 0) {
+        int len;
+        rz_debug("Received request: '%s'\n", client_req);
+        
+        int deb;
+        if ((deb = sscanf(client_req, " %ms %n", req_name, &len)) != 1) {
+            rz_debug("debug check point 1 : val : %d\n", deb);
+            negative_answer(sock);
+            ret = -1;
+        } else {   // sscanf == 1
+            *req_value = strdup(client_req + len);
+        }
+    } else { // read_string <= 0
+        rz_debug("debug check point 2\n");
+        negative_answer(sock);
+        ret = -1;
     }
-
-    rz_debug("Received request: '%s'\n", client_req);
-
-    int deb;
-    if ((deb = sscanf(client_req, " %ms %n", req_name, &len)) != 1) {
-        free(client_req);
-        rz_debug("debug check point 2 : val : %d\n", deb);
-        cancel_request_negative_answer(sock);
-    }
-
-    *req_value = strdup(client_req + len);
     free(client_req);
-    return 0;
+    return ret;
 }
 
 static void get_and_call_handler(
@@ -99,24 +97,25 @@ static void get_and_call_handler(
     req_handler_t request_handler;
     // get handler
     request_handler = get_request_handler(req_name);
-    if (NULL == request_handler) {
-        free(req_name); free(req_value);
-        cancel_request_negative_answer(c->sock);
-    }
-
-    // call handler
-    if (request_handler(c, req_value) < 0) {
-        rz_error("Handling request `%s´ failed\n", req_name);
+    if (NULL != request_handler) {
+        // call handler
+        if (request_handler(c, req_value) < 0) {
+            rz_error("Handling request `%s´ failed\n", req_name);
+            negative_answer(c->sock);
+        }
+    } else {
+        negative_answer(c->sock);
     }
     free(req_name); free(req_value);
 }
 
+// this is the entry point
 void handle_request(struct client *c)
 {
     char *req_name = NULL, *req_value = NULL;
 
-    read_request(c->sock, &req_name, &req_value);
-    get_and_call_handler(c, req_name, req_value);
+    if (read_request(c->sock, &req_name, &req_value) > 0)
+        get_and_call_handler(c, req_name, req_value);
     close(c->sock);
 }
 
@@ -199,7 +198,7 @@ int prot_announce(struct client *c, char *req_value)
     char *regexp;
     regmatch_t match[4];
 
-    regexp = "listen ([1-9]{1,5}) seed \\[(.*)\\] leech \\[(.*)\\]";
+    regexp = "listen ([1-9]{1,5}) seed \\[(.*)\\] leech \\[(.*)\\] *";
     ret = regex_exec(regexp, req_value, 4, match);
     if (ret < 0) return -1;
     announce_match_and_parse(c, req_value, match);
