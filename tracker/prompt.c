@@ -19,6 +19,7 @@
 #include <readline/history.h>
 
 #include "client.h"
+#include "file.h"
 #include "cutil/error.h"
 #include "cutil/string2.h"
 #include "config.h"
@@ -126,7 +127,7 @@ static bool eval(const char *command__)
         EVAL_EI(command, "exit", ret_quit = true)
         EVAL_E( printf(
             _("unknown command '%s'.\n"
-              "try the 'help' command to get started!\n"), command[0]))
+              "try the 'help' command to get started!\n"), command[0]));
 #undef EVAL_I
 #undef EVAL_EI
 #undef EVAL_E
@@ -153,7 +154,7 @@ static const char *get_command_help(const char *cmd)
         GET_EI(cmd, "help", _("\thelp cmd : display the help for 'cmd'"))
         GET_EI(cmd, "quit", quit_str)
         GET_EI(cmd, "exit", quit_str)
-        GET_E( _("\tNo help for this command. Sorry."))
+        GET_E( _("\tNo help for this command. Sorry."));
 #undef GET_I
 #undef GET_EI
 #undef GET_E
@@ -176,6 +177,24 @@ static void print_client_list(void)
     }
 }
 
+static void print_file_list(void)
+{
+    struct list *cl = file_list();
+    unsigned l = list_size(cl);
+    if (l == 0) {
+        puts(_("No files."));
+        return;
+    }
+
+    for (unsigned i = 1; i <= l; ++i) {
+        struct file *f = list_get(cl, i);
+        printf(_("#%d: name: '%s' | key: '%s' | size: %lu B | "
+                 "%u pieces | piece size: %u\n"),
+               i, f->filename, f->md5_str, f->length,
+               f->piece_count, f->piece_size);
+    }
+}
+
 static void prompt_command_client(int len, char **command)
 {
     if (len <= 1) {
@@ -194,7 +213,8 @@ static void prompt_command_file(int len, char **command)
         return;
     }
 
-    rz_error(_("sub-command is probably not implemented\n"));
+    if (!strcmp(command[1], "list"))
+        print_file_list();
 }
 
 static void prompt_command_help(int len, char **command)

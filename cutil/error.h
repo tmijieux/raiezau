@@ -8,13 +8,10 @@
 #include <errno.h>
 #include <libintl.h>
 
-
 #define __FILENAME__ (strrchr(__FILE__, '/') ?                  \
                       strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define _(X) dgettext("rz_domain", (X))
-
-
+#define _(X) gettext((X))
 
 void rz_error(
     const char *filename, int line,
@@ -23,7 +20,6 @@ void rz_error(
     __FILENAME__, __LINE__, __PRETTY_FUNCTION__, x, ##__VA_ARGS__)
 
 #ifdef DEBUG
-
 
 void rz_debug(
     const char *filename, int line,

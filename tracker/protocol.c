@@ -135,19 +135,20 @@ static struct list *get_seed_file_list(const char *seed_str)
     n = string_split(seed_str, " ", &tab);
     if (n % 4 != 0) {
         rz_error(_("Invalid parameter count in seed string\n"));
+        for (int i = 0; i < n; i++) free(tab[i]);
+        free(tab);
         return list_new(0);
     }
 
     struct list *l = list_new(0);
     for (int i = 0; i < n; i+=4) {
         struct file *f = file_get_or_create(
-            tab[i],
-            atoi(tab[i+1]),
-            atoi(tab[i+2]),
-            tab[i+3]
+            tab[i],         // filename
+            atol(tab[i+1]), // file size (byte)
+            atoi(tab[i+2]), // piece_size
+            tab[i+3]        // key (md5)
         );
         list_append(l, f);
-
         free(tab[i]); free(tab[i+1]); free(tab[i+2]); free(tab[i+3]);
     }
     free(tab);
@@ -183,6 +184,9 @@ static void seed_leech_match_and_parse(
         req+pmatch[1].rm_so, pmatch[1].rm_eo - pmatch[1].rm_so);
     char *leech_str = strndup(
         req+pmatch[2].rm_so, pmatch[2].rm_eo - pmatch[2].rm_so);
+
+    list_free(c->files_seed);
+    list_free(c->files_leech);
 
     c->files_seed = get_seed_file_list(seed_str);
     c->files_leech = get_leech_file_list(leech_str);

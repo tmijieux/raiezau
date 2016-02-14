@@ -18,6 +18,10 @@ static void file_init(void)
 {
     file_by_name = ht_create(0, NULL);
     file_by_hash = ht_create(0, NULL);
+
+#ifdef DEBUG
+    file_new("test1", 10000, 1024, "deadcafebeefbabe");
+#endif
 }
 
 static void file_register(const struct file *f)
@@ -36,6 +40,7 @@ struct file *file_new(
     f->md5_str = md5_str;
     f->length = length;
     f->piece_size = piece_size;
+    f->piece_count = (length / piece_size) + ((length%piece_size) ? 1 : 0);
 
     file_register(f);
 
@@ -76,4 +81,9 @@ struct file *file_get_or_create(
         f = file_new(filename, length, piece_size, md5_str);
     }
     return f;
+}
+
+struct list *file_list(void)
+{
+    return ht_to_list(file_by_name);
 }

@@ -78,6 +78,8 @@ struct list *list_new(int flags, ...)
 
 void list_free(struct list *list)
 {
+    if (NULL == list)
+        return;
     struct list_node *node = node_get_next(list->front_sentinel);
     struct list_node *tmp = NULL;
     while (!node_is_sentinel(node)) {

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <locale.h>
 
 #include "util.h"
 #include "config.h"
@@ -39,9 +40,18 @@ static void start_command_prompt_thread(void)
     start_detached_thread(&command_prompt, NULL, _("command prompt"));
 }
 
+static void init_locale(void)
+{
+    setlocale(LC_ALL, "");
+    bindtextdomain("rz_trackme", ".");
+    textdomain("rz_trackme");
+}
+
 int main(int argc, char *argv[])
 {
     uint16_t port;
+
+    init_locale();
     parse_options(&argc, &argv);
     load_config_file();
     if ( option_daemonize() ) {
