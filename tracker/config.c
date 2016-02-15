@@ -42,7 +42,7 @@ static void load_option_from_config(
         if (value->type == YAML_SCALAR) {
             ht_add_entry(options, key, value->content.scalar);
             rz_debug(
-                "option '%s' loaded from config with value '%s'\n",
+                _("option '%s' loaded from config with value '%s'\n"),
                 key, (char*) value->content.scalar);
         }
     }
@@ -60,12 +60,12 @@ void load_config_file(void)
 
     ret = yaml2_parse_file(&yw, path);
     if (ret < 0 || yw->type != YAML_MAPPING) {
-        fprintf(stderr, "Invalid configuration file %s. Skipping...\n", path);
+        fprintf(stderr, _("Invalid configuration file %s. Skipping...\n"), path);
         return;
     }
 
     ht_for_each(yw->content.mapping, &load_option_from_config, NULL);
-    rz_debug("Loaded config file %s\n", path);
+    rz_debug(_("Loaded config file %s\n"), path);
 }
 
 bool option_daemonize(void)
@@ -98,7 +98,7 @@ static struct option option[] = {
 
 void print_version(void)
 {
-    printf("Rz is v%d.%d.%d\n",
+    printf(_("Rz is v%d.%d.%d\n"),
 	   VERSION_MAJOR_NUMBER,
 	   VERSION_MINOR_NUMBER,
 	   VERSION_REVISION_NUMBER);
@@ -106,52 +106,25 @@ void print_version(void)
 
 void print_help(void)
 {
-    puts("Rz help:\n"
-	 "All options are optional! ;)\n\n"
+    puts(_("Rz help:\n"
+           "All options are optional! ;)\n\n"
 
-	 "\t-p N, --port=N\n"
-	 "\t\tset tracker listening port to N\n"
-	 "\t\tdefault is 8000\n\n"
+           "\t-p N, --port=N\n"
+           "\t\tset tracker listening port to N\n"
+           "\t\tdefault is 8000\n\n"
 
-	 "\t-c N, --conf=N\n"
-	 "\t\tset the configuration file path to N\n"
-	 "\t\tdefault is `.' (working directory)\n\n"
+           "\t-c N, --conf=N\n"
+           "\t\tset the configuration file path to N\n"
+           "\t\tdefault is `.' (working directory)\n\n"
 
-         "\t-d, --daemon, --daemonize\n"
-	 "\t\tdetach the server from the console and run in background\n\n"
+           "\t-d, --daemon, --daemonize\n"
+           "\t\tdetach the server from the console and run in background\n\n"
 
-	 "\t-v, --version\n"
-	 "\t\tshow rz' version\n\n"
+           "\t-v, --version\n"
+           "\t\tshow rz' version\n\n"
 
-	 "\t-h, --help\n"
-	 "\t\tshow this help\n"
-        );
-}
-
-static char *rdstr[] = {
-    "rand",
-    "random",
-    "randomize"
-};
-
-static int optarg_is_random(void)
-{
-
-    int l = sizeof(rdstr) / sizeof(rdstr[0]);
-    for (int i = 0; i < l; i++) {
-	if (!strcmp(rdstr[i], optarg))
-	    return 1;
-    }
-    return 0;
-}
-
-static int string_is_positive_integer(const char *str)
-{
-    int i;
-    for (i = 0; str[i]; ++i)
-	if (!isdigit(str[i]))
-	    return 0;
-    return 1;
+           "\t-h, --help\n"
+           "\t\tshow this help\n"));
 }
 
 #define SET_OPT(field, value)                   \

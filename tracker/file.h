@@ -7,7 +7,7 @@
 struct file {
     char *filename;
     char *md5_str;
-    uint32_t length;
+    uint64_t length;
 
     uint32_t piece_count;
     uint32_t piece_size;
@@ -27,6 +27,7 @@ struct file *file_get_by_name(const char *name);
 struct file *file_get_or_create(
     char *filename, uint32_t length, uint32_t piece_size, char *md5_str);
 
+struct list *file_list(void);
 
 
 #endif //FILE_H

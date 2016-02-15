@@ -19,6 +19,7 @@
 #include <readline/history.h>
 
 #include "client.h"
+#include "file.h"
 #include "cutil/error.h"
 #include "cutil/string2.h"
 #include "config.h"
@@ -61,8 +62,8 @@ void command_prompt(void)
     if ( option_daemonize() )
         return;
 
-    rz_debug("Prompt thread started\n");
-    printf("type 'help' to get started!\n");
+    rz_debug(_("Prompt thread started\n"));
+    printf(_("type 'help' to get started!\n"));
 
     struct sigaction sa;
     sa.sa_handler = &ctrlc_handler;
@@ -124,8 +125,9 @@ static bool eval(const char *command__)
         EVAL_EI(command, "help", prompt_command_help(len, command))
         EVAL_EI(command, "quit", ret_quit = true)
         EVAL_EI(command, "exit", ret_quit = true)
-        EVAL_E( printf("unknown command '%s'.\n"
-                       "try the 'help' command to get started!\n", command[0]))
+        EVAL_E( printf(
+            _("unknown command '%s'.\n"
+              "try the 'help' command to get started!\n"), command[0]));
 #undef EVAL_I
 #undef EVAL_EI
 #undef EVAL_E
@@ -140,19 +142,19 @@ static bool eval(const char *command__)
 static const char *get_command_help(const char *cmd)
 {
     const char *quit_str =
-        "\tNo help for this command. Sorry.\n"
-        "\tBut this one should be rather obvious ;)";
+        _("\tNo help for this command. Sorry.\n"
+          "\tBut this one should be rather obvious ;)");
 
 #define GET_I(cmd, val, str) if (!strcmp(cmd, val)) {   return str; }
 #define GET_EI(cmd, val, str) else if (!strcmp(cmd, val)) { return str; }
 #define GET_E(str) else {  return str; }
 
-    GET_I(cmd, "client",  "\tclient list : print a list of connected client")
-        GET_EI(cmd, "file", "\tfile list : print a list of known files")
-        GET_EI(cmd, "help", "\thelp cmd : display the help for 'cmd'")
+    GET_I(cmd, "client",  _("\tclient list : print a list of connected client"))
+        GET_EI(cmd, "file", _("\tfile list : print a list of known files"))
+        GET_EI(cmd, "help", _("\thelp cmd : display the help for 'cmd'"))
         GET_EI(cmd, "quit", quit_str)
         GET_EI(cmd, "exit", quit_str)
-        GET_E( "\tNo help for this command. Sorry." )
+        GET_E( _("\tNo help for this command. Sorry."));
 #undef GET_I
 #undef GET_EI
 #undef GET_E
@@ -163,15 +165,33 @@ static void print_client_list(void)
     struct list *cl = client_list();
     unsigned l = list_size(cl);
     if (l == 0) {
-        puts("No clients.");
+        puts(_("No clients."));
         return;
     }
 
     for (unsigned i = 1; i <= l; ++i) {
         struct client *c = list_get(cl, i);
-        printf("#%d: %s listening on port %hd\n", i,
+        printf(_("#%d: %s listening on port %hd\n"), i,
                ip_stringify(c->addr.sin_addr.s_addr),
                c->listening_port);
+    }
+}
+
+static void print_file_list(void)
+{
+    struct list *cl = file_list();
+    unsigned l = list_size(cl);
+    if (l == 0) {
+        puts(_("No files."));
+        return;
+    }
+
+    for (unsigned i = 1; i <= l; ++i) {
+        struct file *f = list_get(cl, i);
+        printf(_("#%d: name: '%s' | key: '%s' | size: %lu B | "
+                 "%u pieces | piece size: %u\n"),
+               i, f->filename, f->md5_str, f->length,
+               f->piece_count, f->piece_size);
     }
 }
 
@@ -193,7 +213,8 @@ static void prompt_command_file(int len, char **command)
         return;
     }
 
-    rz_error("sub-command is probably not implemented\n");
+    if (!strcmp(command[1], "list"))
+        print_file_list();
 }
 
 static void prompt_command_help(int len, char **command)
@@ -203,9 +224,9 @@ static void prompt_command_help(int len, char **command)
             printf("%s:\n%s\n", command[i], get_command_help(command[i]));
         }
     } else {
-        printf("Press [tab][tab] (tabulation twice) to see"
-               " a list of available commands\n"
-               "Run 'help cmd' to get help on the given argument `cmd´\n");
+        printf(_("Press [tab][tab] (tabulation twice) to see"
+                 " a list of available commands\n"
+                 "Run 'help cmd' to get help on the given argument `cmd´\n"));
     }
 }
 

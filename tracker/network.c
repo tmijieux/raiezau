@@ -75,8 +75,8 @@ void server_run(uint32_t addr, uint16_t port)
 
     for (;__ever;) {
         int accept_s;
-        socklen_t size = sizeof accept_s;
         struct sockaddr_in accept_si = { 0 };
+        socklen_t size = sizeof accept_si;
 
         accept_s = accept(s, (struct sockaddr*)&accept_si, &size);
         if (accept_s < 0) {
@@ -108,7 +108,6 @@ int socket_read_string(int sock, char **ret_str)
             *ret_str = NULL;
             return -1;
         }
-        
         buf[r] = 0;
         if (str_size + r > str_bufsize) {
             str = realloc(str, 2*str_bufsize);
@@ -116,22 +115,23 @@ int socket_read_string(int sock, char **ret_str)
         }
         str_size += r;
         strcat(str, buf);
-
-        rz_debug("terminating character is '#%d' : (%s)\n",
-                 buf[r-1],
-                 buf[r-1] == '\0'
-                 ? "nul"
-                 : ( buf[r-1] == '\n'
-                     ? "newline"
-                     : "unknown"));
+        rz_debug(_("terminating character is '#%d' : (%s)\n"), buf[r-1],
+                 buf[r-1] == '\0' ? "nul"
+                 : (buf[r-1] == '\n' ? _("newline") : _("unknown")));
     } while ( buf[r-1] != '\0' && buf[r-1] != '\n' );
 
     // remove '\n' at the end of the line
-    while (str_size-1 > 0 && str[str_size-1] == '\n') {
+    while (str_size-1 >= 0 && str[str_size-1] == '\n') {
         str[str_size-1] = '\0';
         --str_size;
     }
 
     *ret_str = str;
     return str_size;
+}
+
+void socket_write_string(int sock, size_t len, const char *str)
+{
+    if (write(sock, str, len+1) != len+1)
+        rz_error(_("bad write: %s"), strerror(errno));
 }
