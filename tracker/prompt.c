@@ -105,7 +105,7 @@ static void read_eval_loop(void)
             quit = eval(command);
         }
     }
-    printf("exiting ...\n");
+    printf(_("exiting ...\n"));
 }
 
 static bool eval(const char *command__)

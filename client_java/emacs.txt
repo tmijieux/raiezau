@@ -1,4 +1,7 @@
 
+http://www.oracle.com/technetwork/java/codeconventions-150003.pdf
+https://www.emacswiki.org/emacs/IndentingC
+
 mon style java:
 
 (defun javahook ()
@@ -21,13 +24,13 @@ mon style java:
 (add-hook 'java-mode-hook 'javahook)
 
 
-la ligne qui permet de mettre les arguments en retrait,
-apres avoir fait un retour a la ligne juste derriere une parenthèse
-
-c'est :
-    (c-offsets-alist ((arglist-intro '+)))
-
+la ligne (extraite de ce qui précède) qui permet de mettre les
+arguments en retrait, après avoir fait un retour a la ligne juste
+derriere une parenthèse, c'est :
+    (c-offsets-alist
+     ...
+      ((arglist-intro '+)))
 
 et de préférence
 (setq indent-tabs-mode nil)  ; pas de tabulation
-
+M-x untabify
