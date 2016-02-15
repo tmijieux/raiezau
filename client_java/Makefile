@@ -1,7 +1,9 @@
 .PHONY = clean build recette build-tst run-tst run
 
 SRC=File.java \
-	P2TProtocole.java \
+	PeerSocket.java \
+	Peer.java \
+	Tracker.java \
 	Client.java
 
 re:
