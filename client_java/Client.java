@@ -2,22 +2,30 @@ package RZ;
 
 import java.util.*;
 import java.io.*;
+import java.lang.*;
 
 class Client {
-    private int port = 8080;
+    private Config conf;
+    private int port;
 
     private List<RZFile> files;
     private Tracker tracker;
 
-    Client(String ip, int port) throws Exception {
-	tracker = new Tracker(ip, port);
+    Client() throws Exception {
+	conf = new Config();
+
+	port = conf.getInt("user-port");
+	tracker = new Tracker(conf.get("tracker-address"), 
+			      conf.getInt("tracker-port"));
 	files = new ArrayList<RZFile>();
     }
 
     void share() throws Exception {
 	// testing
 	files.add(new RZFile("fifi", 2, "0000", true));
+	files.add(new RZFile("ssss", 2, "9870", true));
 	files.add(new RZFile("floa", 8, "1234", false));
+	files.add(new RZFile("p0rn", 8, "6969", false));
 	
 	tracker.doAnnounce(files, port);
 	System.out.println("Announced.");
@@ -35,10 +43,7 @@ class Client {
     }
 
     public static void main(String args[]) throws Exception {
-	Config conf = new Config();
-	
-
-	Client me = new Client(conf.get("tracker-address"), 8080);
+	Client me = new Client();
 	me.share();
 	
     }

@@ -1,13 +1,16 @@
 package RZ;
 
+import java.util.*;
+import java.io.*;
+
 //import org.ho.yaml.*;
 //Object conf = Yaml.load(new File("config.ini"));
 
 class Config {
-    static final private String filename "config.ini";
+    static final private String filename = "config.ini";
     private Properties conf;
 
-    Config() {
+    Config() throws Exception {
 	conf = new Properties();
 	conf.load(new FileInputStream("config.ini"));
     }

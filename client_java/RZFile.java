@@ -6,14 +6,13 @@ class RZFile {
     private String name;
     private String key;
     private int length;
-    private int pieceSize = 1024;
+    private final int pieceSize = 1024;
 
     private boolean seed;
     private List<Peer> peers;
 
     RZFile(String name, int length, int pieceSize, String key) {
 	this(name, length, key, false);
-	this.pieceSize = pieceSize;
     }
 
     RZFile(String name, int length, String key, boolean seed) {
@@ -32,7 +31,7 @@ class RZFile {
 	return name + " " + length + " " + pieceSize + " " + key;
     }
 
-    String announceLeech() {
+    String getKey() {
 	return key;
     }
     

@@ -7,9 +7,9 @@ import java.lang.*;
 class Tracker {
     private PeerSocket socket;
 
-    private Pattern getfilePattern = Pattern.compile(
+    private final Pattern getfilePattern = Pattern.compile(
 	"\\s*peers\\s*([a-f0-9]*)\\s*\\[(.*)\\]\\s*");
-    private Pattern lookPattern = Pattern.compile(
+    private final Pattern lookPattern = Pattern.compile(
 	"\\s*list\\s*\\[(.*)\\]\\s*");
 
     Tracker(String ip, int port) throws Exception {
@@ -26,7 +26,7 @@ class Tracker {
     }
 
     void doGetfile(RZFile file) throws Exception {
-	socket.send("getfile %s", file.announceLeech());
+	socket.send("getfile %s", file.getKey());
 	receiveGetfile(file);
     }
     
@@ -43,7 +43,7 @@ class Tracker {
 	String leech = "";
 	for (RZFile file : files)
 	    if (file.isSeeded())
-		leech += file.announceLeech();
+		leech += file.getKey() + " ";
 	return String.format("leech [%s]", leech);
     }
 
@@ -51,7 +51,7 @@ class Tracker {
 	String seed = "";
 	for (RZFile file : files)
 	    if (!file.isSeeded())
-		seed += file.announceSeed();
+		seed += file.announceSeed() + " ";
 	return String.format("seed [%s]", seed);
     }
 
