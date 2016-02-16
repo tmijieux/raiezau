@@ -247,22 +247,58 @@ static int prot_update(struct client *c, char *req_value)
     return 0;
 }
 
-static void prot_look_process_criterions(
-    struct client *c, const char *criterion)
+static void process_criterion(char *criterion, struct list **l)
 {
-    // split + for loop
+    
+}
+
+static struct list *prot_look_process_criterions(
+    struct client *c, const char *criterions_str)
+{
+    int n;
+    char **criterions = NULL;
+    struct list *l = NULL;
+    
+    n = string_split(criterions_str, " ", &criterions);
+    for (int i = 0; i < n; ++i)
+        process_criterion(criterions[i], &l);
+    
+    return l;
+}
+
+static char *prot_look_build_file_list(struct list *file_list)
+{
+    char *out, *tmp = "";
+    unsigned len;
+
+    if (file_list == NULL || (len = list_size(file_list)) == 0)
+        return strdup("");
+
+    for (unsigned i = 1; i <= len; ++i) {
+        struct file *f = list_get(file_list, i);
+        asprintf(&out, "%s%s%s %lu %u %s" , tmp, i > 1 ? " " : "",
+                 f->filename, f->length, f->piece_count, f->md5_str);
+        if (i > 1) free(tmp);
+        tmp = out;
+    }
+    return out;
 }
 
 static int prot_look(struct client *c, char *req_value)
 {
-    int mc;
-    char *str = NULL;
-    mc = sscanf(req_value, " [%m[^]]] ", &str); // viva el scanf powa
+    int mc, len;
+    char *criterions = NULL, *response, *file_list_str;
+    mc = sscanf(req_value, " [%m[^]]] ", &criterions); // viva el scanf powa
     if (mc == 1){
-        prot_look_process_criterions(c, str);
+        struct list *l;
+        l = prot_look_process_criterions(c, criterions);
+        file_list_str = prot_look_build_file_list(l);
+        len = asprintf(&response, "list [%s]",  file_list_str);
+        socket_write_string(c->sock, len, response);
+        free(file_list_str);
+        free(response);
     }
-    free(str);
-    write_ok(c->sock);
+    free(criterions);
     return 0;
 }
 
@@ -273,7 +309,7 @@ static void str_trim_prot_getfile(char *req)
     *req = '\0';
 }
 
-static char *client_endpoints_string_list(struct list *cli)
+static char *prot_getfile_build_peer_string_list(struct list *cli)
 {
     char *out, *tmp = "";
     unsigned len;
@@ -312,7 +348,7 @@ static int prot_getfile(struct client *c, char *req_value)
         return -1;
     }
 
-    endpoints_list = client_endpoints_string_list(f->clients);
+    endpoints_list = prot_getfile_build_peer_string_list(f->clients);
     len = asprintf(&response, "peers %s [%s]", req_value, endpoints_list);
     socket_write_string(c->sock, len, response);
 

@@ -77,8 +77,8 @@ void command_prompt(void)
 
 static void setup_readline(void)
 {
-    rl_catch_signals = 1;
-    rl_set_signals();
+    rl_catch_signals = 0;
+    rl_clear_signals();
 
     rl_attempted_completion_function = my_completion;
     rl_bind_key('\t', rl_complete);
@@ -93,7 +93,8 @@ static void read_eval_loop(void)
     while (sigsetjmp(ctrlc_buf, 1) != 0);
     if (back_from_signal) {
         back_from_signal = false;
-        printf("\n");
+        rl_reset_terminal(NULL);
+        printf("^C\n");
     }
 
     while (!quit) {

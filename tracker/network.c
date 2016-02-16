@@ -8,6 +8,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
+#include <poll.h>
 
 #include "util.h"
 #include "protocol.h"
@@ -16,6 +17,8 @@
 
 
 #define HEURISTIC_SIZE 3072
+#define INITIAL_PEERFD_BUFSIZE 1000
+#define ever true
 
 #define CHK(mesg, X_) do { if ((X_) < 0) { perror(#mesg);       \
             exit(EXIT_FAILURE);} } while(0)
@@ -67,25 +70,72 @@ static void start_server_reqhandler_thread(
     start_detached_thread((void*(*)(void*))handle_request, c, "request");
 }
 
+static void accept_connection(int sock)
+{
+    int accept_s;
+    struct sockaddr_in accept_si = { 0 };
+    socklen_t size = sizeof accept_si;
+
+    accept_s = accept(sock, (struct sockaddr*)&accept_si, &size);
+    if (accept_s < 0) {
+        if (EINTR == errno)
+            return;
+        perror("accept");
+        return;
+    }
+}
+
+static void add_new_client_to_fds()
+{
+    if (nfds+1 > fds_buffer_size) {
+        *fds_buffer_size *= 2;
+        *fds = realloc(*fds, sizeof**fds**fds_buffer_size);
+    }
+    
+    fds[nfds].fd = s;
+    fds[nfds].events = POLLIN;
+    nfds++;
+}
+
+static void handle_new_connection(
+    struct pollfd **fds, int *nfds, int fds_buffer_size )
+{
+    int sock, accept_s;
+    struct sockaddr_in accept_si = { 0 };
+    socklen_t size = sizeof accept_si;
+
+    accept_connection( );
+    add_client_to_fds( )
+    start_server_reqhandler_thread(accept_s, &accept_si);
+}
+
+static void handle_incoming_data(
+    struct pollfd **fds, int *nfds, int fds_buffer_size )
+{
+    new_c = accept_connection((*fds)[0].fd);
+    add_new_client_to_fds(new_c, fds, nfds, fds_buffer_size );
+    start_server_reqhandler_thread(accept_s, &accept_si);
+}
+
 void server_run(uint32_t addr, uint16_t port)
 {
-    int s;
+    int s, ret, nfds = 1;
+    uint32_t fds_buffer_size = INITIAL_PEERFD_BUFSIZE;
+    struct pollfd *fds;
+    
     make_listener_socket(addr, port, &s);
-    const bool __ever = true;
-
-    for (;__ever;) {
-        int accept_s;
-        struct sockaddr_in accept_si = { 0 };
-        socklen_t size = sizeof accept_si;
-
-        accept_s = accept(s, (struct sockaddr*)&accept_si, &size);
-        if (accept_s < 0) {
-            if (EINTR == errno)
-                continue;
-            perror("accept");
-            continue;
+    fds = malloc(sizeof*fds * fds_buffer_size);
+    // put the listener socket in the first slot of the pollfds
+    fds[0].fd = sock;  fds[0].events = POLLIN;
+    for (;ever;) {
+        // wait for an event
+        CHK(poll, ret = poll(fds, nfds, -1)); 
+        if ((fds[0].revent & POLLIN) != 0) {
+            // if the event is on the first slot, this is a new connection
+            handle_new_connection(&fds, &nfds, &fds_buffer_size);
+        } else {
+            handle_incoming_data(&fds, &nfds, &fds_buffer_size);
         }
-        start_server_reqhandler_thread(accept_s, &accept_si);
     }
 }
 
