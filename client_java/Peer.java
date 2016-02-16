@@ -16,4 +16,8 @@ class Peer {
 	    throw new Exception("Wrong group 'addr:port'.");
 	return new Peer(addrPort[0], Integer.parseInt(addrPort[1]));
     }
+
+    public String toString() {
+	return String.format("[peer: %s]", socket);
+    }
 }

@@ -28,6 +28,10 @@ class PeerSocket {
 	    new OutputStreamWriter(socket.getOutputStream()), true);
     }
 
+    void send(String text) throws Exception {
+	writer.println(text);
+    }
+
     void send(String format, Object... args) throws Exception {
 	writer.printf(format, args);
 	writer.println("");
@@ -40,4 +44,7 @@ class PeerSocket {
 	return response;
     }
 
+    public String toString() {
+	return String.format("[%s:%d]", ip, port);
+    }
 }

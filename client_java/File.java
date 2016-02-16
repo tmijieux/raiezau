@@ -12,6 +12,11 @@ class File {
     private boolean seed;
     private List<Peer> peers;
 
+    File(String name, int length, int pieceSize, String key) {
+	this(name, length, key, false);
+	this.pieceSize = pieceSize;
+    }
+
     File(String name, int length, String key, boolean seed) {
 	this.name   = name;
 	this.key    = key;
@@ -25,8 +30,7 @@ class File {
     }
 
     String announceSeed() {
-	return (name + " " + length + " " +
-		pieceSize + " " + key);
+	return name + " " + length + " " + pieceSize + " " + key;
     }
 
     String announceLeech() {
@@ -42,6 +46,6 @@ class File {
     }
 
     public String toString() {
-	return String.format("[file: %s]", name);
+	return String.format("[file: %s %s]", name, peers);
     }
 }
