@@ -1,6 +1,7 @@
 .PHONY = clean build recette build-tst run-tst run
 
-SRC=File.java \
+SRC=Config.java \
+	RZFile.java \
 	CriterionField.java \
 	CriterionOP.java \
 	Criterion.java \
@@ -15,10 +16,10 @@ re:
 
 src:
 	mkdir -p build/
-	javac -d build/ $(SRC)
+	javac -classpath .:jar/jyaml-1.3.jar -d build/ $(SRC)
 
 run: src
-	java -cp build/ RZ.Client 
+	java -cp build/:jyaml/ RZ.Client 
 
 clean:
 	$(RM) -r build/*

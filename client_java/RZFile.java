@@ -1,9 +1,8 @@
 package RZ;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
-class File {
+class RZFile {
     private String name;
     private String key;
     private int length;
@@ -12,12 +11,12 @@ class File {
     private boolean seed;
     private List<Peer> peers;
 
-    File(String name, int length, int pieceSize, String key) {
+    RZFile(String name, int length, int pieceSize, String key) {
 	this(name, length, key, false);
 	this.pieceSize = pieceSize;
     }
 
-    File(String name, int length, String key, boolean seed) {
+    RZFile(String name, int length, String key, boolean seed) {
 	this.name   = name;
 	this.key    = key;
 	this.length = length;

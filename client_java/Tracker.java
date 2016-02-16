@@ -1,9 +1,8 @@
 package RZ;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.regex.*;
-import java.lang.Integer;
+import java.lang.*;
 
 class Tracker {
     private PeerSocket socket;
@@ -18,20 +17,20 @@ class Tracker {
 	socket.connect();
     }
 
-    void doAnnounce(List<File> files, int port) throws Exception {
+    void doAnnounce(List<RZFile> files, int port) throws Exception {
 	doDeclare("announce " + listenString(port), files);
     }
 
-    void doUpdate(List<File> files) throws Exception {
+    void doUpdate(List<RZFile> files) throws Exception {
 	doDeclare("update", files);
     }
 
-    void doGetfile(File file) throws Exception {
+    void doGetfile(RZFile file) throws Exception {
 	socket.send("getfile %s", file.announceLeech());
 	receiveGetfile(file);
     }
     
-    List<File> doLook(LookRequest lr) throws Exception {
+    List<RZFile> doLook(LookRequest lr) throws Exception {
 	socket.send("look [%s]", lr);
 	return receiveLook();
     }
@@ -40,29 +39,29 @@ class Tracker {
 	return "listen " + port;
     }
 
-    private String seedString(List<File> files) {
+    private String seedString(List<RZFile> files) {
 	String leech = "";
-	for (File file : files)
+	for (RZFile file : files)
 	    if (file.isSeeded())
 		leech += file.announceLeech();
 	return String.format("leech [%s]", leech);
     }
 
-    private String leechString(List<File> files) {
+    private String leechString(List<RZFile> files) {
 	String seed = "";
-	for (File file : files)
+	for (RZFile file : files)
 	    if (!file.isSeeded())
 		seed += file.announceSeed();
 	return String.format("seed [%s]", seed);
     }
 
-    private void doDeclare(String announcement, List<File> files)
+    private void doDeclare(String announcement, List<RZFile> files)
 	throws Exception {
 	sendDeclare(announcement, files);
 	receiveDeclare();
     }
 
-    private void sendDeclare(String announcement, List<File> files)
+    private void sendDeclare(String announcement, List<RZFile> files)
 	throws Exception {
 	socket.send("%s %s %s", announcement, 
 		    seedString(files), leechString(files));
@@ -75,7 +74,7 @@ class Tracker {
 	}
     }
 
-    private void receiveGetfile(File file) throws Exception {
+    private void receiveGetfile(RZFile file) throws Exception {
 	String response = socket.receive();
 	Matcher match = getfilePattern.matcher(response);
 	
@@ -92,7 +91,7 @@ class Tracker {
 	}
     }
 
-    private List<File> receiveLook() throws Exception {
+    private List<RZFile> receiveLook() throws Exception {
 	String response = socket.receive();
 	Matcher match = lookPattern.matcher(response);
 
@@ -103,9 +102,9 @@ class Tracker {
 	if (filesStr.length % 4 != 0)
 	    throw new Exception("Invalid list size in look response");
 	
-	List<File> files = new ArrayList<File>();
+	List<RZFile> files = new ArrayList<RZFile>();
 	for (int i = 0; i < filesStr.length; i += 4) {
-	    files.add(new File(filesStr[i],
+	    files.add(new RZFile(filesStr[i],
 			       Integer.parseInt(filesStr[i+1]),
 			       Integer.parseInt(filesStr[i+2]),
 			       filesStr[i+3]));

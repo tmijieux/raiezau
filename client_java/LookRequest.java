@@ -1,8 +1,7 @@
 package RZ;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.lang.Integer;
+import java.util.*;
+import java.lang.*;
 
 class LookRequest {
     private List<Criterion> criterions;
