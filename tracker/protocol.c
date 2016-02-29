@@ -61,7 +61,7 @@ static req_handler_t get_request_handler(const char *buf_c)
 
 static void negative_answer(int sock)
 {
-    socket_write_string(sock, 3, "ko\n");
+    socket_write_string(sock, 6, "error\n");
 }
 
 static void write_ok(int sock)
@@ -118,11 +118,9 @@ static void get_and_call_handler(
 void handle_request(struct client *c)
 {
     char *req_name = NULL, *req_value = NULL;
-
     if (read_request(c->sock, &req_name, &req_value) > 0) {
         get_and_call_handler(c, req_name, req_value);
     }
-    close(c->sock);
 }
 
 static struct list *get_seed_file_list(const char *seed_str)

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <signal.h>
 #include <pthread.h>
 #include <errno.h>
 #include <poll.h>
@@ -15,10 +16,13 @@
 #include "client.h"
 #include "cutil/error.h"
 
-
 #define HEURISTIC_SIZE 3072
 #define INITIAL_PEERFD_BUFSIZE 1000
 #define ever true
+
+int nfds = 1;
+uint32_t fds_buffer_size = INITIAL_PEERFD_BUFSIZE;
+struct pollfd *fds;
 
 #define CHK(mesg, X_) do { if ((X_) < 0) { perror(#mesg);       \
             exit(EXIT_FAILURE);} } while(0)
@@ -61,86 +65,104 @@ static int make_listener_socket(uint32_t addr, uint16_t port, int *sock)
     return 1;
 }
 
-static void start_server_reqhandler_thread(
-    int accept_s, const struct sockaddr_in *accept_si)
+static void start_server_reqhandler_thread(int sock, int slot)
 {
-    struct client *c;
-    c = get_or_create_client(accept_si);
-    set_client_sockaddr(c, accept_s, accept_si);
+    struct client *c = NULL;
+    c = get_or_create_client(sock, slot);
     start_detached_thread((void*(*)(void*))handle_request, c, "request");
 }
 
-static void accept_connection(int sock)
+static int accept_connection(int listener)
 {
     int accept_s;
     struct sockaddr_in accept_si = { 0 };
     socklen_t size = sizeof accept_si;
 
-    accept_s = accept(sock, (struct sockaddr*)&accept_si, &size);
+    accept_s = accept(listener, (struct sockaddr*)&accept_si, &size);
     if (accept_s < 0) {
         if (EINTR == errno)
-            return;
+            return -1;
         perror("accept");
-        return;
+        return -1;
     }
+
+    return accept_s;
 }
 
-static void add_new_client_to_fds()
+static int add_new_client_to_fds(int sock)
 {
     if (nfds+1 > fds_buffer_size) {
-        *fds_buffer_size *= 2;
-        *fds = realloc(*fds, sizeof**fds**fds_buffer_size);
+        fds_buffer_size *= 2;
+        fds = realloc(fds, sizeof*fds * fds_buffer_size);
     }
     
-    fds[nfds].fd = s;
+    fds[nfds].fd = sock;
     fds[nfds].events = POLLIN;
-    nfds++;
+    fds[nfds].revents = 0;
+    return nfds++;
 }
 
-static void handle_new_connection(
-    struct pollfd **fds, int *nfds, int fds_buffer_size )
+static void handle_new_connection(int listener)
 {
-    int sock, accept_s;
-    struct sockaddr_in accept_si = { 0 };
-    socklen_t size = sizeof accept_si;
-
-    accept_connection( );
-    add_client_to_fds( )
-    start_server_reqhandler_thread(accept_s, &accept_si);
+    int sock;
+    sock = accept_connection(listener);
+    add_new_client_to_fds(sock);
 }
 
-static void handle_incoming_data(
-    struct pollfd **fds, int *nfds, int fds_buffer_size )
+static void handle_incoming_data(void)
 {
-    new_c = accept_connection((*fds)[0].fd);
-    add_new_client_to_fds(new_c, fds, nfds, fds_buffer_size );
-    start_server_reqhandler_thread(accept_s, &accept_si);
-}
-
-void server_run(uint32_t addr, uint16_t port)
-{
-    int s, ret, nfds = 1;
-    uint32_t fds_buffer_size = INITIAL_PEERFD_BUFSIZE;
-    struct pollfd *fds;
-    
-    make_listener_socket(addr, port, &s);
-    fds = malloc(sizeof*fds * fds_buffer_size);
-    // put the listener socket in the first slot of the pollfds
-    fds[0].fd = sock;  fds[0].events = POLLIN;
-    for (;ever;) {
-        // wait for an event
-        CHK(poll, ret = poll(fds, nfds, -1)); 
-        if ((fds[0].revent & POLLIN) != 0) {
-            // if the event is on the first slot, this is a new connection
-            handle_new_connection(&fds, &nfds, &fds_buffer_size);
+    for (int i = 1; i < nfds; ++i) {
+        if ((fds[i].revents & POLLIN) != 0) {
+            fds[i].events = 0;
+            fds[i].revents = 0;
+            start_server_reqhandler_thread(fds[i].fd, i);
+        } else if ((fds[i].revents & POLLHUP) != 0) {
+            // remove the client only if no threads are currently
+            // working on it
         } else {
-            handle_incoming_data(&fds, &nfds, &fds_buffer_size);
+            // check for deleted client or something like that
         }
     }
 }
 
-void server_run_bind_any_addr(uint16_t port)
+static void block_all_signals(void)
 {
+    sigset_t set;
+    sigfillset(&set);
+    pthread_sigmask(SIG_SETMASK, &set, NULL);
+}
+
+void server_run(uint32_t addr, uint16_t port)
+{
+    int listener, ret;
+    block_all_signals();
+    // I think it is important that poll never get interrupted by signals
+    
+    make_listener_socket(addr, port, &listener);
+    fds = malloc(sizeof*fds * fds_buffer_size);
+    // put the listener socket in the first slot of the pollfds
+    fds[0].fd = listener;  fds[0].events = POLLIN;
+    for (;ever;) {
+        // wait for an event
+        ret = poll(fds, nfds, -1);
+        if (ret < 0) {
+            if (errno != EINTR) {
+                rz_error("poll: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            rz_error("POLL INTERRUPTED: %s\n", strerror(errno));
+            continue;
+        }
+        if ((fds[0].revents & POLLIN) != 0) {
+            // if the event is on the first slot, there is a new connection
+            handle_new_connection(listener);
+        }
+        handle_incoming_data();
+    }
+}
+
+void server_run_bind_any_addr(uint16_t port)
+{ 
     server_run(INADDR_ANY, port);
 }
 

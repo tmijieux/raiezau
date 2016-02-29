@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -18,6 +19,22 @@ void start_detached_thread(
             exit(EXIT_FAILURE);
     }
     pthread_attr_destroy(&attr);
+}
+
+void start_attached_thread(
+    pthread_t *t, void* (*task)(void*), void *param, const char *name)
+{
+    if (pthread_create(t, NULL, task, param) < 0) {
+        fprintf(stderr, _("cannot create %s thread\n"), name);
+            exit(EXIT_FAILURE);
+    }
+}
+
+char *int_stringify(int i)
+{
+    char *str;
+    asprintf(&str, "%d", i);
+    return str;
 }
 
 int regex_exec(const char *regexp, const char *str,
