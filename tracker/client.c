@@ -120,6 +120,7 @@ void handle_pending_clients(void)
             if (c->delete) {
                 rz_debug(_("try to delete client %s\n"), client_to_string(c));
                 fds[c->slot].fd= -1;
+                close(c->sock);
                 delete_client(c->sock, c->slot);
             } else {
                 rz_debug(_("client %s rehear %d\n"),
