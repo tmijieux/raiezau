@@ -11,16 +11,21 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <limits.h>
+#include <signal.h>
 
 #include "rz.h"
 #include "file.h"
 #include "client.h"
 #include "util.h"
+#include "network.h"
 
 #include "cutil/string2.h"
 #include "cutil/hash_table.h"
 #include "cutil/error.h"
 #include "cutil/md5.h"
+
+#define PROTOCOL_ERROR -1
+#define SOCKET_ERROR -2
 
 typedef int (*req_handler_t)(struct client*, char*);
 
@@ -83,14 +88,17 @@ static int read_request(int sock, char **req_name, char **req_value)
         int nmatch;
         if ((nmatch = sscanf(client_req, " %ms %n", req_name, &len)) != 1) {
             negative_answer(sock);
-            ret = -1;
+            ret = PROTOCOL_ERROR;
         } else {   // sscanf == 1
             ret = rd;
             *req_value = strdup(client_req + len);
         }
     } else { // read_string <= 0
+        if (rd == 0)
+            ret = PROTOCOL_ERROR;
+        else
+            ret = SOCKET_ERROR;
         negative_answer(sock);
-        ret = -1;
     }
     free(client_req);
     return ret;
@@ -117,10 +125,19 @@ static void get_and_call_handler(
 // this is the entry point
 void handle_request(struct client *c)
 {
+    int ret;
     char *req_name = NULL, *req_value = NULL;
-    if (read_request(c->sock, &req_name, &req_value) > 0) {
+    ret = read_request(c->sock, &req_name, &req_value);
+ 
+    if (ret > 0) {
         get_and_call_handler(c, req_name, req_value);
+    } else if (ret == SOCKET_ERROR) {
+        rz_debug(_("socket error\n"));
+        c->delete = true;
     }
+    c->thread_handling = false;
+    add_client_to_pending_list(c);
+    pthread_kill(network_thread, SIGUSR1);
 }
 
 static struct list *get_seed_file_list(const char *seed_str)
@@ -148,7 +165,6 @@ static struct list *get_seed_file_list(const char *seed_str)
         free(tab[i]); free(tab[i+1]); free(tab[i+2]); free(tab[i+3]);
     }
     free(tab);
-
     return l;
 }
 

@@ -20,6 +20,7 @@
 #define INITIAL_PEERFD_BUFSIZE 1000
 #define ever true
 
+pthread_t network_thread;
 int nfds = 1;
 uint32_t fds_buffer_size = INITIAL_PEERFD_BUFSIZE;
 struct pollfd *fds;
@@ -69,7 +70,11 @@ static void start_server_reqhandler_thread(int sock, int slot)
 {
     struct client *c = NULL;
     c = get_or_create_client(sock, slot);
-    start_detached_thread((void*(*)(void*))handle_request, c, "request");
+    if (NULL != c) {
+        c->thread_handling = true;
+        ++ handled_client_count;
+        start_detached_thread((void*(*)(void*))handle_request, c, "request");
+    }
 }
 
 static int accept_connection(int listener)
@@ -112,34 +117,71 @@ static void handle_new_connection(int listener)
 static void handle_incoming_data(void)
 {
     for (int i = 1; i < nfds; ++i) {
-        if ((fds[i].revents & POLLIN) != 0) {
+        if ((fds[i].revents & POLLHUP) != 0) {
+            fds[i].fd = -1;
+            struct client *c = get_client(fds[i].fd, i);
+            if (NULL != c)
+                mark_client_for_deletion(c);
+            // remove the client only if no threads are currently
+            // working on it
+        } else if ((fds[i].revents & POLLIN) != 0) {
             fds[i].events = 0;
             fds[i].revents = 0;
             start_server_reqhandler_thread(fds[i].fd, i);
-        } else if ((fds[i].revents & POLLHUP) != 0) {
-            // remove the client only if no threads are currently
-            // working on it
-        } else {
-            // check for deleted client or something like that
         }
     }
 }
 
-static void block_all_signals(void)
+static void block_all_signals_but_usr1(void)
 {
     sigset_t set;
     sigfillset(&set);
+    sigdelset(&set, SIGUSR1);
     pthread_sigmask(SIG_SETMASK, &set, NULL);
+}
+
+static void usr1_handler(int sig)
+{
+    //nothing
+}
+
+static void install_network_signal_handler(void)
+{
+    struct sigaction sa;
+
+    sa.sa_handler = &usr1_handler;
+    sa.sa_flags = 0;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGUSR1, &sa, NULL);
+}
+
+static void clean_fds(void)
+{
+    if (handled_client_count > 0)
+        return;
+    for (int i = 1; i < nfds; ++i) {
+        while (fds[i].fd == -1) {
+            if (i >= nfds-1) {
+                --nfds;
+                fds[i].fd = -2;
+            } else {
+                fds[i].fd = fds[--nfds].fd;
+            }
+        }
+    }
 }
 
 void server_run(uint32_t addr, uint16_t port)
 {
     int listener, ret;
-    block_all_signals();
+    network_thread = pthread_self();
+    block_all_signals_but_usr1();
+    install_network_signal_handler();
     // I think it is important that poll never get interrupted by signals
     
     make_listener_socket(addr, port, &listener);
     fds = malloc(sizeof*fds * fds_buffer_size);
+    
     // put the listener socket in the first slot of the pollfds
     fds[0].fd = listener;  fds[0].events = POLLIN;
     for (;ever;) {
@@ -150,13 +192,15 @@ void server_run(uint32_t addr, uint16_t port)
                 rz_error("poll: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
-            rz_error("POLL INTERRUPTED: %s\n", strerror(errno));
-            continue;
+            rz_error(_("POLL INTERRUPTED: %s\n"), strerror(errno));
         }
+        rz_debug("poll event !!\n");
         if ((fds[0].revents & POLLIN) != 0) {
             // if the event is on the first slot, there is a new connection
             handle_new_connection(listener);
         }
+        handle_pending_clients();
+        clean_fds();
         handle_incoming_data();
     }
 }
@@ -207,3 +251,4 @@ void socket_write_string(int sock, size_t len, const char *str)
     if (write(sock, str, len+1) != len+1)
         rz_error(_("bad write: %s"), strerror(errno));
 }
+

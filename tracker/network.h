@@ -7,8 +7,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <poll.h>
 
 #include "rz.h"
+
+extern pthread_t network_thread;
+extern int nfds;
+extern uint32_t fds_buffer_size;
+extern struct pollfd *fds;
 
 char *sockaddr_stringify(const struct sockaddr_in *si);
 char *ip_stringify(uint32_t ip_addr);
