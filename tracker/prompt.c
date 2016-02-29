@@ -109,33 +109,37 @@ static void read_eval_loop(void)
     printf(_("exiting ...\n"));
 }
 
-static bool eval(const char *command__)
+static bool eval(const char *command_str)
 {
     bool ret_quit = false;
-    int len;
+    socklen_t len;
     char **command;
 
-    len = string_split(command__, " ", &command);
+    if ('!' == command_str[0]) {
+        system(command_str+1);
+    } else {
+        len = string_split(command_str, " ", &command);
 
 #define EVAL_I(cmd, val, instr) if (!strcmp(cmd[0], val)) {   instr; }
 #define EVAL_EI(cmd, val, instr) else if (!strcmp(cmd[0], val)) {   instr; }
 #define EVAL_E(instr) else {  instr; }
 
-    EVAL_I(command, "client", prompt_command_client(len, command))
-        EVAL_EI(command, "file", prompt_command_file(len, command))
-        EVAL_EI(command, "help", prompt_command_help(len, command))
-        EVAL_EI(command, "quit", ret_quit = true)
-        EVAL_EI(command, "exit", ret_quit = true)
-        EVAL_E( printf(
-            _("unknown command '%s'.\n"
-              "try the 'help' command to get started!\n"), command[0]));
+        EVAL_I(command, "client", prompt_command_client(len, command))
+            EVAL_EI(command, "file", prompt_command_file(len, command))
+            EVAL_EI(command, "help", prompt_command_help(len, command))
+            EVAL_EI(command, "quit", ret_quit = true)
+            EVAL_EI(command, "exit", ret_quit = true)
+            EVAL_E( printf(
+                _("unknown command '%s'.\n"
+                  "try the 'help' command to get started!\n"), command[0]));
 #undef EVAL_I
 #undef EVAL_EI
 #undef EVAL_E
 
-    for (int i = 0; i < len; ++i)
-        free(command[i]);
-    free(command);
+        for (int i = 0; i < len; ++i)
+            free(command[i]);
+        free(command);
+    }
 
     return ret_quit;
 }
