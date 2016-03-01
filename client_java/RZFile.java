@@ -26,6 +26,19 @@ class RZFile {
     void addPeer(Peer peer) {
 	peers.add(peer);
     }
+    
+    void peerConnect(int peerIndex) throws Exception {
+	peers.get(peerIndex).connect();
+    }
+    void peerDoInterested(int peerIndex) throws Exception {
+	peers.get(peerIndex).doInterested(this);
+    }
+    void peerDoGetpieces(int peerIndex, int[] index) throws Exception {
+	peers.get(peerIndex).doGetpieces(this, index);
+    }
+    void peerDoHave(int peerIndex) throws Exception {
+	peers.get(peerIndex).doHave(this);
+    }
 
     String announceSeed() {
 	return name + " " + length + " " + pieceSize + " " + key;
@@ -35,12 +48,27 @@ class RZFile {
 	return key;
     }
     
+    int getLength() {
+	return length;
+    }
+    
     boolean isSeeded() {
 	return seed;
     }
 
     boolean isKey(String key2) {
 	return key.compareTo(key2) == 0;
+    }
+
+    void assertIsKey(String key2) throws Exception {
+	if (!isKey(key2))
+	    throw new Exception("Wrong key.");
+    }
+
+    void addPiece(int index, byte[] data) {
+	// TODO:
+	// write in file
+	// update buffermap
     }
 
     public String toString() {

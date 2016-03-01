@@ -1,7 +1,9 @@
 .PHONY = clean build recette build-tst run-tst run
 
 SRC=Config.java \
+	Logs.java \
 	RZFile.java \
+	RZPattern.java \
 	CriterionField.java \
 	CriterionOP.java \
 	Criterion.java \
@@ -27,3 +29,9 @@ clean:
 
 nc:
 	nc -l -p 8080
+
+nc_track:
+	nc -l -p 8080 < track.txt
+
+nc_cli:
+	nc -l -p 6969 < client.txt

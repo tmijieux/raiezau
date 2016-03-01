@@ -1,5 +1,8 @@
 package RZ;
 
+import java.util.*;
+import java.util.regex.*;
+
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.InputStreamReader;
@@ -30,18 +33,25 @@ class PeerSocket {
 
     void send(String text) throws Exception {
 	writer.println(text);
+	Logs.write.info("Send %s %s", this, text);
     }
-
     void send(String format, Object... args) throws Exception {
-	writer.printf(format, args);
-	writer.println("");
+	send(String.format(format, args));
     }
 
     String receive() throws Exception {
 	String response = reader.readLine();
 	if (response == null)
 	    throw new Exception("No response.");
+	Logs.write.info("Receive %s %s", this, response);
 	return response;
+    }
+
+    Matcher receiveMatcher(Pattern pattern) throws Exception {
+	Matcher match = pattern.matcher(receive());
+	if (!match.matches())
+	    throw new Exception("Response does not match pattern.");
+	return match;
     }
 
     public String toString() {

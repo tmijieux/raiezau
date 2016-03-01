@@ -7,10 +7,12 @@ import java.lang.*;
 class Tracker {
     private PeerSocket socket;
 
+    private final Pattern declarePattern = Pattern.compile(
+	"\\s*ok\\s*");
     private final Pattern getfilePattern = Pattern.compile(
-	"\\s*peers\\s*([a-f0-9]*)\\s*\\[(.*)\\]\\s*");
+	"\\s*peers\\s*([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
     private final Pattern lookPattern = Pattern.compile(
-	"\\s*list\\s*\\[(.*)\\]\\s*");
+	"\\s*list\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
     Tracker(String ip, int port) throws Exception {
 	socket = new PeerSocket(ip, port);
@@ -68,46 +70,42 @@ class Tracker {
     }
 
     private void receiveDeclare() throws Exception {
-	String s = socket.receive();
-	if (s.toLowerCase().compareTo("ok") != 0) {
-	    throw new Exception("Tracker does not responde OK");
-	}
+	socket.receiveMatcher(declarePattern);
     }
 
     private void receiveGetfile(RZFile file) throws Exception {
-	String response = socket.receive();
-	Matcher match = getfilePattern.matcher(response);
-	
-	if (!match.matches())
-	    throw new Exception("Invalid tracker response on getfile");
+	Matcher match = socket.receiveMatcher(getfilePattern);
 
 	String key = match.group(1);
 	if (!file.isKey(key))
 	    throw new Exception("Wrong key received.");
 	
+	if (RZPattern.isEmpty(match.group(2)))
+	    return;
+
 	String[] peers = match.group(2).split("\\s+");
+
 	for(String peer : peers) {
 	    file.addPeer(Peer.newPeerInline(peer));
 	}
     }
 
     private List<RZFile> receiveLook() throws Exception {
-	String response = socket.receive();
-	Matcher match = lookPattern.matcher(response);
-
-	if (!match.matches())
-	    throw new Exception("Invalid tracker response on look.");
+	Matcher match = socket.receiveMatcher(lookPattern);
 	
+	List<RZFile> files = new ArrayList<RZFile>();
+	if (RZPattern.isEmpty(match.group(1)))
+	    return files;
+
 	String[] filesStr = match.group(1).split("\\s+");
 	if (filesStr.length % 4 != 0)
 	    throw new Exception("Invalid list size in look response");
 	
-	List<RZFile> files = new ArrayList<RZFile>();
 	for (int i = 0; i < filesStr.length; i += 4) {
 	    files.add(new RZFile(filesStr[i],
-			       Integer.parseInt(filesStr[i+1]),
-			       Integer.parseInt(filesStr[i+2]),
-			       filesStr[i+3]));
+				 Integer.parseInt(filesStr[i+1]),
+				 Integer.parseInt(filesStr[i+2]),
+				 filesStr[i+3]));
 	}
 	return files;
     }
