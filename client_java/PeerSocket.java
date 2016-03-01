@@ -23,6 +23,16 @@ class PeerSocket {
 	this.port = port;
     }
 
+    PeerSocket(Socket peer) throws Exception {
+	socket = peer;
+	port = socket.getPort();
+	ip =   socket.getInetAddress().getHostAddress();
+        reader = new BufferedReader(
+	    new InputStreamReader(socket.getInputStream()));
+        writer = new PrintWriter(
+	    new OutputStreamWriter(socket.getOutputStream()), true);	
+    }
+
     void connect() throws Exception {
 	socket = new Socket(ip, port);
         reader = new BufferedReader(

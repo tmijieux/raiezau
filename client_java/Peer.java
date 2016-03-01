@@ -7,7 +7,7 @@ class Peer {
     private PeerSocket socket;
 
     private final Pattern dataPattern = Pattern.compile(
-	"\\s*data\\s*([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
+	"\\s*data\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
     Peer(String ip, int port) {
 	socket = new PeerSocket(ip, port);
@@ -16,11 +16,11 @@ class Peer {
     /**
      * @brief Create a peer form an inline couple: "addr:port"
      */
-    static Peer newPeerInline(String peer) throws Exception {
+    Peer(String peer) throws Exception {
 	String[] addrPort = peer.split(":");
 	if (addrPort.length != 2) 
 	    throw new Exception("Wrong group 'addr:port': \"" + peer + '"');
-	return new Peer(addrPort[0], Integer.parseInt(addrPort[1]));
+	socket = new PeerSocket(addrPort[0], Integer.parseInt(addrPort[1]));
     }
 
     void connect() throws Exception {
@@ -42,7 +42,7 @@ class Peer {
 
     private void receiveHave(RZFile file) throws Exception {
 	String regexp = String.format(
-	    "\\s*have\\s*([a-f0-9]*)\\s*(.{%d})\\s*", file.getLength() / 8);
+	    "\\s*have\\s+([a-f0-9]*)\\s+(.{%d})\\s*", file.getLength() / 8);
 	Pattern havePattern = Pattern.compile(regexp);
 
 	Matcher match = socket.receiveMatcher(havePattern);	

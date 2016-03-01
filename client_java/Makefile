@@ -10,7 +10,11 @@ SRC=Config.java \
 	LookRequest.java \
 	PeerSocket.java \
 	Peer.java \
+	ServerThread.java \
+	Server.java \
 	Tracker.java \
+	Strategy.java \
+	StrategyTest.java \
 	Client.java
 
 re:

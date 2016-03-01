@@ -8,11 +8,18 @@ import java.io.*;
 
 class Config {
     static final private String filename = "config.ini";
+
+    static final Config cfg = new Config();
     private Properties conf;
 
-    Config() throws Exception {
-	conf = new Properties();
-	conf.load(new FileInputStream("config.ini"));
+    private Config() {
+	try {
+	    conf = new Properties();
+	    conf.load(new FileInputStream("config.ini"));
+	}
+	catch (Exception e) {
+	    // doomed
+	}
     }
 
     String get(String field) {

@@ -10,7 +10,7 @@ class Tracker {
     private final Pattern declarePattern = Pattern.compile(
 	"\\s*ok\\s*");
     private final Pattern getfilePattern = Pattern.compile(
-	"\\s*peers\\s*([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
+	"\\s*peers\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
     private final Pattern lookPattern = Pattern.compile(
 	"\\s*list\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
@@ -86,7 +86,7 @@ class Tracker {
 	String[] peers = match.group(2).split("\\s+");
 
 	for(String peer : peers) {
-	    file.addPeer(Peer.newPeerInline(peer));
+	    file.addPeer(new Peer(peer));
 	}
     }
 
