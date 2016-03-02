@@ -128,7 +128,7 @@ void handle_request(struct client *c)
     int ret;
     char *req_name = NULL, *req_value = NULL;
     ret = read_request(c->sock, &req_name, &req_value);
- 
+
     if (ret > 0) {
         get_and_call_handler(c, req_name, req_value);
     } else if (ret == SOCKET_ERROR) {
@@ -263,153 +263,79 @@ static int prot_update(struct client *c, char *req_value)
 
 
 #define PROCESS_LIST(li, newlist, criterion)    \
-    do {                                          \
-        struct list *tmp;                         \
-        for (int i = 1; i <= len; ++i) {          \
+    do {                                        \
+        struct list *tmp;                       \
+        for (int i = 1; i <= len; ++i) {        \
             struct file *f = list_get((li), i); \
-            if ( (criterion) ) {                  \
-                list_add((new_list), f);          \
-            }                                     \
-        }                                         \
+            if ( (criterion) ) {                \
+                list_add((new_list), f);        \
+            }                                   \
+        }                                       \
         var_switch(tmp, (li), (new_list));      \
     } while (0)
-      
 
-static void process_criterion_eq(char *criterion, struct list **l)
-{
-    int n;
-    char **spl = NULL;
-    struct list *new_list;
-    size_t len = list_size(*l);
-    
-    n = string_split(criterion, "=", &spl);
-    if (n != 2) {
-        rz_debug("invalid criterion for '=' operator %s\n", criterion);
-        for (int i = 0; i < n; ++i)
-            free(spl[i]);
-        free(spl);
-        return;
+
+#define DEFINE_CRITERION_PROCESSOR(criterion, string, CODE)             \
+    static void process_criterion_##criterion(                          \
+        char *criterion, struct list **l)                               \
+    {                                                                   \
+        int n;                                                          \
+        char **spl = NULL;                                              \
+        struct list *new_list;                                          \
+        size_t len = list_size(*l);                                     \
+                                                                        \
+        n = string_split2(criterion, (string), &spl);                   \
+        if (n != 2) {                                                   \
+            rz_debug("invalid criterion for '" string                   \
+                "' operator %s\n", criterion);                          \
+            for (int i = 0; i < n; ++i)                                 \
+                free(spl[i]);                                           \
+            free(spl);                                                  \
+            return;                                                     \
+        }                                                               \
+        rz_debug("criterion for '" string                               \
+                 "' operator MATCH %s\n", criterion);                   \
+                                                                        \
+        char *field = spl[0];                                           \
+        char *value = spl[1];                                           \
+        rz_debug("field = '%s'; value = '%s'\n", field, value);         \
+                                                                        \
+        new_list = list_new(0);                                         \
+                                                                        \
+        CODE;                                                           \
+        list_free(new_list);                                            \
+        free(field);                                                    \
+        free(value);                                                    \
+        free(spl);                                                      \
     }
-    rz_debug("criterion for '=' operator MATCH %s\n", criterion);
 
-    char *field = spl[0];
-    char *value = spl[1];
-    rz_debug("field = '%s'; value = '%s'\n", field, value);
-    
-    new_list = list_new(0);
-    
+DEFINE_CRITERION_PROCESSOR(
+    eq, "=",
     if (STRING_EQUAL(field, "filename")) {
         PROCESS_LIST(*l, new_list, STRING_EQUAL(value, f->filename));
     } else if (STRING_EQUAL(field, "filesize")) {
         PROCESS_LIST(*l, new_list, file_size(f) == atol(value));
-    }
-    
-    list_free(new_list);
-    free(field);    
-    free(value);
-    free(spl);
-}
+    })
 
-static void process_criterion_neq(char *criterion, struct list **l)
-{
-    int n;
-    char **spl = NULL;
-    struct list *new_list;
-    size_t len = list_size(*l);
-    
-    n = string_split2(criterion, "!=", &spl);
-    if (n != 2) {
-        rz_debug("invalid criterion for '!=' operator %s\n", criterion);
-        for (int i = 0; i < n; ++i)
-            free(spl[i]);
-        free(spl);
-        return;
-    }
-    rz_debug("criterion for '!=' operator MATCH %s\n", criterion);
-
-    char *field = spl[0];
-    char *value = spl[1];
-    rz_debug("field = '%s'; value = '%s'\n", field, value);
-    
-    new_list = list_new(0);
-    
+DEFINE_CRITERION_PROCESSOR(
+    neq, "!=",
     if (STRING_EQUAL(field, "filename")) {
         PROCESS_LIST(*l, new_list, !STRING_EQUAL(value, f->filename));
     } else if (STRING_EQUAL(field, "filesize")) {
         PROCESS_LIST(*l, new_list, file_size(f) != atol(value));
-    }
-    
-    list_free(new_list);
-    free(field);    
-    free(value);
-    free(spl);
-}
+    })
 
-static void process_criterion_geq(char *criterion, struct list **l)
-{
-    int n;
-    char **spl = NULL;
-    struct list *new_list;
-    size_t len = list_size(*l);
-    
-    n = string_split2(criterion, ">=", &spl);
-    if (n != 2) {
-        rz_debug("invalid criterion for '>=' operator %s\n", criterion);
-        for (int i = 0; i < n; ++i)
-            free(spl[i]);
-        free(spl);
-        return;
-    }
-    rz_debug("criterion for '>=' operator MATCH %s\n", criterion);
-
-    char *field = spl[0];
-    char *value = spl[1];
-    rz_debug("field = '%s'; value = '%s'\n", field, value);
-    
-    new_list = list_new(0);
-    
+DEFINE_CRITERION_PROCESSOR(
+    geq, ">=",
     if (STRING_EQUAL(field, "filesize")) {
         PROCESS_LIST(*l, new_list, file_size(f) >= atol(value));
-    }
-    
-    list_free(new_list);
-    free(field);    
-    free(value);
-    free(spl);
-}
+    })
 
-static void process_criterion_leq(char *criterion, struct list **l)
-{
-    int n;
-    char **spl = NULL;
-    struct list *new_list;
-    size_t len = list_size(*l);
-    
-    n = string_split2(criterion, "<=", &spl);
-    if (n != 2) {
-        rz_debug("invalid criterion for '<=' operator %s\n", criterion);
-        for (int i = 0; i < n; ++i)
-            free(spl[i]);
-        free(spl);
-        return;
-    }
-    rz_debug("criterion for '<=' operator MATCH %s\n", criterion);
-
-    char *field = spl[0];
-    char *value = spl[1];
-    rz_debug("field = '%s'; value = '%s'\n", field, value);
-
-    new_list = list_new(0);
-    
+DEFINE_CRITERION_PROCESSOR(
+    leq, "<=",
     if (STRING_EQUAL(field, "filesize")) {
         PROCESS_LIST(*l, new_list, file_size(f) <= atol(value));
-    }
-    
-    list_free(new_list);
-    free(field);    
-    free(value);
-    free(spl);
-}
+    })
 
 static void process_criterion(char *criterion, struct list **l)
 {
@@ -425,11 +351,11 @@ static struct list *prot_look_process_criterions(
     int n;
     char **criterions = NULL;
     struct list *l = file_list();
-    
+
     n = string_split(criterions_str, " ", &criterions);
     for (int i = 0; i < n; ++i)
         process_criterion(criterions[i], &l);
-    
+
     return l;
 }
 
@@ -459,7 +385,7 @@ static int prot_look(struct client *c, char *req_value)
 
     regexp = "\\[(.*)\\] *";
     ret = regex_exec(regexp, req_value, 2, pmatch);
-    
+
     if (!(ret < 0)) {
         struct list *l;
         criterions = strndup(
