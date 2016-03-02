@@ -48,6 +48,9 @@ class PeerSocket {
     void send(String format, Object... args) throws Exception {
 	send(String.format(format, args));
     }
+    void sendError() throws Exception {
+	send("error");
+    }
 
     String receive() throws Exception {
 	String response = reader.readLine();

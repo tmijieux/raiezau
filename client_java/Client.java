@@ -17,6 +17,7 @@ class Client {
 			      Config.cfg.getInt("tracker-port"));
 	files = new ArrayList<RZFile>();
 	this.strategy = strategy;
+	new Thread(new Server(this.port)).start();
     }
 
     void start() throws Exception {
@@ -26,6 +27,6 @@ class Client {
     public static void main(String args[]) throws Exception {
 	Strategy strategy = new StrategyTest();
 	Client me = new Client(strategy);
-	me.start();
+	//me.start();
     }
 }
