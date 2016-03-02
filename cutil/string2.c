@@ -43,7 +43,7 @@ int character_is_in_string(int c, const char *str)
     return 0;
 }
 
-static void str_strip_impl(char *str, char c)
+void strstripc(char *str, char c)
 {
     size_t l = strlen(str);
     if (str[l - 1] == c)
@@ -62,7 +62,7 @@ char *str_replace_char(const char *str, char from, char to)
 char *strstrip(const char *str)
 {
     char *strip_ = strdup(str);
-    str_strip_impl(strip_, '\n');
+    strstripc(strip_, '\n');
     return strip_;
 }
 
@@ -82,7 +82,7 @@ uint32_t string_split(const char *str, const char *delim, char ***buf_addr)
 	p = strtok_r(NULL, delim, &saveptr);
     }
     free(strw);
-    
+
     unsigned int s = list_size(li);
     if (!s) {
 	*buf_addr = NULL;
@@ -98,7 +98,7 @@ uint32_t string_split(const char *str, const char *delim, char ***buf_addr)
 
 uint32_t string_split2(const char *str, const char *delim, char ***buf_addr)
 {
-    
+
     if (NULL == str) {
         *buf_addr = NULL;
         return 0;
@@ -107,14 +107,14 @@ uint32_t string_split2(const char *str, const char *delim, char ***buf_addr)
     struct list *li = list_new(0);
     int delim_length = strlen(delim);
     const char *str_ptr1, *str_ptr2;
-    
+
     str_ptr1 = str;
     while (NULL != (str_ptr2 = strstr(str_ptr1, delim))) {
 	list_add(li, strndup(str_ptr1, str_ptr2 - str_ptr1));
         str_ptr1 = str_ptr2 + delim_length;
     }
     list_add(li, strdup(str_ptr1));
-    
+
     unsigned int s = list_size(li);
     if (!s) {
 	*buf_addr = NULL;

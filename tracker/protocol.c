@@ -286,19 +286,20 @@ static int prot_update(struct client *c, char *req_value)
                                                                         \
         n = string_split2(criterion, (string), &spl);                   \
         if (n != 2) {                                                   \
-            rz_debug("invalid criterion for '" string                   \
-                "' operator %s\n", criterion);                          \
+            rz_debug(_("invalid criterion for '" string                 \
+                       "' operator %s\n"), criterion);                  \
             for (int i = 0; i < n; ++i)                                 \
                 free(spl[i]);                                           \
             free(spl);                                                  \
             return;                                                     \
         }                                                               \
-        rz_debug("criterion for '" string                               \
-                 "' operator MATCH %s\n", criterion);                   \
+        rz_debug(_("criterion for '" string                             \
+                   "' operator MATCH %s\n"), criterion);                \
                                                                         \
         char *field = spl[0];                                           \
         char *value = spl[1];                                           \
-        rz_debug("field = '%s'; value = '%s'\n", field, value);         \
+        strstripc(value, '"');                                          \
+        rz_debug(_("field = '%s'; value = '%s'\n"), field, value);      \
                                                                         \
         new_list = list_new(0);                                         \
                                                                         \
@@ -310,7 +311,7 @@ static int prot_update(struct client *c, char *req_value)
     }
 
 DEFINE_CRITERION_PROCESSOR(
-    eq, "=",
+    eq, "=\"",
     if (STRING_EQUAL(field, "filename")) {
         PROCESS_LIST(*l, new_list, STRING_EQUAL(value, f->filename));
     } else if (STRING_EQUAL(field, "filesize")) {
@@ -318,7 +319,7 @@ DEFINE_CRITERION_PROCESSOR(
     })
 
 DEFINE_CRITERION_PROCESSOR(
-    neq, "!=",
+    neq, "!=\"",
     if (STRING_EQUAL(field, "filename")) {
         PROCESS_LIST(*l, new_list, !STRING_EQUAL(value, f->filename));
     } else if (STRING_EQUAL(field, "filesize")) {
@@ -326,15 +327,27 @@ DEFINE_CRITERION_PROCESSOR(
     })
 
 DEFINE_CRITERION_PROCESSOR(
-    geq, ">=",
+    geq, ">=\"",
     if (STRING_EQUAL(field, "filesize")) {
         PROCESS_LIST(*l, new_list, file_size(f) >= atol(value));
     })
 
 DEFINE_CRITERION_PROCESSOR(
-    leq, "<=",
+    leq, "<=\"",
     if (STRING_EQUAL(field, "filesize")) {
         PROCESS_LIST(*l, new_list, file_size(f) <= atol(value));
+    })
+
+DEFINE_CRITERION_PROCESSOR(
+    lt, "<\"",
+    if (STRING_EQUAL(field, "filesize")) {
+        PROCESS_LIST(*l, new_list, file_size(f) < atol(value));
+    })
+
+DEFINE_CRITERION_PROCESSOR(
+    gt, ">\"",
+    if (STRING_EQUAL(field, "filesize")) {
+        PROCESS_LIST(*l, new_list, file_size(f) > atol(value));
     })
 
 static void process_criterion(char *criterion, struct list **l)
@@ -343,6 +356,8 @@ static void process_criterion(char *criterion, struct list **l)
     process_criterion_geq(criterion, l);
     process_criterion_leq(criterion, l);
     process_criterion_eq(criterion, l);
+    process_criterion_lt(criterion, l);
+    process_criterion_gt(criterion, l);
 }
 
 static struct list *prot_look_process_criterions(
