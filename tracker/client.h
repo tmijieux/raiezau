@@ -9,7 +9,6 @@
 
 extern int handled_client_count;
 
-
 struct conn_state {
     bool announced;
 };

@@ -19,6 +19,7 @@ static void file_init(void)
 
 #ifdef DEBUG
     file_new("test1", 10000, 1024, "deadcafebeefbabe");
+    file_new("test2", 5000, 512, "8905e92afeb80fc7722ec89eb0bf0966");
 #endif
 }
 

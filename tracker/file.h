@@ -17,6 +17,8 @@ struct file {
 
 #include "client.h"
 
+#define file_size(f) ((f)->length)
+
 struct file *file_new(
     char *filename, uint32_t length, uint32_t piece_size, char *md5_str);
 void file_add_client(struct file *f, struct client *c);

@@ -160,7 +160,7 @@ static struct list *get_seed_file_list(const char *seed_str)
             atol(tab[i+1]), // file size (byte)
             atoi(tab[i+2]), // piece_size
             tab[i+3]        // key (md5)
-        );
+            );
         list_append(l, f);
         free(tab[i]); free(tab[i+1]); free(tab[i+2]); free(tab[i+3]);
     }
@@ -261,9 +261,162 @@ static int prot_update(struct client *c, char *req_value)
     return 0;
 }
 
+
+#define PROCESS_LIST(li, newlist, criterion)    \
+    do {                                          \
+        struct list *tmp;                         \
+        for (int i = 1; i <= len; ++i) {          \
+            struct file *f = list_get((li), i); \
+            if ( (criterion) ) {                  \
+                list_add((new_list), f);          \
+            }                                     \
+        }                                         \
+        var_switch(tmp, (li), (new_list));      \
+    } while (0)
+      
+
+static void process_criterion_eq(char *criterion, struct list **l)
+{
+    int n;
+    char **spl = NULL;
+    struct list *new_list;
+    size_t len = list_size(*l);
+    
+    n = string_split(criterion, "=", &spl);
+    if (n != 2) {
+        rz_debug("invalid criterion for '=' operator %s\n", criterion);
+        for (int i = 0; i < n; ++i)
+            free(spl[i]);
+        free(spl);
+        return;
+    }
+    rz_debug("criterion for '=' operator MATCH %s\n", criterion);
+
+    char *field = spl[0];
+    char *value = spl[1];
+    rz_debug("field = '%s'; value = '%s'\n", field, value);
+    
+    new_list = list_new(0);
+    
+    if (STRING_EQUAL(field, "filename")) {
+        PROCESS_LIST(*l, new_list, STRING_EQUAL(value, f->filename));
+    } else if (STRING_EQUAL(field, "filesize")) {
+        PROCESS_LIST(*l, new_list, file_size(f) == atol(value));
+    }
+    
+    list_free(new_list);
+    free(field);    
+    free(value);
+    free(spl);
+}
+
+static void process_criterion_neq(char *criterion, struct list **l)
+{
+    int n;
+    char **spl = NULL;
+    struct list *new_list;
+    size_t len = list_size(*l);
+    
+    n = string_split2(criterion, "!=", &spl);
+    if (n != 2) {
+        rz_debug("invalid criterion for '!=' operator %s\n", criterion);
+        for (int i = 0; i < n; ++i)
+            free(spl[i]);
+        free(spl);
+        return;
+    }
+    rz_debug("criterion for '!=' operator MATCH %s\n", criterion);
+
+    char *field = spl[0];
+    char *value = spl[1];
+    rz_debug("field = '%s'; value = '%s'\n", field, value);
+    
+    new_list = list_new(0);
+    
+    if (STRING_EQUAL(field, "filename")) {
+        PROCESS_LIST(*l, new_list, !STRING_EQUAL(value, f->filename));
+    } else if (STRING_EQUAL(field, "filesize")) {
+        PROCESS_LIST(*l, new_list, file_size(f) != atol(value));
+    }
+    
+    list_free(new_list);
+    free(field);    
+    free(value);
+    free(spl);
+}
+
+static void process_criterion_geq(char *criterion, struct list **l)
+{
+    int n;
+    char **spl = NULL;
+    struct list *new_list;
+    size_t len = list_size(*l);
+    
+    n = string_split2(criterion, ">=", &spl);
+    if (n != 2) {
+        rz_debug("invalid criterion for '>=' operator %s\n", criterion);
+        for (int i = 0; i < n; ++i)
+            free(spl[i]);
+        free(spl);
+        return;
+    }
+    rz_debug("criterion for '>=' operator MATCH %s\n", criterion);
+
+    char *field = spl[0];
+    char *value = spl[1];
+    rz_debug("field = '%s'; value = '%s'\n", field, value);
+    
+    new_list = list_new(0);
+    
+    if (STRING_EQUAL(field, "filesize")) {
+        PROCESS_LIST(*l, new_list, file_size(f) >= atol(value));
+    }
+    
+    list_free(new_list);
+    free(field);    
+    free(value);
+    free(spl);
+}
+
+static void process_criterion_leq(char *criterion, struct list **l)
+{
+    int n;
+    char **spl = NULL;
+    struct list *new_list;
+    size_t len = list_size(*l);
+    
+    n = string_split2(criterion, "<=", &spl);
+    if (n != 2) {
+        rz_debug("invalid criterion for '<=' operator %s\n", criterion);
+        for (int i = 0; i < n; ++i)
+            free(spl[i]);
+        free(spl);
+        return;
+    }
+    rz_debug("criterion for '<=' operator MATCH %s\n", criterion);
+
+    char *field = spl[0];
+    char *value = spl[1];
+    rz_debug("field = '%s'; value = '%s'\n", field, value);
+
+    new_list = list_new(0);
+    
+    if (STRING_EQUAL(field, "filesize")) {
+        PROCESS_LIST(*l, new_list, file_size(f) <= atol(value));
+    }
+    
+    list_free(new_list);
+    free(field);    
+    free(value);
+    free(spl);
+}
+
 static void process_criterion(char *criterion, struct list **l)
 {
-    
+    process_criterion_neq(criterion, l);
+    process_criterion_geq(criterion, l);
+    process_criterion_leq(criterion, l);
+    process_criterion_eq(criterion, l);
 }
 
 static struct list *prot_look_process_criterions(
@@ -271,7 +424,7 @@ static struct list *prot_look_process_criterions(
 {
     int n;
     char **criterions = NULL;
-    struct list *l = NULL;
+    struct list *l = file_list();
     
     n = string_split(criterions_str, " ", &criterions);
     for (int i = 0; i < n; ++i)
@@ -291,7 +444,7 @@ static char *prot_look_build_file_list(struct list *file_list)
     for (unsigned i = 1; i <= len; ++i) {
         struct file *f = list_get(file_list, i);
         asprintf(&out, "%s%s%s %lu %u %s" , tmp, i > 1 ? " " : "",
-                 f->filename, f->length, f->piece_count, f->md5_str);
+                 f->filename, f->length, f->piece_size, f->md5_str);
         if (i > 1) free(tmp);
         tmp = out;
     }
@@ -300,20 +453,29 @@ static char *prot_look_build_file_list(struct list *file_list)
 
 static int prot_look(struct client *c, char *req_value)
 {
-    int mc, len;
-    char *criterions = NULL, *response, *file_list_str;
-    mc = sscanf(req_value, " [%m[^]]] ", &criterions); // viva el scanf powa
-    if (mc == 1){
+    int ret, len;
+    char *criterions = NULL, *response, *file_list_str, *regexp;
+    regmatch_t pmatch[4];
+
+    regexp = "\\[(.*)\\] *";
+    ret = regex_exec(regexp, req_value, 2, pmatch);
+    
+    if (!(ret < 0)) {
         struct list *l;
+        criterions = strndup(
+            req_value+pmatch[1].rm_so, pmatch[1].rm_eo - pmatch[1].rm_so);
         l = prot_look_process_criterions(c, criterions);
         file_list_str = prot_look_build_file_list(l);
-        len = asprintf(&response, "list [%s]",  file_list_str);
+        len = asprintf(&response, "list [%s]\n",  file_list_str);
         socket_write_string(c->sock, len, response);
         free(file_list_str);
         free(response);
+        ret = 0;
+    } else {
+        ret = -1;
     }
     free(criterions);
-    return 0;
+    return ret;
 }
 
 static void str_trim_prot_getfile(char *req)
@@ -363,7 +525,7 @@ static int prot_getfile(struct client *c, char *req_value)
     }
 
     endpoints_list = prot_getfile_build_peer_string_list(f->clients);
-    len = asprintf(&response, "peers %s [%s]", req_value, endpoints_list);
+    len = asprintf(&response, "peers %s [%s]\n", req_value, endpoints_list);
     socket_write_string(c->sock, len, response);
 
     free(response);

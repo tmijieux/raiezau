@@ -4,6 +4,18 @@
 #include <sys/types.h>
 #include <regex.h>
 
+
+#define var_switch(tmp, x, y)                   \
+    do {                                        \
+        tmp = x;                                \
+        x = y;                                  \
+        y = tmp;                                \
+    } while (0)
+
+#define STRING_EQUAL(x, y) (!strcmp((x), (y)))
+
+
+
 void start_detached_thread(
     void* (*task)(void*), void *param, const char *name);
 
