@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "alloc.h"
 #include "string2.h"
 #include "list.h"
 
