@@ -49,10 +49,10 @@ class ServerThread implements Runnable {
 	String question = match.group(0);
 	String key = match.group(1);
 
-	if (!protocol.containsValue(key)) {
-	    Logs.write.warning("Ignoring ununderstood request: '%s' with key '%s'", 
+	if (!protocol.containsKey(key)) {
+	    Logs.write.warning("Ignoring unknown request: '%s' with key '%s'", 
 			       question, key);
-	    return; // TODO look wrong
+	    return;
 	}
 	Method method = protocol.get(key);
 	method.invoke(this, question);
@@ -63,13 +63,35 @@ class ServerThread implements Runnable {
     private final Pattern getpiecesPattern = Pattern.compile(
 	"\\s*getpieces\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
     private final Pattern havePattern = Pattern.compile(
-	"\\s*have\\s+([a-f0-9]*)\\s*(.*)\\s*");
+	"\\s*have\\s+([a-f0-9]*)\\s+(.*)\\s*");
     
-    public void receiveInterested(String question) {
-	Logs.write.info("interested called!");
+    public void receiveInterested(String question) throws Exception {
+	Matcher match = interestedPattern.matcher(question);
+	
+	if (!match.matches())
+	    throw new Exception("Client question does not match pattern.");
+	
+	String key = match.group(1);
+
+	sendHave(key);
     }
-    public void receiveHave(String question) {
-	Logs.write.info("have called!");
+
+    private void sendHave(String key) throws Exception {
+	socket.send("have %s BUFFERMAP", key);
+    }
+
+    public void receiveHave(String question) throws Exception {
+	Matcher match = havePattern.matcher(question);
+
+	if (!match.matches())
+	    throw new Exception("Client question does not match pattern.");
+	
+	String key = match.group(1);
+	String strBufferMap = match.group(2);
+	byte bufferMap[] = strBufferMap.getBytes();
+	// TODO: use the bufferMap
+
+	sendHave(key);
     }
     public void receiveGetpieces(String question) {
 	Logs.write.info("getpieces called!");

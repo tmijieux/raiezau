@@ -3,13 +3,13 @@ package RZ;
 import java.util.*;
 
 class StrategyTest implements Strategy {
-    public void share(List<RZFile> files, Tracker tracker, int port) 
+    public void share(Map<String, RZFile> files, Tracker tracker, int port) 
 	throws Exception {
     	// testing
-	files.add(new RZFile("fifi", 2,  "0000", true));
-	files.add(new RZFile("ssss", 64, "9870", true));
-	files.add(new RZFile("floa", 8,  "1234", false));
-	files.add(new RZFile("p0rn", 8,  "6969", false));
+	new RZFile("fifi", 2,  "0000", true).putInMap(files);
+	new RZFile("ssss", 64, "9870", true).putInMap(files);
+	new RZFile("floa", 8,  "1234", false).putInMap(files);
+	new RZFile("p0rn", 8,  "6969", false).putInMap(files);
 	
 	tracker.doAnnounce(files, port);
 	System.out.println("Announced.");
@@ -25,16 +25,16 @@ class StrategyTest implements Strategy {
 
 	tracker.doUpdate(files);
 
-	tracker.doGetfile(files.get(0));
+	tracker.doGetfile(files.get("fifi"));
 	System.out.println("Getfile." + files.get(0));
 
-	tracker.doGetfile(files.get(0));
+	tracker.doGetfile(files.get("fifi"));
 	System.out.println("Getfile." + files.get(0));
 
-	tracker.doGetfile(files.get(2));
+	tracker.doGetfile(files.get("floa"));
 	System.out.println("Getfile." + files.get(2));
 
-	tracker.doGetfile(files.get(2));
+	tracker.doGetfile(files.get("floa"));
 	System.out.println("Getfile." + files.get(2));
 
 	results = tracker.doLook(lr);
@@ -49,7 +49,7 @@ class StrategyTest implements Strategy {
 	results = tracker.doLook(lr);
 	System.out.println("Looked." + results);
 
-	RZFile file = files.get(1);
+	RZFile file = files.get("ssss");
 	file.peerConnect(0);
 
 	file.peerDoInterested(0);

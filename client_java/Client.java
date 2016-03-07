@@ -7,7 +7,7 @@ import java.lang.*;
 class Client {
     private int port;
 
-    private List<RZFile> files;
+    private Map<String, RZFile> files;
     private Tracker tracker;
     private Strategy strategy;
 
@@ -15,7 +15,7 @@ class Client {
 	port = Config.cfg.getInt("user-port");
 	tracker = new Tracker(Config.cfg.get("tracker-address"), 
 			      Config.cfg.getInt("tracker-port"));
-	files = new ArrayList<RZFile>();
+	files = new HashMap<String, RZFile>();
 	this.strategy = strategy;
 	new Thread(new Server(this.port)).start();
     }

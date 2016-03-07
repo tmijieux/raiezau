@@ -19,11 +19,11 @@ class Tracker {
 	socket.connect();
     }
 
-    void doAnnounce(List<RZFile> files, int port) throws Exception {
+    void doAnnounce(Map<String, RZFile> files, int port) throws Exception {
 	doDeclare("announce " + listenString(port), files);
     }
 
-    void doUpdate(List<RZFile> files) throws Exception {
+    void doUpdate(Map<String, RZFile> files) throws Exception {
 	doDeclare("update", files);
     }
 
@@ -41,29 +41,33 @@ class Tracker {
 	return "listen " + port;
     }
 
-    private String seedString(List<RZFile> files) {
+    private String seedString(Map<String, RZFile> files) {
 	String leech = "";
-	for (RZFile file : files)
+	for (Map.Entry<String, RZFile> entry : files.entrySet()) {
+	    RZFile file = entry.getValue();
 	    if (file.isSeeded())
 		leech += file.getKey() + " ";
+	}
 	return String.format("leech [%s]", leech);
     }
 
-    private String leechString(List<RZFile> files) {
+    private String leechString(Map<String, RZFile> files) {
 	String seed = "";
-	for (RZFile file : files)
+	for (Map.Entry<String, RZFile> entry : files.entrySet()) {
+	    RZFile file = entry.getValue();
 	    if (!file.isSeeded())
 		seed += file.announceSeed() + " ";
+	}
 	return String.format("seed [%s]", seed);
     }
 
-    private void doDeclare(String announcement, List<RZFile> files)
+    private void doDeclare(String announcement, Map<String, RZFile> files)
 	throws Exception {
 	sendDeclare(announcement, files);
 	receiveDeclare();
     }
 
-    private void sendDeclare(String announcement, List<RZFile> files)
+    private void sendDeclare(String announcement, Map<String, RZFile> files)
 	throws Exception {
 	socket.send("%s %s %s", announcement, 
 		    seedString(files), leechString(files));

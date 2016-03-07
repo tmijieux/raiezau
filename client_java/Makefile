@@ -1,6 +1,7 @@
 .PHONY = clean build recette build-tst run-tst run
 
 SRC=Config.java \
+	RZNoResponseException.java \
 	Logs.java \
 	RZFile.java \
 	RZPattern.java \

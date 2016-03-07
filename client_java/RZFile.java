@@ -23,6 +23,10 @@ class RZFile {
 	peers = new ArrayList<Peer>();
     }
 
+    void putInMap(Map<String, RZFile> files) {
+	files.put(this.key, this);
+    }
+
     void addPeer(Peer peer) {
 	peers.add(peer);
     }

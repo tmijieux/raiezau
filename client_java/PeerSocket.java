@@ -55,7 +55,7 @@ class PeerSocket {
     String receive() throws Exception {
 	String response = reader.readLine();
 	if (response == null)
-	    throw new Exception("No response.");
+	    throw new RZNoResponseException("No response from " + this);
 	Logs.write.info("Receive %s %s", this, response);
 	return response;
     }
