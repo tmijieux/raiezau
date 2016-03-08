@@ -22,7 +22,8 @@ class Logs {
 	    fh.setFormatter(formatter);
 	}
 	catch (Exception e) {
-	    // We are doomed
+	    System.err.println("Cannot initiate logging capabilities");
+	    System.exit(1);
 	}
     }
 
