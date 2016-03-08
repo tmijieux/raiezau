@@ -4,9 +4,7 @@ import java.util.*;
 import java.util.regex.*;
 import java.lang.*;
 
-class Tracker {
-    private RZSocket socket;
-
+class TrackerSocket extends RZSocket {
     private final Pattern declarePattern = Pattern.compile(
 	"\\s*ok\\s*");
     private final Pattern getfilePattern = Pattern.compile(
@@ -14,9 +12,14 @@ class Tracker {
     private final Pattern lookPattern = Pattern.compile(
 	"\\s*list\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
-    Tracker(String ip, int port) throws Exception {
-	socket = new RZSocket(ip, port);
-	socket.connect();
+    TrackerSocket(String ip, int port) {
+	super(ip, port);
+	try {
+	    connect();
+	}
+	catch (Exception e) {
+	    Logs.write.warning("No connection to tracker. Should try again later.");
+	}
     }
 
     void doAnnounce(Map<String, RZFile> files, int port) throws Exception {
@@ -28,12 +31,12 @@ class Tracker {
     }
 
     void doGetfile(RZFile file) throws Exception {
-	socket.send("getfile %s", file.getKey());
+	send("getfile %s", file.getKey());
 	receiveGetfile(file);
     }
     
     List<RZFile> doLook(LookRequest lr) throws Exception {
-	socket.send("look [%s]", lr);
+	send("look [%s]", lr);
 	return receiveLook();
     }
 
@@ -69,16 +72,15 @@ class Tracker {
 
     private void sendDeclare(String announcement, Map<String, RZFile> files)
 	throws Exception {
-	socket.send("%s %s %s", announcement, 
-		    seedString(files), leechString(files));
+	send("%s %s %s", announcement, leechString(files), seedString(files));
     }
 
     private void receiveDeclare() throws Exception {
-	socket.receiveMatcher(declarePattern);
+	receiveMatcher(declarePattern);
     }
 
     private void receiveGetfile(RZFile file) throws Exception {
-	Matcher match = socket.receiveMatcher(getfilePattern);
+	Matcher match = receiveMatcher(getfilePattern);
 
 	String key = match.group(1);
 	if (!file.isKey(key))
@@ -95,7 +97,7 @@ class Tracker {
     }
 
     private List<RZFile> receiveLook() throws Exception {
-	Matcher match = socket.receiveMatcher(lookPattern);
+	Matcher match = receiveMatcher(lookPattern);
 	
 	List<RZFile> files = new ArrayList<RZFile>();
 	if (RZPattern.isEmpty(match.group(1)))
@@ -106,9 +108,10 @@ class Tracker {
 	    throw new Exception("Invalid list size in look response");
 	
 	for (int i = 0; i < filesStr.length; i += 4) {
-	    files.add(new RZFile(filesStr[i],
-				 Integer.parseInt(filesStr[i+1]),
-				 Integer.parseInt(filesStr[i+2]),
+	    if (Integer.parseInt(filesStr[i+2]) != Config.getInt("piece-size"))
+		throw new Exception("Wrong piece size");
+
+	    files.add(new RZFile(filesStr[i], Integer.parseInt(filesStr[i+1]),
 				 filesStr[i+3]));
 	}
 	return files;

@@ -10,8 +10,8 @@ class RZFile {
 
     private String name;
     private String key;
-    private int length;
-    private final int pieceSize = 1024;
+    private int length; // length in byte
+    private int pieceSize = Config.getInt("piece-size");
 
     private boolean seed;
     private List<Peer> peers;
@@ -19,7 +19,7 @@ class RZFile {
     /**
      * For uncompleted files
      */
-    RZFile(String name, int length, int pieceSize, String key) {
+    RZFile(String name, int length, String key) {
 	this.name = name;
 	this.length = length;
 	this.key = key;
@@ -33,7 +33,7 @@ class RZFile {
      */
     RZFile(String name) throws Exception {
 	this.name = name;
-	file = new RandomAccessFile(name, "w");
+	file = new RandomAccessFile(Config.get("file-dir") + name, "rw");
 	seed = true;
 	key  = MD5Hash();
 	length = (int) file.length();
@@ -68,27 +68,15 @@ class RZFile {
 
     void putInMap(Map<String, RZFile> files) {
 	files.put(this.key, this);
+	Logs.write.info("New file %s[%s]", name, key);
     }
 
     void addPeer(Peer peer) {
 	peers.add(peer);
     }
     
-    void peerConnect(int peerIndex) throws Exception {
-	peers.get(peerIndex).connect();
-    }
-    void peerDoInterested(int peerIndex) throws Exception {
-	peers.get(peerIndex).doInterested(this);
-    }
-    void peerDoGetpieces(int peerIndex, int[] index) throws Exception {
-	peers.get(peerIndex).doGetpieces(this, index);
-    }
-    void peerDoHave(int peerIndex) throws Exception {
-	peers.get(peerIndex).doHave(this);
-    }
-
     String announceSeed() {
-	return name + " " + length + " " + pieceSize + " " + key;
+	return name + " " + length + " " + Config.getInt("piece-size") + " " + key;
     }
 
     String getKey() {
@@ -105,11 +93,6 @@ class RZFile {
 
     boolean isKey(String key2) {
 	return key.compareTo(key2) == 0;
-    }
-
-    void assertIsKey(String key2) throws Exception {
-	if (!isKey(key2))
-	    throw new Exception("Wrong key.");
     }
 
     void addPiece(int index, byte[] data) {

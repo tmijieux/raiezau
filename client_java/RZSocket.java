@@ -30,7 +30,7 @@ class RZSocket {
         reader = new BufferedReader(
 	    new InputStreamReader(socket.getInputStream()));
         writer = new PrintWriter(
-	    new OutputStreamWriter(socket.getOutputStream()), true);	
+	    new OutputStreamWriter(socket.getOutputStream()), true);
     }
 
     void connect() throws Exception {
@@ -43,7 +43,7 @@ class RZSocket {
 
     void send(String text) throws Exception {
 	writer.println(text);
-	Logs.write.info("Send %s %s", this, text);
+	Logs.write.info("Send %s '%s'", this, text);
     }
     void send(String format, Object... args) throws Exception {
 	send(String.format(format, args));
@@ -56,14 +56,18 @@ class RZSocket {
 	String response = reader.readLine();
 	if (response == null)
 	    throw new RZNoResponseException("No response from " + this);
-	Logs.write.info("Receive %s %s", this, response);
+	Logs.write.info("Receive %s '%s'", this, response);
 	return response;
     }
 
     Matcher receiveMatcher(Pattern pattern) throws Exception {
-	Matcher match = pattern.matcher(receive());
-	if (!match.matches())
-	    throw new Exception("Response does not match pattern.");
+	String s = receive();
+	Matcher match = pattern.matcher(s);
+	if (!match.matches()) {
+	    sendError();
+	    throw new RZNoMatchException(
+		"Response '" + s + "' does not match pattern.");
+	}
 	return match;
     }
 

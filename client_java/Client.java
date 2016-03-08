@@ -5,19 +5,24 @@ import java.io.*;
 import java.lang.*;
 
 class Client {
-    private int port;
+    static Client me;
 
+    private int port;
     private Map<String, RZFile> files;
-    private Tracker tracker;
+    private TrackerSocket tracker;
     private Strategy strategy;
 
     Client(Strategy strategy) throws Exception {
 	port = Config.getInt("user-port");
-	tracker = new Tracker(Config.get("tracker-address"),
-			      Config.getInt("tracker-port"));
+	tracker = new TrackerSocket(Config.get("tracker-address"),
+				    Config.getInt("tracker-port"));
 	files = new HashMap<String, RZFile>();
 	this.strategy = strategy;
 	new Thread(new Server(this.port)).start();
+    }
+
+    RZFile getFile(String key) {
+	return files.get(key);
     }
 
     void start() throws Exception {
@@ -26,7 +31,7 @@ class Client {
 
     public static void main(String args[]) throws Exception {
 	Strategy strategy = new StrategyTest();
-	Client me = new Client(strategy);
-	//me.start();
+	me = new Client(strategy);
+	me.start();
     }
 }
