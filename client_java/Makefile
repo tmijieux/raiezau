@@ -1,4 +1,5 @@
 SRC=Config.java \
+	RZNoResponseException.java \
 	Logs.java \
 	RZFile.java \
 	RZPattern.java \

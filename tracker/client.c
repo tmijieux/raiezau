@@ -141,7 +141,11 @@ void handle_pending_clients(void)
     list_free(tmp);
 }
 
+#ifdef DEBUG
+
 const char *client_to_string(struct client *c)
 {
     return sockaddr_stringify(&c->addr);
 }
+
+#endif

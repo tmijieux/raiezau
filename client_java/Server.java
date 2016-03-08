@@ -25,6 +25,7 @@ class Server implements Runnable {
 	while(true) {
 	    Socket clientSocket = socket.accept();
 	    PeerSocket peerSocket = new PeerSocket(clientSocket);
+	    Logs.write.info("New client: " + peerSocket);
 	    new Thread(new ServerThread(peerSocket)).start();
 	}
     }
