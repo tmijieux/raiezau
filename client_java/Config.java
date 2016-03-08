@@ -7,26 +7,29 @@ import java.io.*;
 //Object conf = Yaml.load(new File("config.ini"));
 
 class Config {
-    static final private String filename = "config.ini";
+    private static final String filename = "config.ini";
+    private static final Properties props = new Properties();
 
-    static final Config cfg = new Config();
-    private Properties conf;
-
-    private Config() {
+    static {
 	try {
-	    conf = new Properties();
-	    conf.load(new FileInputStream("config.ini"));
+            FileInputStream in = new FileInputStream(filename);
+	    props.load(in);
+            in.close();
 	}
 	catch (Exception e) {
-	    // doomed
+            System.err.println(
+                "Cannot load configuration file '"+filename+"'");
+            System.exit(1);
 	}
     }
 
-    String get(String field) {
-	return conf.getProperty(field);
+    public static String get(String field) {
+	return props.getProperty(field);
     }
 
-    int getInt(String field) {
-	return Integer.parseInt(get(field));
+    public static int getInt(String field) {
+	return Integer.parseInt(
+            props.getProperty(field)
+        );
     }
 }

@@ -12,9 +12,9 @@ class Client {
     private Strategy strategy;
 
     Client(Strategy strategy) throws Exception {
-	port = Config.cfg.getInt("user-port");
-	tracker = new Tracker(Config.cfg.get("tracker-address"), 
-			      Config.cfg.getInt("tracker-port"));
+	port = Config.getInt("user-port");
+	tracker = new Tracker(Config.get("tracker-address"),
+			      Config.getInt("tracker-port"));
 	files = new HashMap<String, RZFile>();
 	this.strategy = strategy;
 	new Thread(new Server(this.port)).start();
