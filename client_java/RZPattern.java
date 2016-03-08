@@ -10,4 +10,5 @@ class RZPattern {
 	Matcher match = emptyPattern.matcher(s);
 	return match.matches();
     }
+
 }

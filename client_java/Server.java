@@ -24,7 +24,7 @@ class Server implements Runnable {
 	Logs.write.info("Client server is listening on port:" + this.port);
 	while(true) {
 	    Socket clientSocket = socket.accept();
-	    PeerSocket peerSocket = new PeerSocket(clientSocket);
+	    RZSocket peerSocket = new RZSocket(clientSocket);
 	    Logs.write.info("New client: " + peerSocket);
 	    new Thread(new ServerThread(peerSocket)).start();
 	}

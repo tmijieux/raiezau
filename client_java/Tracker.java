@@ -5,7 +5,7 @@ import java.util.regex.*;
 import java.lang.*;
 
 class Tracker {
-    private PeerSocket socket;
+    private RZSocket socket;
 
     private final Pattern declarePattern = Pattern.compile(
 	"\\s*ok\\s*");
@@ -15,7 +15,7 @@ class Tracker {
 	"\\s*list\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
     Tracker(String ip, int port) throws Exception {
-	socket = new PeerSocket(ip, port);
+	socket = new RZSocket(ip, port);
 	socket.connect();
     }
 

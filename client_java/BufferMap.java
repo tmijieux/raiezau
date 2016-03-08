@@ -1,42 +1,37 @@
 package RZ;
 
-import java.util.BitSet;
-
+import java.util.*;
 
 class BufferMap {
     private BitSet bufferMap;
-    private int totalPart;
+    private int size;
     
-    BufferMap(int pieceSize) {
-        
-	bufferMap = new BitSet(pieceSize);
-    totalPart = pieceSize;
+    BufferMap(int size) {
+	bufferMap = new BitSet(size);
+	this.size = size;
     }
 	
-    BufferMap(int pieceSize, RZFile file){
-        bufferMap = new BitSet(pieceSize);
+    BufferMap(int size, RZFile file){
+	this(size);
         if(file.isSeeded())      
-            bufferMap.set(0,totalPart,true);
+            bufferMap.set(0, size, true);
     }
-    
 
-    public void addCompletedPart(int partNumber) {
-	    bufferMap.set(partNumber);
-	}
-    
+    void addCompletedPart(int partNumber) {
+	bufferMap.set(partNumber);
+    }
 
-
-    public boolean isCompleted(int partNumber){
-	   return bufferMap.get(partNumber);
+    boolean isCompleted(int partNumber){
+	return bufferMap.get(partNumber);
     }
 
     public String toString() {
         String stringedBufferMap = new String();
-        for(int i = 0; i < totalPart; i++){
+        for(int i = 0; i < size; i++) {
             if (bufferMap.get(i))
-                stringedBufferMap +="1";
+                stringedBufferMap += "1";
             else
-                stringedBufferMap +="0";
+                stringedBufferMap += "0";
         }
         
         return stringedBufferMap;

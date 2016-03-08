@@ -4,13 +4,13 @@ import java.util.*;
 import java.util.regex.*;
 
 class Peer {
-    private PeerSocket socket;
+    private RZSocket socket;
 
     private final Pattern dataPattern = Pattern.compile(
 	"\\s*data\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
     Peer(String ip, int port) {
-	socket = new PeerSocket(ip, port);
+	socket = new RZSocket(ip, port);
     }
 
     /**
@@ -18,9 +18,9 @@ class Peer {
      */
     Peer(String peer) throws Exception {
 	String[] addrPort = peer.split(":");
-	if (addrPort.length != 2) 
+	if (addrPort.length != 2)
 	    throw new Exception("Wrong group 'addr:port': \"" + peer + '"');
-	socket = new PeerSocket(addrPort[0], Integer.parseInt(addrPort[1]));
+	socket = new RZSocket(addrPort[0], Integer.parseInt(addrPort[1]));
     }
 
     void connect() throws Exception {

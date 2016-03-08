@@ -24,9 +24,9 @@ class ServerThread implements Runnable {
 	ServerThread.putProtocol("getpieces",  "receiveGetpieces");
     }
 
-    private PeerSocket socket;
+    private RZSocket socket;
 
-    ServerThread(PeerSocket socket) {
+    ServerThread(RZSocket socket) {
 	this.socket = socket;
     }
 
@@ -93,7 +93,23 @@ class ServerThread implements Runnable {
 
 	sendHave(key);
     }
-    public void receiveGetpieces(String question) {
-	Logs.write.info("getpieces called!");
+
+    public void receiveGetpieces(String question) throws Exception {
+	Matcher match = getpiecesPattern.matcher(question);
+
+	if (!match.matches())
+	    throw new Exception("Client question does not match pattern.");
+	
+	String key = match.group(1);
+	String[] strIndex = match.group(2).split("\\s+");
+	int[] index = Arrays.stream(strIndex).mapToInt(Integer::parseInt).toArray();
+	
+	sendData(key, index);
+    }
+
+    private void sendData(String key, int[] index) throws Exception {
+	
+
+
     }
 }

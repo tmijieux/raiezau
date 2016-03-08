@@ -10,7 +10,7 @@ import java.io.OutputStreamWriter;
 
 import java.net.Socket;
 
-class PeerSocket {
+class RZSocket {
     private int port;
     private String ip;
 
@@ -18,13 +18,13 @@ class PeerSocket {
     private BufferedReader reader;
     private PrintWriter writer;
 
-    PeerSocket(String ip, int port) {
+    RZSocket(String ip, int port) {
 	this.ip = ip;
 	this.port = port;
     }
 
-    PeerSocket(Socket peer) throws Exception {
-	socket = peer;
+    RZSocket(Socket sock) throws Exception {
+	socket = sock;
 	port = socket.getPort();
 	ip =   socket.getInetAddress().getHostAddress();
         reader = new BufferedReader(

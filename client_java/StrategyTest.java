@@ -6,10 +6,10 @@ class StrategyTest implements Strategy {
     public void share(Map<String, RZFile> files, Tracker tracker, int port) 
 	throws Exception {
     	// testing
-	new RZFile("fifi", 2,  "0000", true).putInMap(files);
-	new RZFile("ssss", 64, "9870", true).putInMap(files);
-	new RZFile("floa", 8,  "1234", false).putInMap(files);
-	new RZFile("p0rn", 8,  "6969", false).putInMap(files);
+	new RZFile("test/fifi.dat").putInMap(files);
+	new RZFile("test/ssss.dat").putInMap(files);
+	new RZFile("test/floa.dat").putInMap(files);
+	new RZFile("test/p0rn.dat").putInMap(files);
 	
 	tracker.doAnnounce(files, port);
 	System.out.println("Announced.");

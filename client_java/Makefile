@@ -1,22 +1,6 @@
 .PHONY = clean build recette build-tst run-tst run
 
-SRC=Config.java \
-	RZNoResponseException.java \
-	Logs.java \
-	RZFile.java \
-	RZPattern.java \
-	CriterionField.java \
-	CriterionOP.java \
-	Criterion.java \
-	LookRequest.java \
-	PeerSocket.java \
-	Peer.java \
-	ServerThread.java \
-	Server.java \
-	Tracker.java \
-	Strategy.java \
-	StrategyTest.java \
-	Client.java
+SRC=*.java
 
 re:
 	make -B src
