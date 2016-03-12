@@ -1,2 +1,2 @@
 daemonize: 0
-port: 1234
+port: 8080

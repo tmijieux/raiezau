@@ -1,4 +1,4 @@
-package RZ;
+package rz;
 
 class Criterion {
     private String text;

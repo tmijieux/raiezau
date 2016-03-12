@@ -1,4 +1,4 @@
-package RZ;
+package rz;
 
 import java.util.*;
 import java.lang.*;

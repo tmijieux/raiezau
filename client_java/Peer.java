@@ -1,30 +1,40 @@
-package RZ;
+package rz;
 
 import java.util.*;
 import java.util.regex.*;
 
 class Peer {
     private PeerSocket socket;
-    private Map<String, RZFile> files;
+    private Map<String, File> files;
 
-    Peer(String ip, int port) {
-	socket = new PeerSocket(ip, port);
+    public Peer(String ip, short port) {
+        try {
+            socket = new PeerSocket(ip, port);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } 
     }
 
     /**
      * @brief Create a peer form an inline couple: "addr:port"
      */
-    Peer(String peer) throws Exception {
+    public Peer(String peer) {
 	String[] addrPort = peer.split(":");
-	if (addrPort.length != 2)
-	    throw new Exception("Wrong group 'addr:port': \"" + peer + '"');
-	socket = new PeerSocket(addrPort[0], Integer.parseInt(addrPort[1]));
+	if (addrPort.length != 2) {
+	    throw new RuntimeException(
+                "Wrong group 'addr:port': \"" + peer + '"');
+        }
+        try {
+            socket = new PeerSocket(
+                addrPort[0],
+                Short.parseShort(addrPort[1])
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    void connect() throws Exception {
-	socket.connect();
-    }
-
+    @Override
     public String toString() {
 	return String.format("[peer: %s]", socket);
     }

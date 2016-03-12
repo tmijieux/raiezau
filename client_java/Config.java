@@ -1,4 +1,4 @@
-package RZ;
+package rz;
 
 import java.util.*;
 import java.io.*;
@@ -32,4 +32,11 @@ class Config {
             props.getProperty(field)
         );
     }
+
+    public static short getShort(String field) {
+	return Short.parseShort(
+            props.getProperty(field)
+        );
+    }
+
 }

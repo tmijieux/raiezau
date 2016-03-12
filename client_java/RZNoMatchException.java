@@ -1,12 +1,13 @@
-package RZ;
+package rz;
 
 import java.lang.Exception;
 
-public class RZNoMatchException extends Exception {
-    RZNoMatchException() {
+public class RZNoMatchException extends RuntimeException {
+    public RZNoMatchException() {
 	super();
     }
-    RZNoMatchException(String s) {
+    
+    public RZNoMatchException(String s) {
 	super(s);
     }
 }

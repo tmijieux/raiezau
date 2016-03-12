@@ -1,4 +1,4 @@
-package RZ;
+package rz;
 
 enum CriterionField {
     FILENAME ("filename"),

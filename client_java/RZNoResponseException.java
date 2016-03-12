@@ -1,8 +1,8 @@
-package RZ;
+package rz;
 
 import java.lang.Exception;
 
-public class RZNoResponseException extends Exception {
+public class RZNoResponseException extends RuntimeException {
     RZNoResponseException() {
 	super();
     }

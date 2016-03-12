@@ -1,4 +1,4 @@
-package RZ;
+package rz;
 
 import java.net.*;
 import java.util.*;
@@ -7,16 +7,21 @@ import java.lang.*;
 import java.lang.reflect.*;
 
 class ServerThread implements Runnable {
-    private final Pattern detectPattern = Pattern.compile(
-	"\\s*([a-z]*)\\s.*");
 
-    private static Map<String, Method> protocol = new HashMap<String, Method>();
+    private static Map<String, Method> protocol =
+        new HashMap<String, Method>();
+    private static final Pattern detectPattern =
+        Pattern.compile("\\s*([a-z]*)\\s.*");
+
+    private Socket socket;
 
     private static void putProtocol(String key, String method) {
 	try {
-	    protocol.put(key, ServerThread.class.getMethod(method, String.class));
-	}
-	catch (Exception e) {
+	    protocol.put(
+                key,
+                ServerThread.class.getMethod(method, String.class)
+            );
+	} catch (Exception e) {
 	    System.out.println(e);
 	}
     }
@@ -27,43 +32,39 @@ class ServerThread implements Runnable {
 	ServerThread.putProtocol("getpieces",  "receiveGetpieces");
     }
 
-    private RZSocket socket;
-
-    ServerThread(RZSocket socket) {
+    public ServerThread(Socket socket) {
 	this.socket = socket;
     }
 
     public void run() {
 	try {
-	    while(true) {
-		listen();
+	    while (true) {
+                handleIncomingRequests();
 	    }
-	}
-	catch (Exception e) {
-	    Logs.write.severe("Exception in client reception: %s", e.toString());
+	} catch (Exception e) {
+	    Log.severe("Exception in client reception: %s", e.toString());
 	}
     }
 
-    private void listen() throws Exception {
+    private void handleIncomingRequests() throws ReflectiveOperationException {
 	Matcher match;
 	try {
 	    match = socket.receiveMatcher(detectPattern);
-	}
-	catch (RZNoMatchException e) {
-	    Logs.write.severe(e.toString());
+	} catch (RZNoMatchException e) {
+	    Log.severe(e.toString());
 	    return;
 	}
 	String question = match.group(0);
 	String key = match.group(1);
 
 	if (!protocol.containsKey(key)) {
-	    Logs.write.warning("Ignoring unknown request: '%s' with key '%s'", 
-			       question, key);
+	    Log.warning("Ignoring unknown request: '%s' with key '%s'",
+                        question, key);
 	    socket.sendError();
 	    return;
 	}
+
 	Method method = protocol.get(key);
 	method.invoke(this, question);
     }
-    
 }

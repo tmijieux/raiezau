@@ -1,4 +1,4 @@
-package RZ;
+package rz;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ class BufferMap {
 	this.size = size;
     }
 	
-    BufferMap(int size, RZFile file){
+    BufferMap(int size, File file){
 	this(size);
         if(file.isSeeded())      
             bufferMap.set(0, size, true);

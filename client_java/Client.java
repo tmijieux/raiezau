@@ -1,35 +1,43 @@
-package RZ;
+package rz;
 
 import java.util.*;
 import java.io.*;
 import java.lang.*;
 
 class Client {
-    static Client me;
+    public static Client me;
 
-    private int port;
-    private Map<String, RZFile> files;
+    private short port;
+    private Map<String, File> files;
     private TrackerSocket tracker;
     private Strategy strategy;
 
-    Client(Strategy strategy) throws Exception {
-	port = Config.getInt("user-port");
-	tracker = new TrackerSocket(Config.get("tracker-address"),
-				    Config.getInt("tracker-port"));
-	files = new HashMap<String, RZFile>();
+    public Client(Strategy strategy) {
+	port = Config.getShort("user-port");
+        try {
+            tracker = new TrackerSocket(
+                Config.get("tracker-address"),
+                Config.getShort("tracker-port")
+            );
+        } catch (Exception e) {
+            Log.severe(e.toString());
+            System.exit(1);
+        }
+
+	files = new HashMap<String, File>();
 	this.strategy = strategy;
 	new Thread(new Server(this.port)).start();
     }
 
-    RZFile getFile(String key) {
+    public File getFile(String key) {
 	return files.get(key);
     }
 
-    void start() throws Exception {
+    public void start() {
 	strategy.share(files, tracker, port);
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String args[]) {
 	Strategy strategy = new StrategyTest();
 	me = new Client(strategy);
 	me.start();

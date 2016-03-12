@@ -3,7 +3,7 @@
 SRC=*.java
 
 KLASS=$(SRC:.java=.class)
-CLASS=$(foreach klass, $(KLASS), RZ/$(klass))
+CLASS=$(foreach klass, $(KLASS), rz/$(klass))
 CLASSFILES=$(foreach klass, $(CLASS), build/$(klass))
 
 all:  src
@@ -13,7 +13,7 @@ src: build
 	javac -classpath .:jar/jyaml-1.3.jar -d build/ $(SRC)
 
 run:
-	@java -cp build/:jyaml/ RZ.Client
+	@java -cp build/:jyaml/ rz.Client
 
 build:
 	mkdir -p build/

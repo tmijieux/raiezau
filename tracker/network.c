@@ -248,7 +248,7 @@ int socket_read_string(int sock, char **ret_str)
 
 void socket_write_string(int sock, size_t len, const char *str)
 {
-    if (write(sock, str, len+1) != len+1)
+    if (write(sock, str, len) != len)
         rz_error(_("bad write: %s"), strerror(errno));
 }
 

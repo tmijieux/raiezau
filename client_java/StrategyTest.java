@@ -1,17 +1,35 @@
-package RZ;
+package rz;
 
 import java.util.*;
 
 class StrategyTest implements Strategy {
-    public void share(Map<String, RZFile> files, TrackerSocket tracker, int port) 
-	throws Exception {
+
+    private TrackerSocket tracker;
+    private Map<String, File> files;
+
+    private void getFile(String key) {
+	tracker.doGetfile(files.get(key));
+	System.out.println("Getfile." + files.get(key));
+    }
+
+    private void look(LookRequest lr) {
+        List<File> results = tracker.doLook(lr);
+	System.out.println("Looked." + results);
+    }
+
+    @Override
+    public void share(Map<String, File> files,
+                      TrackerSocket tracker, short port) {
+        this.files = files;
+        this.tracker = tracker;
 
     	// testing
-	new RZFile("fifi.dat").putInMap(files);
-	new RZFile("ssss.dat").putInMap(files);
-	new RZFile("floa.dat").putInMap(files);
-	new RZFile("p0rn.dat").putInMap(files);
-	
+	new File("fifi.dat").putInMap(files);
+	new File("ssss.dat").putInMap(files);
+	new File("floa.dat").putInMap(files);
+	new File("p0rn.dat").putInMap(files);
+
+        System.err.println(">>>"+tracker+"<<<");
 	tracker.doAnnounce(files, port);
 	System.out.println("Announced.");
 
@@ -21,48 +39,34 @@ class StrategyTest implements Strategy {
 	LookRequest lr = new LookRequest();
 	lr.addFilename("bobi");
 	lr.addSizeLT(80);
-	List<RZFile> results = tracker.doLook(lr);
-	System.out.println("Looked." + results);
+        look(lr);
 
 	tracker.doUpdate(files);
 
-	tracker.doGetfile(files.get("a5aec02572473b2c486856a02d066c8d"));
-	System.out.println("Getfile." + files.get("a5aec02572473b2c486856a02d066c8d"));
+        getFile("a5aec02572473b2c486856a02d066c8d");
+        getFile("a5aec02572473b2c486856a02d066c8d");
+        getFile("17a21d4b0d8d05ab60ae538c5d9836cf");
+        getFile("17a21d4b0d8d05ab60ae538c5d9836cf");
 
-	tracker.doGetfile(files.get("a5aec02572473b2c486856a02d066c8d"));
-	System.out.println("Getfile." + files.get("a5aec02572473b2c486856a02d066c8d"));
+        look(lr);
+        look(lr);
+        look(lr);
+        look(lr);
 
-	tracker.doGetfile(files.get("17a21d4b0d8d05ab60ae538c5d9836cf"));
-	System.out.println("Getfile." + files.get("17a21d4b0d8d05ab60ae538c5d9836cf"));
-
-	tracker.doGetfile(files.get("17a21d4b0d8d05ab60ae538c5d9836cf"));
-	System.out.println("Getfile." + files.get("17a21d4b0d8d05ab60ae538c5d9836cf"));
-
-	results = tracker.doLook(lr);
-	System.out.println("Looked." + results);
-
-	results = tracker.doLook(lr);
-	System.out.println("Looked." + results);
-
-	results = tracker.doLook(lr);
-	System.out.println("Looked." + results);
-
-	results = tracker.doLook(lr);
-	System.out.println("Looked." + results);
 	/*
-	RZFile file = files.get("ssss");
-	file.peerConnect(0);
+          File file = files.get("ssss");
+          file.peerConnect(0);
 
-	file.peerDoInterested(0);
-	System.out.println("Interesting.");
+          file.peerDoInterested(0);
+          System.out.println("Interesting.");
 
-	file.peerDoHave(0);
-	System.out.println("Having.");
+          file.peerDoHave(0);
+          System.out.println("Having.");
 
-	int index[] = new int[1];
-	index[0] = 0;
-	file.peerDoGetpieces(0, index);
-	System.out.println("Got.");
+          int index[] = new int[1];
+          index[0] = 0;
+          file.peerDoGetpieces(0, index);
+          System.out.println("Got.");
 	*/
     }
 }

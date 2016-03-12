@@ -46,6 +46,17 @@ static void protocol_init(void)
     ht_add_entry(request_handlers, "look", &prot_look);
     ht_add_entry(request_handlers, "getfile", &prot_getfile);
 }
+static void dump(const char *s)
+{
+    int i = 0;
+    while (*s) {
+        printf("%02x ", *s++);
+        ++i;
+    }
+    puts("");
+    printf("length: %d\n", i);
+}
+
 
 static req_handler_t get_request_handler(const char *buf_c)
 {
@@ -462,11 +473,12 @@ static int prot_getfile(struct client *c, char *req_value)
     f = file_get_by_key(req_value);
     if (NULL == f) {
         rz_debug(_("No such file key: '%s'\n"), req_value);
-        return -1;
+        endpoints_list = strdup("");
+    } else {
+        endpoints_list = prot_getfile_build_peer_string_list(f->clients);
     }
-
-    endpoints_list = prot_getfile_build_peer_string_list(f->clients);
     len = asprintf(&response, "peers %s [%s]\n", req_value, endpoints_list);
+    dump(response);
     socket_write_string(c->sock, len, response);
 
     free(response);
