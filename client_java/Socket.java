@@ -18,6 +18,10 @@ class Socket {
     private BufferedReader from;
     private PrintWriter to;
 
+    public short getPort() {
+        return (short) sock.getPort();
+    }
+
     private void setupStreams() throws IOException {
         InputStreamReader reader;
         reader = new InputStreamReader(sock.getInputStream());
@@ -58,7 +62,7 @@ class Socket {
 	send("error");
     }
 
-    public String receive() {
+    public String receiveLine() {
         String response = null;
         try {
             response = from.readLine();
@@ -83,17 +87,9 @@ class Socket {
         System.err.println("");
     }
 
-    public Matcher receiveMatcher(Pattern pattern) {
-	String s = receive();
-	Matcher match = pattern.matcher(s);
-
-	if (!match.matches()) {
-	    sendError();
-	    dumpString(s);
-	    throw new RZNoMatchException(
-                "Response '" + s + "' does not match pattern '"+ pattern + "'.");
-	}
-	return match;
+    public Matcher receiveMatcher(PatternMatcher patMatcher) {
+	String str = receiveLine();
+        return patMatcher.getMatcher(str);
     }
 
     @Override

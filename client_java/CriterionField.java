@@ -6,10 +6,10 @@ enum CriterionField {
     FILESIZE ("filesize");
 
     private final String text;
-    CriterionField(String text) {
+    public CriterionField(String text) {
 	this.text = text;
     }
-    
+
     @Override
     public String toString() {
 	return text;

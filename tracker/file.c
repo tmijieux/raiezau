@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <assert.h>
+#include <string.h>
 
 #include "cutil/hash_table.h"
 
@@ -34,14 +35,15 @@ struct file *file_new(
     char *filename, uint32_t length, uint32_t piece_size, char *md5_str)
 {
     struct file *f = calloc(sizeof*f, 1);
-    f->filename = filename;
-    f->md5_str = md5_str;
+    f->filename = strdup(filename);
+    f->md5_str = strdup(md5_str);
     f->length = length;
     f->piece_size = piece_size;
     f->piece_count = (length / piece_size) + ((length%piece_size) ? 1 : 0);
 
-    file_register(f);
+    f->clients = list_new(0);
 
+    file_register(f);
     return f;
 }
 

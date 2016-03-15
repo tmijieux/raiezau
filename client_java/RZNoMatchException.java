@@ -6,7 +6,7 @@ public class RZNoMatchException extends RuntimeException {
     public RZNoMatchException() {
 	super();
     }
-    
+
     public RZNoMatchException(String s) {
 	super(s);
     }

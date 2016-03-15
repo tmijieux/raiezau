@@ -52,7 +52,8 @@ int regex_exec(const char *regexp, const char *str,
     }
 
     if (regexec(&reg, str, nmatch, pmatch, 0) != 0) {
-        rz_debug(_("regex doesn't match: '%s'\n"), str);
+        rz_debug(_("regex doesn't match: '%s'\npattern was '%s'\n"),
+                 str, regexp);
         regfree(&reg);
         return -1;
     }

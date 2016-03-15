@@ -15,8 +15,7 @@ class Config {
             FileInputStream in = new FileInputStream(filename);
 	    props.load(in);
             in.close();
-	}
-	catch (Exception e) {
+	} catch (Exception e) {
             System.err.println(
                 "Cannot load configuration file '"+filename+"'");
             System.exit(1);
@@ -38,5 +37,4 @@ class Config {
             props.getProperty(field)
         );
     }
-
 }

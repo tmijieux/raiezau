@@ -3,13 +3,12 @@ package rz;
 import java.util.*;
 
 class StrategyTest implements Strategy {
-
-    private TrackerSocket tracker;
-    private Map<String, File> files;
+    private Tracker tracker;
+    private Server clientServer;
 
     private void getFile(String key) {
-	tracker.doGetfile(files.get(key));
-	System.out.println("Getfile." + files.get(key));
+	tracker.doGetfile(File.get(key));
+	System.out.println("Getfile." + File.get(key));
     }
 
     private void look(LookRequest lr) {
@@ -18,30 +17,29 @@ class StrategyTest implements Strategy {
     }
 
     @Override
-    public void share(Map<String, File> files,
-                      TrackerSocket tracker, short port) {
-        this.files = files;
+    public void share(Tracker tracker, Server clientServer) {
         this.tracker = tracker;
+        this.clientServer = clientServer;
 
     	// testing
-	new File("fifi.dat").putInMap(files);
-	new File("ssss.dat").putInMap(files);
-	new File("floa.dat").putInMap(files);
-	new File("p0rn.dat").putInMap(files);
+	File.addCompleteFile("fifi.dat");
+	File.addCompleteFile("ssss.dat");
+	File.addCompleteFile("floa.dat");
+	File.addCompleteFile("p0rn.dat");
 
+        List<File> fileList = File.getFileList();
         System.err.println(">>>"+tracker+"<<<");
-	tracker.doAnnounce(files, port);
+	tracker.doAnnounce(fileList, clientServer.getPort());
 	System.out.println("Announced.");
 
-	tracker.doGetfile(files.get("a5aec02572473b2c486856a02d066c8d"));
-	System.out.println("Getfile." + files.get(1));
+        getFile("a5aec02572473b2c486856a02d066c8d");
 
 	LookRequest lr = new LookRequest();
 	lr.addFilename("bobi");
 	lr.addSizeLT(80);
         look(lr);
 
-	tracker.doUpdate(files);
+	tracker.doUpdate(fileList);
 
         getFile("a5aec02572473b2c486856a02d066c8d");
         getFile("a5aec02572473b2c486856a02d066c8d");
@@ -54,7 +52,7 @@ class StrategyTest implements Strategy {
         look(lr);
 
 	/*
-          File file = files.get("ssss");
+          File file = File.get("ssss");
           file.peerConnect(0);
 
           file.peerDoInterested(0);

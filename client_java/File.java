@@ -5,21 +5,44 @@ import java.io.*;
 import java.security.*;
 
 class File {
+    private static final int pieceSize = Config.getInt("piece-size");
+    private static final Map<String, File> files = new HashMap<String, File>();
+
     private RandomAccessFile file;
     private BufferMap bufferMap;
-
     private String name;
     private String key;
     private long length; // length in byte
-    private int pieceSize = Config.getInt("piece-size");
-
     private boolean seeded;
     private List<Peer> peers;
+
+
+    public static List<File> getFileList() {
+        return new ArrayList<File>(files.values());
+    }
+
+    private static void addFileToMap(File file) {
+	files.put(file.key, file);
+	Log.info("New file %s[%s]", file.name, file.key);
+    }
+
+    public static File addCompleteFile(String name) {
+        File f = new File(name);
+        addFileToMap(f);
+        return f;
+    }
+
+    public static File addFile(String name, long length, String key) {
+        File f = new File(name, length, key);
+        addFileToMap(f);
+        return f;
+    }
+
 
     /**
      * For uncompleted files
      */
-    public File(String name, int length, String key) {
+    private File(String name, long length, String key) {
 	this.name = name;
 	this.length = length;
 	this.key = key;
@@ -31,7 +54,7 @@ class File {
     /**
      * For seeded file
      */
-    public File(String name) {
+    private File(String name) {
 	this.name = name;
         String filePath = Config.get("file-dir") + name;
         try {
@@ -44,6 +67,10 @@ class File {
         } catch (IOException e) {
             throw new RuntimeException("File exception: "+filePath);
         }
+    }
+
+    public static File get(String key) {
+	return files.get(key);
     }
 
     private String MD5Hash() throws IOException {
@@ -76,21 +103,17 @@ class File {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
 	return piece;
     }
 
-    public void putInMap(Map<String, File> files) {
-	files.put(this.key, this);
-	Log.info("New file %s[%s]", name, key);
-    }
 
     public void addPeer(Peer peer) {
 	peers.add(peer);
     }
 
     public String announceSeed() {
-	return name + " " + length + " " + Config.getInt("piece-size") + " " + key;
+	return name + " " + length + " " +
+            Config.getInt("piece-size") + " " + key;
     }
 
     public String getKey() {

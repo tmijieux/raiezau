@@ -16,6 +16,10 @@ class Server implements Runnable {
         }
     }
 
+    public short getPort() {
+        return port;
+    }
+
     public void run() {
 	try {
             this.acceptConnections();

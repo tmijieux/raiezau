@@ -40,8 +40,7 @@ class PeerSocket extends Socket {
 
     public void parseInterested(String question) {
 	Matcher match = getMatcherOnMatch(interestedPattern, question);
-
-	File file = Client.me.getFile(match.group(1));
+	File file = Client.client.getFile(match.group(1));
 	sendHave(file);
     }
 
@@ -51,7 +50,7 @@ class PeerSocket extends Socket {
 	byte bufferMap[] = strBufferMap.getBytes();
 	// TODO: update the buffer
 
-	return Client.me.getFile(match.group(1));
+	return Client.client.getFile(match.group(1));
     }
 
     public void parseGetpieces(String question) {
@@ -61,13 +60,13 @@ class PeerSocket extends Socket {
 	int[] index = Arrays.stream(strIndex)
             .mapToInt(Integer::parseInt)
             .toArray();
-	File file = Client.me.getFile(match.group(1));
+	File file = Client.client.getFile(match.group(1));
         sendData(file, index);
     }
 
     public void parseData(String question) {
 	Matcher match = getMatcherOnMatch(dataPattern, question);
-	File file = Client.me.getFile(match.group(1));
+	File file = Client.client.getFile(match.group(1));
 	String[] piecesStr = match.group(2).split("\\s+");
 
 	for (String piece: piecesStr) {

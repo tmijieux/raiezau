@@ -3,7 +3,7 @@ package rz;
 import java.util.*;
 import java.util.regex.*;
 
-class Peer {
+public class Peer {
     private PeerSocket socket;
     private Map<String, File> files;
 
@@ -12,7 +12,7 @@ class Peer {
             socket = new PeerSocket(ip, port);
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } 
+        }
     }
 
     /**

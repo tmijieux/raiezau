@@ -166,6 +166,8 @@ static struct list *get_seed_file_list(const char *seed_str)
 
     struct list *l = list_new(0);
     for (int i = 0; i < n; i+=4) {
+        rz_debug("DFILE: %s %s\n", tab[i], tab[i+3]);
+
         struct file *f = file_get_or_create(
             tab[i],         // filename
             atol(tab[i+1]), // file size (byte)
@@ -248,7 +250,7 @@ static int prot_announce(struct client *c, char *req_value)
     char *regexp;
     regmatch_t match[4];
 
-    regexp = "listen ([1-9]{1,5}) seed \\[(.*)\\] leech \\[(.*)\\] *";
+    regexp = "listen ([0-9]{1,5}) seed \\[(.*)\\] leech \\[(.*)\\]";
     ret = regex_exec(regexp, req_value, 4, match);
     if (ret < 0)
         return -1;

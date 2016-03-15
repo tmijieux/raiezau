@@ -5,16 +5,15 @@ class Criterion {
     private CriterionOP op;
     private CriterionField field;
 
-    private Criterion(CriterionField field, CriterionOP op, 
-		      String text) {
+    private Criterion(CriterionField field, CriterionOP op, String text) {
 	this.op = op;
 	this.field = field;
 	this.text = text;
     }
 
     static Criterion CriterionFilename(String filename) {
-	return new Criterion(CriterionField.FILENAME, CriterionOP.EQ,
-			     filename);
+	return new Criterion(CriterionField.FILENAME,
+                             CriterionOP.EQ, filename);
     }
 
     static Criterion CriterionKey(String key) {
@@ -22,7 +21,7 @@ class Criterion {
     }
 
     static Criterion CriterionSize(CriterionOP op, int size) {
-	return new Criterion(CriterionField.FILESIZE, op, 
+	return new Criterion(CriterionField.FILESIZE, op,
 			     Integer.toString(size));
     }
 

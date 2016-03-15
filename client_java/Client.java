@@ -5,17 +5,38 @@ import java.io.*;
 import java.lang.*;
 
 class Client {
-    public static Client me;
+    public static Client client;
 
-    private short port;
-    private Map<String, File> files;
-    private TrackerSocket tracker;
+    private Tracker tracker;
     private Strategy strategy;
+    private Server server;
 
-    public Client(Strategy strategy) {
-	port = Config.getShort("user-port");
+    public Client(Strategy strategy, Tracker tracker, Server server) {
+        this.tracker = tracker;
+	this.strategy = strategy;
+        this.server = server;
+    }
+
+    public static File getFile(String key) {
+        return File.get(key);
+    }
+
+    public void start() {
+        new Thread(server).start();
+	strategy.share(tracker, server);
+    }
+
+    public static void main(String args[]) {
+        short clientServerPort = Config.getShort("user-port");
+        String trackerAdress = Config.get("tracker-address");
+        short trackerPort = Config.getShort("tracker-port");
+
+	Strategy strategy = new StrategyTest();
+        Server clientServer = new Server(clientServerPort);
+
+        Tracker tracker = null;
         try {
-            tracker = new TrackerSocket(
+            tracker = new Tracker(
                 Config.get("tracker-address"),
                 Config.getShort("tracker-port")
             );
@@ -24,22 +45,11 @@ class Client {
             System.exit(1);
         }
 
-	files = new HashMap<String, File>();
-	this.strategy = strategy;
-	new Thread(new Server(this.port)).start();
-    }
-
-    public File getFile(String key) {
-	return files.get(key);
-    }
-
-    public void start() {
-	strategy.share(files, tracker, port);
-    }
-
-    public static void main(String args[]) {
-	Strategy strategy = new StrategyTest();
-	me = new Client(strategy);
-	me.start();
+        Client.client = new Client(
+            strategy,
+            tracker,
+            clientServer
+        );
+        Client.client.start();
     }
 }

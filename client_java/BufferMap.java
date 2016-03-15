@@ -5,15 +5,15 @@ import java.util.*;
 class BufferMap {
     private BitSet bufferMap;
     private int size;
-    
+
     BufferMap(int size) {
 	bufferMap = new BitSet(size);
 	this.size = size;
     }
-	
+
     BufferMap(int size, File file){
 	this(size);
-        if(file.isSeeded())      
+        if(file.isSeeded())
             bufferMap.set(0, size, true);
     }
 
@@ -33,7 +33,7 @@ class BufferMap {
             else
                 stringedBufferMap += "0";
         }
-        
+
         return stringedBufferMap;
     }
 

@@ -13,3 +13,5 @@ TAGS
 *.log
 *.jar
 *.lck
+*.tar
+*.gz

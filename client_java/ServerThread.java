@@ -8,11 +8,7 @@ import java.lang.reflect.*;
 
 class ServerThread implements Runnable {
 
-    private static Map<String, Method> protocol =
-        new HashMap<String, Method>();
-    private static final Pattern detectPattern =
-        Pattern.compile("\\s*([a-z]*)\\s.*");
-
+    private static Map<String, Method> protocol = new HashMap<String, Method>();
     private Socket socket;
 
     private static void putProtocol(String key, String method) {
@@ -49,7 +45,7 @@ class ServerThread implements Runnable {
     private void handleIncomingRequests() throws ReflectiveOperationException {
 	Matcher match;
 	try {
-	    match = socket.receiveMatcher(detectPattern);
+	    match = socket.receiveMatcher(PatternMatcher.DETECT);
 	} catch (RZNoMatchException e) {
 	    Log.severe(e.toString());
 	    return;

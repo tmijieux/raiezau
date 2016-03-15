@@ -1,6 +1,6 @@
 package rz;
 
-enum CriterionOP {
+public enum CriterionOP {
     EQ ("="),
     NE ("!="),
     LT ("<"),
@@ -9,12 +9,12 @@ enum CriterionOP {
     GE (">=");
 
     private final String text;
-    CriterionOP(String text) {
+    public CriterionOP(String text) {
 	this.text = text;
     }
-    
+
     @Override
     public String toString() {
 	return text;
     }
-} 
+}
