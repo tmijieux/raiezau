@@ -9,7 +9,7 @@ public enum CriterionOP {
     GE (">=");
 
     private final String text;
-    public CriterionOP(String text) {
+    private CriterionOP(String text) {
 	this.text = text;
     }
 
