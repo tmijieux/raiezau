@@ -16,7 +16,6 @@ class File {
     private boolean seeded;
     private List<Peer> peers;
 
-
     public static List<File> getFileList() {
         return new ArrayList<File>(files.values());
     }
@@ -37,7 +36,6 @@ class File {
         addFileToMap(f);
         return f;
     }
-
 
     /**
      * For uncompleted files
@@ -93,10 +91,12 @@ class File {
 
     public byte[] getByte(int pieceIndex) {
 	int offset = pieceIndex * pieceSize;
-	if (offset > length)
+	if (offset > length) {
 	    throw new RuntimeException("Out of file index");
-	if (!bufferMap.isCompleted(pieceIndex))
+        }
+	if (!bufferMap.isCompleted(pieceIndex)) {
 	    throw new RuntimeException("Request for unpossessed piece");
+        }
 	byte[] piece = new byte[pieceSize];
         try {
             file.read(piece, offset, pieceSize);
@@ -133,9 +133,14 @@ class File {
 
     public void addPiece(int index, byte[] data) {
         long pos = pieceSize * index;
-        file.seek(pos);
-        file.write(data);
-        bufferMap.addCompletedPart(index);
+
+        try {
+            file.seek(pos);
+            file.write(data);
+            bufferMap.addCompletedPart(index);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
