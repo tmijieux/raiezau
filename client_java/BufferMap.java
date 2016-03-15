@@ -2,39 +2,41 @@ package rz;
 
 import java.util.*;
 
-class BufferMap {
-    private BitSet bufferMap;
+public class BufferMap {
     private int size;
+    private BitSet bitSet;
 
-    BufferMap(int size) {
-	bufferMap = new BitSet(size);
-	this.size = size;
+    public BufferMap(int size) {
+        this.size = size;
+	bitSet = new BitSet(size);
     }
 
-    BufferMap(int size, File file){
+    public BufferMap(int size, File file){
 	this(size);
-        if(file.isSeeded())
-            bufferMap.set(0, size, true);
+        if (file.isSeeded()) {
+            /* when the file is already fully present on the disk
+               just fill the bitSet: */
+            bitSet.set(0, size, true);
+        }
     }
 
-    void addCompletedPart(int partNumber) {
-	bufferMap.set(partNumber);
+    public void addCompletedPart(int partNumber) {
+	bitSet.set(partNumber);
     }
 
-    boolean isCompleted(int partNumber){
-	return bufferMap.get(partNumber);
+    public boolean isCompleted(int partNumber){
+	return bitSet.get(partNumber);
     }
 
+    @Override
     public String toString() {
         String stringedBufferMap = new String();
         for(int i = 0; i < size; i++) {
-            if (bufferMap.get(i))
+            if (bitSet.get(i))
                 stringedBufferMap += "1";
             else
                 stringedBufferMap += "0";
         }
-
         return stringedBufferMap;
     }
-
 }

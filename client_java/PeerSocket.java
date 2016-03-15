@@ -4,14 +4,6 @@ import java.util.*;
 import java.util.regex.*;
 
 class PeerSocket extends Socket {
-    private final Pattern interestedPattern = Pattern.compile(
-	"\\s*interested\\s+([a-f0-9]*)\\s*");
-    private final Pattern havePattern = Pattern.compile(
-	"\\s*have\\s+([a-f0-9]*)\\s+(.*)\\s*");
-    private final Pattern getpiecesPattern = Pattern.compile(
-	"\\s*getpieces\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
-    private final Pattern dataPattern = Pattern.compile(
-	"\\s*data\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
     public PeerSocket(String ip, short port)
       throws java.net.UnknownHostException, java.io.IOException {
@@ -39,13 +31,13 @@ class PeerSocket extends Socket {
     /* -------------------- Reception -------------------- */
 
     public void parseInterested(String question) {
-	Matcher match = getMatcherOnMatch(interestedPattern, question);
+	Matcher match = PatternMatcher.INTERESTED.getMatcher(question);
 	File file = Client.client.getFile(match.group(1));
 	sendHave(file);
     }
 
     public File parseHave(String question) {
-	Matcher match = getMatcherOnMatch(havePattern, question);
+	Matcher match = PatternMatcher.HAVE.getMatcher(question);
 	String strBufferMap = match.group(2);
 	byte bufferMap[] = strBufferMap.getBytes();
 	// TODO: update the buffer
@@ -54,7 +46,7 @@ class PeerSocket extends Socket {
     }
 
     public void parseGetpieces(String question) {
-	Matcher match = getMatcherOnMatch(getpiecesPattern, question);
+	Matcher match = PatternMatcher.GETPIECES.getMatcher(question);
 	String key = match.group(1);
 	String[] strIndex = match.group(2).split("\\s+");
 	int[] index = Arrays.stream(strIndex)
@@ -65,14 +57,15 @@ class PeerSocket extends Socket {
     }
 
     public void parseData(String question) {
-	Matcher match = getMatcherOnMatch(dataPattern, question);
+	Matcher match = PatternMatcher.DATA.getMatcher(question);
 	File file = Client.client.getFile(match.group(1));
 	String[] piecesStr = match.group(2).split("\\s+");
 
 	for (String piece: piecesStr) {
 	    String[] tmp = piece.split(":");
-	    if (tmp.length != 2)
+	    if (tmp.length != 2) {
 		throw new RuntimeException("Wrong group 'pieceIndex:data'");
+            }
 	    int i = Integer.parseInt(tmp[0]);
 	    // check piece index TODO
 	    file.addPiece(i, tmp[1].getBytes());
@@ -80,23 +73,11 @@ class PeerSocket extends Socket {
     }
 
     /* -------------------- SEND RELATED -------------------- */
-
     private String indexString(int[] index) {
 	String out = "";
 	for(int i: index) {
 	    out += i + " ";
 	}
 	return out;
-    }
-
-    /* -------------------- PARSE RELATED -------------------- */
-
-    private Matcher getMatcherOnMatch(Pattern pattern, String question) {
-	Matcher match = pattern.matcher(question);
-	if (!match.matches()) {
-	    throw new RuntimeException(
-                "Client question does not match pattern.");
-        }
-	return match;
     }
 }

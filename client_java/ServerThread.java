@@ -45,7 +45,7 @@ class ServerThread implements Runnable {
     private void handleIncomingRequests() throws ReflectiveOperationException {
 	Matcher match;
 	try {
-	    match = socket.receiveMatcher(PatternMatcher.DETECT);
+	    match = socket.receiveAndGetMatcher(PatternMatcher.DETECT);
 	} catch (RZNoMatchException e) {
 	    Log.severe(e.toString());
 	    return;

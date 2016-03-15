@@ -106,7 +106,6 @@ class File {
 	return piece;
     }
 
-
     public void addPeer(Peer peer) {
 	peers.add(peer);
     }
@@ -133,11 +132,13 @@ class File {
     }
 
     public void addPiece(int index, byte[] data) {
-	// TODO:
-	// write in file
-	// update buffermap
+        long pos = pieceSize * index;
+        file.seek(pos);
+        file.write(data);
+        bufferMap.addCompletedPart(index);
     }
 
+    @Override
     public String toString() {
 	return String.format("[file: %s %s]", name, peers);
     }
