@@ -4,12 +4,31 @@ import java.util.*;
 import java.util.regex.*;
 
 public class Peer {
+    private String addr;
+    private short port;
+    
     private Socket socket;
-    private Map<File, BufferMap> peerFilesMaps;
+    private boolean connected;
+    
+    private BufferMap bufferMap;
+    private File file;
+    
+    public Peer(File file, String ip, short port) {
+        this.addr = ip;
+        this.port = port;
+        this.connected = false;
+        this.bufferMap = new BufferMap(file);
+        this.file = file;
+        
+        /* maybe we should connect to the remote peer
+           only when we try to send a request */
+        connect();
+    }
 
-    public Peer(String ip, short port) {
+    private void connect() {
         try {
-            socket = new Socket(ip, port);
+            socket = new Socket(addr, port);
+            this.connected = true;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -18,20 +37,16 @@ public class Peer {
     /**
      * @brief Create a peer form an inline couple: "addr:port"
      */
-    public Peer(String peer) {
-	String[] addrPort = peer.split(":");
+    public Peer(String peerSockAddr) {
+	String[] addrPort = peerSockAddr.split(":");
 	if (addrPort.length != 2) {
 	    throw new RuntimeException(
-                "Wrong group 'addr:port': \"" + peer + '"');
+                "Wrong group 'addr:port': \"" + peerSockAddr + '"');
         }
-        try {
-            socket = new Socket(
-                addrPort[0],
-                Short.parseShort(addrPort[1])
-            );
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        
+        this.addr = addrPort[0];
+        this.port = Short.parseShort(addrPort[0]);
+        this.connect();
     }
 
     @Override
@@ -40,47 +55,54 @@ public class Peer {
     }
     
     /* -------------------- SEND -------------------- */
-
+    private void send(String format, Object ... args) {
+        if (!connected) {
+            connect();
+        }
+        socket.send(format, args);
+    }
+    
     public void sendInterested(File file) {
-	socket.send("interested %s", file.getKey());
+	this.send("interested %s", file.getKey());
     }
 
     public void sendHave(File file) {
-	socket.send("have %s %s", file.getKey(), "TODO");
+	this.send("have %s %s", file.getKey(), "TODO");
     }
 
     public void sendGetpieces(File file, int[] index) {
-	socket.send("getpieces %s [%s]", file.getKey(), indexString(index));
+	this.send("getpieces %s [%s]", file.getKey(), indexString(index));
     }
 
     public void sendData(File file, int[] index) {
-	socket.send("data %s [%s]", file.getKey(), "TODO");
+	this.send("data %s [%s]", file.getKey(), "TODO");
     }
 
     /* -------------------- Reception -------------------- */
-
     public void parseInterested(String question) {
 	Matcher match = PatternMatcher.INTERESTED.getMatcher(question);
 	File file = Client.client.getFile(match.group(1));
 	sendHave(file);
     }
 
-    public File parseHave(String question) {
+    public void parseHave(String question) {
         /* this function does not work with a binary buffer map */
 	Matcher match = PatternMatcher.HAVE.getMatcher(question);
         String key = match.group(1);
         String strBufferMap = match.group(2);
         
-        File f = File.get(key);
+        if (!(key.compareTo(this.file.getKey()) == 0)) {
+            throw new RuntimeException("bad key");
+        }
+        
 	byte bufferMap[] = strBufferMap.getBytes();
         
         for (int i = 0; i < bufferMap.length; ++i) {
             byte b = bufferMap[i];
             if (b != 0) {
-                peerFilesMaps.get(f).addCompletedPart(i);
+                this.bufferMap.addCompletedPart(i);
             }
         }
-        return f;
     }
 
     public void parseGetpieces(String question) {
@@ -113,7 +135,7 @@ public class Peer {
     /* -------------------- SEND RELATED -------------------- */
     private String indexString(int[] index) {
 	String out = "";
-	for(int i: index) {
+	for (int i: index) {
 	    out += i + " ";
 	}
 	return out;

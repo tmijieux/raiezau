@@ -202,24 +202,22 @@ static void print_file_list(void)
 
 static void prompt_command_client(int len, char **command)
 {
-    if (len <= 1) {
+    if (len <= 1 || strcmp(command[1], "list")) {
         printf("%s\n", get_command_help("client"));
         return;
     }
 
-    if (!strcmp(command[1], "list"))
-        print_client_list();
+    print_client_list();
 }
 
 static void prompt_command_file(int len, char **command)
 {
-    if (len <= 1) {
+    if (len <= 1 || strcmp(command[1], "list")) {
         printf("%s\n", get_command_help("file"));
         return;
     }
 
-    if (!strcmp(command[1], "list"))
-        print_file_list();
+    print_file_list();
 }
 
 static void prompt_command_help(int len, char **command)

@@ -10,10 +10,13 @@ all:  src
 
 src: build
 	mkdir -p build/
-	javac -classpath .:jar/jyaml-1.3.jar -d build/ $(SRC)
+	javac -cp .:jar/jyaml-1.3.jar -d build/ $(SRC)
 
 run:
 	@java -cp build/:jyaml/ rz.Client
+
+debug:
+	@jdb -cp build/:jyaml/ rz.Client
 
 build:
 	mkdir -p build/

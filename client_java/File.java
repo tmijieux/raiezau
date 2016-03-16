@@ -21,7 +21,7 @@ class File {
     }
 
     private static void addFileToMap(File file) {
-	files.put(file.key, file);
+        files.put(file.key, file);
 	Log.info("New file %s[%s]", file.name, file.key);
     }
 
@@ -45,7 +45,7 @@ class File {
 	this.length = length;
 	this.key = key;
 	this.seeded = false;
-	bufferMap = new BufferMap((int) length / pieceSize, this);
+	bufferMap = new BufferMap(this);
 	peers = new ArrayList<Peer>();
     }
 
@@ -60,7 +60,7 @@ class File {
             seeded = true;
             key  = MD5Hash();
             length = file.length();
-            bufferMap = new BufferMap((int)length / pieceSize, this);
+            bufferMap = new BufferMap(this);
             peers = new ArrayList<Peer>();
         } catch (IOException e) {
             throw new RuntimeException("File exception: "+filePath);
@@ -142,7 +142,15 @@ class File {
             throw new RuntimeException(e);
         }
     }
+    
+    public long size() {
+        return this.length;
+    }
 
+    public BufferMap getLocalBufferMap() {
+        return bufferMap;
+    }
+    
     @Override
     public String toString() {
 	return String.format("[file: %s %s]", name, peers);
