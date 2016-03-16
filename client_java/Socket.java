@@ -87,7 +87,7 @@ class Socket {
         System.err.println("");
     }
 
-    public Matcher receiveMatcher(PatternMatcher patMatcher) {
+    public Matcher receiveAndGetMatcher(PatternMatcher patMatcher) {
 	String str = receiveLine();
         return patMatcher.getMatcher(str);
     }

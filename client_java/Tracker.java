@@ -63,11 +63,11 @@ public class Tracker {
     }
 
     private void receiveDeclare() {
-	socket.receiveMatcher(PatternMatcher.OK);
+	socket.receiveAndGetMatcher(PatternMatcher.OK);
     }
 
     private void receiveGetfile(File file) {
-	Matcher match = socket.receiveMatcher(PatternMatcher.GETFILE);
+	Matcher match = socket.receiveAndGetMatcher(PatternMatcher.GETFILE);
 	String key = match.group(1);
 
 	if (!file.isKey(key)) {
@@ -85,7 +85,7 @@ public class Tracker {
     }
 
     private List<File> receiveLook() {
-	Matcher match = socket.receiveMatcher(PatternMatcher.LOOK);
+	Matcher match = socket.receiveAndGetMatcher(PatternMatcher.LOOK);
 	List<File> files = new ArrayList<File>();
 
 	if (RZPattern.isEmpty(match.group(1))) {

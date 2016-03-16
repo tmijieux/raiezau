@@ -7,7 +7,11 @@ public enum PatternMatcher {
     OK("ok"),
     GETFILE("peers ([a-fA-F0-9]*) \\[([^]])*\\]"),
     LOOK("list \\[([^]])*\\]"),
-    DETECT("\\s*([a-z]*)\\s.*");
+    DETECT("\\s*([a-z]*)\\s.*"),
+    INTERESTED("\\s*interested\\s+([a-f0-9]*)\\s*"),
+    HAVE("\\s*have\\s+([a-f0-9]*)\\s+(.*)\\s*"),
+    GETPIECES("\\s*getpieces\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*"),
+    DATA("\\s*data\\s+([a-f0-9]*)\\s*\\[\\s*(.*)\\s*\\]\\s*");
 
     private String patternString;
     private java.util.regex.Pattern pattern;

@@ -6,7 +6,7 @@ enum CriterionField {
     FILESIZE ("filesize");
 
     private final String text;
-    public CriterionField(String text) {
+    private CriterionField(String text) {
 	this.text = text;
     }
 
