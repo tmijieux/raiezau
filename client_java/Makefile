@@ -1,10 +1,9 @@
 .PHONY = clean build recette build-tst run-tst run
 
-SRC=*.java
+SRC=rz/*.java
 
 KLASS=$(SRC:.java=.class)
-CLASS=$(foreach klass, $(KLASS), rz/$(klass))
-CLASSFILES=$(foreach klass, $(CLASS), build/$(klass))
+CLASS=$(foreach klass, $(KLASS), build/$(klass))
 
 all:  src
 
@@ -13,17 +12,17 @@ src: build
 	javac -cp .:jar/jyaml-1.3.jar -d build/ $(SRC)
 
 run:
-	@java -cp build/:jyaml/ rz.Client
+	@java -classpath build/:jyaml/ rz.Client
 
 debug:
-	@jdb -cp build/:jyaml/ rz.Client
+	@jdb -sourcepath . -classpath build/:jyaml/ rz.Client
 
 build:
 	mkdir -p build/
 
 jar: rz_client.jar
 
-rz_client.jar: $(CLASSFILES)
+rz_client.jar: $(CLASS)
 	rm -rf rz_client.jar
 	jar cfm $@ Manifest.txt -C build .
 
