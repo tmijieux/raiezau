@@ -4,7 +4,7 @@ import java.util.*;
 import java.io.*;
 import java.security.*;
 
-class File {
+class File implements Serializable{
 
     private static final int pieceSize = Config.getInt("piece-size");
     private static final Map<String, File> filesByKey;
@@ -29,6 +29,21 @@ class File {
 
     public static List<File> getFileList() {
         return new ArrayList<File>(filesByKey.values());
+    }
+
+    private static void loadIncompleteFileFromDirectory(java.io.File folder){
+	if (!folder.isDirectory()){
+	    throw new IllegalArgumentException();
+        }
+
+	for (java.io.File fileEntry : folder.listFiles()) {
+	    if (fileEntry.isDirectory()) {
+		loadIncompleteFileFromDirectory(fileEntry);
+	    } else {
+		restoreFileState(fileEntry);
+	    }
+	}
+  	
     }
 
     public static void loadCompleteFileFromDirectory(java.io.File folder) {
@@ -192,5 +207,37 @@ class File {
     public String toString() {
 	return String.format("[file: %s %s]", name, peers);
     }
-}
 
+    public static void saveFileState(File file){
+	try{
+	    FileOutputStream saveFile = new FileOutputStream("./" + file.name +".ser");
+	    ObjectOutputStream out = new ObjectOutputStream(saveFile);
+	    out.writeObject(file);
+	    out.close();
+	    saveFile.close();
+	
+	}
+	catch(IOException e){
+	    
+	}
+    }
+    
+    public static File  restoreFileState(java.io.File file){
+	File f = null;
+	try{
+	    FileInputStream saveFile = new FileInputStream(file);
+	    ObjectInputStream in = new ObjectInputStream(saveFile);
+	    f = (File) in.readObject();
+	    in.close();
+	    saveFile.close();
+
+	}
+	catch (FileNotFoundException e){
+	    
+	}
+	catch (IOException | ClassNotFoundException e){
+	}
+		
+	return f;
+    }
+}
