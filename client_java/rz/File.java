@@ -5,8 +5,9 @@ import java.io.*;
 import java.security.*;
 
 class File {
+
     private static final int pieceSize = Config.getInt("piece-size");
-    private static final Map<String, File> files = new HashMap<String, File>();
+    private static final Map<String, File> filesByKey;
 
     private RandomAccessFile file;
     private BufferMap bufferMap;
@@ -16,33 +17,61 @@ class File {
     private boolean seeded;
     private List<Peer> peers;
 
-    public static List<File> getFileList() {
-        return new ArrayList<File>(files.values());
+    static {
+        filesByKey = new HashMap<String, File>();
+        String dirname = Config.get("completed-files-directory");
+        java.io.File fileDir = new java.io.File(dirname);
+        if (!fileDir.exists()) {
+            fileDir.mkdir();
+        }
+        loadCompleteFileFromDirectory(fileDir);
     }
 
-    private static void addFileToMap(File file) {
-        files.put(file.key, file);
-	Log.info("New file %s[%s]", file.name, file.key);
+    public static List<File> getFileList() {
+        return new ArrayList<File>(filesByKey.values());
+    }
+
+    public static void loadCompleteFileFromDirectory(java.io.File folder) {
+        if (!folder.isDirectory()) {
+            throw new IllegalArgumentException();
+        }
+
+        for (java.io.File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                loadCompleteFileFromDirectory(fileEntry);
+            } else {
+                String name = fileEntry.getName();
+                System.out.println("loading file " + name);
+                addCompleteFile(name);
+            }
+        }
+    }
+
+    private static File insertFile(File newFile) {
+        File f = filesByKey.get(newFile.key);
+        if (f != null) {
+            newFile = null;
+            return f;
+        }
+        filesByKey.put(newFile.key, newFile);
+        return newFile;
     }
 
     public static File addCompleteFile(String name) {
-        File f = new File(name);
-        addFileToMap(f);
-        return f;
+        File newFile = new File(name);
+        return insertFile(newFile);
     }
 
-    public static File addFile(String name, long length, String key) {
-        File f = new File(name, length, key);
-        addFileToMap(f);
-        return f;
+    public static File addFile(String name, long length, String key)
+    {
+        File newFile = new File(name, length, key);
+        return insertFile(newFile);
     }
 
     /**
      * For uncompleted files
      */
     private File(String name, long length, String key) {
-	this.name = name;
-	this.length = length;
 	this.key = key;
 	this.seeded = false;
 	bufferMap = new BufferMap(this);
@@ -54,11 +83,15 @@ class File {
      */
     private File(String name) {
 	this.name = name;
-        String filePath = Config.get("file-dir") + name;
+        String filePath = name;
+        if (name.charAt(0) != '/') {
+            String dir = Config.get("completed-files-directory");
+            filePath =  dir +'/'+ name;
+        }
         try {
             file = new RandomAccessFile(filePath, "rw");
             seeded = true;
-            key  = MD5Hash();
+            key  = this.MD5Hash();
             length = file.length();
             bufferMap = new BufferMap(this);
             peers = new ArrayList<Peer>();
@@ -67,8 +100,13 @@ class File {
         }
     }
 
-    public static File get(String key) {
-	return files.get(key);
+    public static File getByKey(String key) {
+	return filesByKey.get(key);
+    }
+
+    public static List<File> getByName(String name) {
+        List<File> fileList = new ArrayList<File>();
+        return fileList;
     }
 
     private String MD5Hash() throws IOException {
@@ -133,7 +171,6 @@ class File {
 
     public void addPiece(int index, byte[] data) {
         long pos = pieceSize * index;
-
         try {
             file.seek(pos);
             file.write(data);
@@ -142,7 +179,7 @@ class File {
             throw new RuntimeException(e);
         }
     }
-    
+
     public long size() {
         return this.length;
     }
@@ -150,9 +187,10 @@ class File {
     public BufferMap getLocalBufferMap() {
         return bufferMap;
     }
-    
+
     @Override
     public String toString() {
 	return String.format("[file: %s %s]", name, peers);
     }
 }
+

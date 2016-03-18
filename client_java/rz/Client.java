@@ -17,10 +17,6 @@ class Client {
         this.server = server;
     }
 
-    public static File getFile(String key) {
-        return File.get(key);
-    }
-
     public void start() {
         new Thread(server).start();
 	strategy.share(tracker, server);

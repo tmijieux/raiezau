@@ -7,8 +7,8 @@ class StrategyTest implements Strategy {
     private Server clientServer;
 
     private void getFile(String key) {
-	tracker.doGetfile(File.get(key));
-	System.out.println("Getfile." + File.get(key));
+	tracker.doGetfile(File.getByKey(key));
+	System.out.println("Getfile." + File.getByKey(key));
     }
 
     private void look(LookRequest lr) {
@@ -52,7 +52,7 @@ class StrategyTest implements Strategy {
         look(lr);
 
 	/*
-          File file = File.get("ssss");
+          File file = File.getByKey("ssss");
           file.peerConnect(0);
 
           file.peerDoInterested(0);

@@ -5,11 +5,11 @@ SRC=rz/*.java
 KLASS=$(SRC:.java=.class)
 CLASS=$(foreach klass, $(KLASS), build/$(klass))
 
-all:  src
+all: src
 
 src: build
 	mkdir -p build/
-	javac -cp .:jar/jyaml-1.3.jar -g:source,lines,vars -d build/ $(SRC)
+	javac -Xlint:unchecked -cp .:jar/jyaml-1.3.jar -g:source,lines,vars -d build/ $(SRC)
 
 run:
 	@java -classpath build/:jyaml/ rz.Client

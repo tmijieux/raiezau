@@ -81,7 +81,7 @@ public class Peer {
     /* -------------------- Reception -------------------- */
     public void parseInterested(String question) {
 	Matcher match = PatternMatcher.INTERESTED.getMatcher(question);
-	File file = Client.client.getFile(match.group(1));
+	File file = File.getByKey(match.group(1));
 	sendHave(file);
     }
 
@@ -112,14 +112,14 @@ public class Peer {
 	int[] index = Arrays.stream(strIndex)
             .mapToInt(Integer::parseInt)
             .toArray();
-	File file = Client.client.getFile(match.group(1));
+	File file = File.getByKey(match.group(1));
         sendData(file, index);
     }
 
     public void parseData(String question) {
         /* this function does not work with a binary buffer map */
 	Matcher match = PatternMatcher.DATA.getMatcher(question);
-	File file = Client.client.getFile(match.group(1));
+	File file = File.getByKey(match.group(1));
 	String[] piecesStr = match.group(2).split("\\s+");
 
 	for (String piece: piecesStr) {
