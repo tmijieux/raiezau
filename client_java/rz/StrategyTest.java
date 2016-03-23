@@ -22,10 +22,6 @@ class StrategyTest implements Strategy {
         this.clientServer = clientServer;
 
     	// testing
-	File.addCompleteFile("fifi.dat");
-	File.addCompleteFile("ssss.dat");
-	File.addCompleteFile("floa.dat");
-	File.addCompleteFile("p0rn.dat");
 
         List<File> fileList = File.getFileList();
         System.err.println(">>>"+tracker+"<<<");
