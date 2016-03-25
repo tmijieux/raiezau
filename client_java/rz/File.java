@@ -4,12 +4,14 @@ import java.util.*;
 import java.io.*;
 import java.security.*;
 
-class File {
+class File implements Serializable{
 
     private static final int pieceSize = Config.getInt("piece-size");
     private static final Map<String, File> filesByKey;
 
+    private java.io.File jFile;
     private RandomAccessFile file;
+
     private BufferMap bufferMap;
     private String name;
     private String key;
@@ -31,29 +33,52 @@ class File {
         return new ArrayList<File>(filesByKey.values());
     }
 
+    private static void loadIncompleteFileFromDirectory(java.io.File folder){
+	if (!folder.isDirectory()){
+	    throw new IllegalArgumentException();
+        }
+
+	for (java.io.File fileEntry : folder.listFiles()) {
+	    if (fileEntry.isDirectory()) {
+		loadIncompleteFileFromDirectory(fileEntry);
+	    } else {
+		restoreFileState(fileEntry);
+	    }
+	}
+    }
+
     public static void loadCompleteFileFromDirectory(java.io.File folder) {
         if (!folder.isDirectory()) {
             throw new IllegalArgumentException();
         }
+        Log.debug("Entering directory " + folder);
 
         for (java.io.File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
                 loadCompleteFileFromDirectory(fileEntry);
+
             } else {
                 String name = fileEntry.getName();
-                System.out.println("loading file " + name);
+                Log.info("loading file " + name);
                 addCompleteFile(name);
             }
         }
+
+        Log.debug("Leaving directory " + folder);
     }
 
     private static File insertFile(File newFile) {
         File f = filesByKey.get(newFile.key);
         if (f != null) {
+            Log.warning(
+                "file " + newFile.name + " with key "+
+                newFile.key + " is already present in "+
+                "the file store and it is know as '"+f.name+"'.");
             newFile = null;
             return f;
         }
         filesByKey.put(newFile.key, newFile);
+        System.err.println("size: " + filesByKey.size());
         return newFile;
     }
 
@@ -74,6 +99,7 @@ class File {
     private File(String name, long length, String key) {
 	this.key = key;
 	this.seeded = false;
+        jFile = new java.io.File(name);
 	bufferMap = new BufferMap(this);
 	peers = new ArrayList<Peer>();
     }
@@ -89,7 +115,8 @@ class File {
             filePath =  dir +'/'+ name;
         }
         try {
-            file = new RandomAccessFile(filePath, "rw");
+            jFile = new java.io.File(filePath);
+            file = new RandomAccessFile(jFile, "rw");
             seeded = true;
             key  = this.MD5Hash();
             length = file.length();
@@ -110,21 +137,7 @@ class File {
     }
 
     private String MD5Hash() throws IOException {
-        StringBuffer sb = new StringBuffer();
-        try {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            byte[] b = new byte[(int)file.length()];
-            byte[] array = md5.digest(b);
-
-            file.read(b);
-            for (int i = 0; i < array.length; ++i) {
-                sb.append(Integer.toHexString(
-                              (array[i] & 0xFF) | 0x100).substring(1,3));
-            }
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        return sb.toString();
+        return MD5.hash(new FileInputStream(jFile));
     }
 
     public byte[] getByte(int pieceIndex) {
@@ -190,7 +203,38 @@ class File {
 
     @Override
     public String toString() {
-	return String.format("[file: %s %s]", name, peers);
+	return name+": "+ peers;
+    }
+
+    public static void saveFileState(File file) {
+	try {
+	    FileOutputStream saveFile =
+                new FileOutputStream("./" + file.name +".ser");
+	    ObjectOutputStream out = new ObjectOutputStream(saveFile);
+	    out.writeObject(file);
+	    out.close();
+	    saveFile.close();
+	} catch (IOException e){
+	}
+    }
+
+    public static File restoreFileState(java.io.File file) {
+	File f = null;
+	try {
+	    FileInputStream saveFile = new FileInputStream(file);
+	    ObjectInputStream in = new ObjectInputStream(saveFile);
+	    f = (File) in.readObject();
+	    in.close();
+	    saveFile.close();
+
+	} catch (FileNotFoundException e) {
+
+	} catch (IOException | ClassNotFoundException e) {
+	}
+	return f;
+    }
+
+    public String getName() {
+        return name;
     }
 }
-
