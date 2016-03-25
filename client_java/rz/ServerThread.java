@@ -15,8 +15,7 @@ class ServerThread implements Runnable {
 	try {
 	    protocol.put(
                 key,
-                ServerThread.class.getMethod(method, String.class)
-            );
+                ServerThread.class.getMethod(method, String.class));
 	} catch (Exception e) {
 	    System.out.println(e);
 	}

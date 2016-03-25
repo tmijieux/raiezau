@@ -10,11 +10,10 @@ import java.io.OutputStreamWriter;
 import java.io.IOException;
 
 class Socket {
-    java.net.Socket sock;
+    private java.net.Socket sock;
     private short port;
     private String ip;
 
-    //    private java.net.Socket socket;
     private BufferedReader from;
     private PrintWriter to;
 
@@ -61,7 +60,17 @@ class Socket {
     public void sendError() {
 	send("error");
     }
-
+    
+    public byte[] receiveByte(int length) {
+	char t[] = new char[length];
+        try {
+	    from.read(t, 0, length);
+        } catch (Exception e) {
+            Log.debug(e.toString());
+        }
+	return new String(t).getBytes(); // TODO faire un bon truc
+    }
+    
     public String receiveLine() {
         String response = null;
         try {

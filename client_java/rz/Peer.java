@@ -2,6 +2,8 @@ package rz;
 
 import java.util.*;
 import java.util.regex.*;
+import java.lang.*;
+import java.lang.reflect.*;
 
 public class Peer {
     private String addr;
@@ -139,5 +141,74 @@ public class Peer {
 	    out += i + " ";
 	}
 	return out;
+    }
+
+
+    // receive
+    private static final int KEY_LEN = 4;
+    private static final String PREFIX = "receive";
+    private static final int PREFIX_LEN = PREFIX.length();
+
+    private static Map<byte[], Method> protocol =
+	new HashMap<byte[], Method>();
+
+    private static void putProtocol(String method) {
+	try {
+	    byte[] key = method.substring
+		(PREFIX_LEN, PREFIX_LEN + KEY_LEN).getBytes();
+	    protocol.put(
+		key,
+		ServerThread.class.getMethod(method, String.class));
+	} catch (Exception e) {
+	    System.out.println(e);
+	}
+    }
+
+    static {
+	Peer.putProtocol("receiveHave");
+	Peer.putProtocol("receiveInterested");
+	Peer.putProtocol("receiveGetpieces");
+    }
+
+    public void receive() throws ReflectiveOperationException {
+	byte[] key = socket.receiveByte(KEY_LEN);
+	if (!protocol.containsKey(key)) {
+	    Log.warning("Ignoring request begining with '%s'", key);
+	    socket.sendError();
+	    return;
+	}
+	
+	Method method = protocol.get(key);
+	try {
+	    method.invoke(this, key);
+	} catch (RZNoMatchException e) {
+	    Log.severe(e.toString());
+	}
+    }
+
+    private void check(String name) throws RZNoMatchException {
+	byte[] expected = name.substring
+	    (KEY_LEN, name.length()).getBytes();
+	if (expected.length == 0)
+	    return;
+	byte[] received = socket.receiveByte(expected.length);
+	if (Arrays.equals(expected, received))
+	    throw new RZNoMatchException
+		("No match for '"+expected+"' '"+received+"'");
+    }
+    
+    public void receiveHave(byte[] key) throws RZNoMatchException {
+	check("have");
+	// TODO
+    }
+
+    public void receiveInterested(byte[] key) throws RZNoMatchException {
+	check("interested");
+	// TODO call parseInterested
+    }
+
+    public void receiveGetpieces(byte[] key) throws RZNoMatchException {
+	check("getpieces");
+	// TODO call parseGetpieces
     }
 }
