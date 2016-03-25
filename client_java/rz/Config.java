@@ -3,9 +3,6 @@ package rz;
 import java.util.*;
 import java.io.*;
 
-//import org.ho.yaml.*;
-//Object conf = Yaml.load(new File("config.ini"));
-
 class Config {
     private static final String filename = "config.ini";
     private static final Properties props = new Properties();

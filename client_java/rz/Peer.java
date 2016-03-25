@@ -15,7 +15,7 @@ public class Peer {
     private BufferMap bufferMap;
     private File file;
     
-    public Peer(File file, String ip, short port) {
+    public Peer(File file, String ip, short port, int i) {
         this.addr = ip;
         this.port = port;
         this.connected = false;
@@ -27,13 +27,12 @@ public class Peer {
         connect();
     }
 
-    private void connect() {
-        try {
-            socket = new Socket(addr, port);
-            this.connected = true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    /**
+     * @brief Create Peer for ServerThread
+     */
+    public Peer(Socket socket) {
+	this.socket = socket;
+	this.connected = true;	
     }
 
     /**
@@ -49,6 +48,15 @@ public class Peer {
         this.addr = addrPort[0];
         this.port = Short.parseShort(addrPort[0]);
         this.connect();
+    }
+
+    private void connect() {
+        try {
+            socket = new Socket(addr, port);
+            this.connected = true;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -135,6 +143,7 @@ public class Peer {
     }
 
     /* -------------------- SEND RELATED -------------------- */
+
     private String indexString(int[] index) {
 	String out = "";
 	for (int i: index) {
@@ -142,4 +151,88 @@ public class Peer {
 	}
 	return out;
     }
+
+    /* -------------------- Server side -------------------- */
+
+    private static final int KEY_LEN = 4;
+    private static final String PREFIX = "receive";
+    private static final int PREFIX_LEN = PREFIX.length();
+
+    private static Map<String, Method> protocol =
+	new HashMap<String, Method>();
+
+    private static void putProtocol(String method) {
+	try {
+	    String key = method.substring(
+		PREFIX_LEN, PREFIX_LEN + KEY_LEN).toLowerCase();
+	    protocol.put(
+		key,
+		Peer.class.getMethod(method, String.class));
+	} catch (Exception e) {
+	    System.out.println(e);
+	}
+    }
+
+    static {
+	Peer.putProtocol("receiveHave");
+	Peer.putProtocol("receiveInterested");
+	Peer.putProtocol("receiveGetpieces");
+    }
+
+    public void handleRequest()
+	throws RZNoMatchException, ReflectiveOperationException {
+	byte[] keyBytes = socket.receiveByte(KEY_LEN);
+	String key = new String(keyBytes);
+	if (!protocol.containsKey(key)) {
+	    throw new RZNoMatchException(
+		"Invalid request with '" + key + "'");
+	}
+	
+	Method method = protocol.get(key);
+	method.invoke(this, key);
+    }
+
+    private void checkProtocolKeyEnd(String name) 
+	throws RZNoMatchException {
+	String expected = name.substring(KEY_LEN, name.length());
+	if (expected.length() == 0)
+	    return;
+	check(expected);
+    }
+
+    private void check(String expected)
+	throws RZNoMatchException {
+	String received = new String(
+	    socket.receiveByte(expected.length()));
+	if (expected.compareTo(received) != 0) {
+	    throw new RZNoMatchException( // TODO failing 
+		"Check failed received '" + expected + "'");
+	}
+    }
+    
+    /* -------------------- Reception -------------------- */
+
+    private String receiveHash() {
+	int len = Config.getInt("hash-size");
+	return new String(socket.receiveByte(len));
+    }
+
+    public void receiveHave(String key) 
+	throws RZNoMatchException {
+	checkProtocolKeyEnd("have");
+	// TODO
+    }
+
+    public void receiveInterested(String key) 
+	throws RZNoMatchException {
+	checkProtocolKeyEnd("interested");
+	// TODO call parseInterested
+    }
+
+    public void receiveGetpieces(String key) 
+	throws RZNoMatchException {
+	checkProtocolKeyEnd("getpieces");
+	// TODO call parseGetpieces
+    }
+
 }
