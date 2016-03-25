@@ -1,0 +1,29 @@
+PAS DE SEED ni LEECH:
+
+1. un client se connecte s'annonce et se deconnecte
+
+2. un client se connecte, ne s'annonce pas, et se déconnecte.
+
+3. deux clients se connecte, puis les deux clients s'annoncent.
+
+4. un client se connecte puis s'annonce, puis un deuxième se connecte et s'annoncent
+
+
+
+
+AVEC SEED / AVEC LEECH :
+
+5. un client se connecte, et annonce plusieurs fichiers de manière valide
+
+6. un client se connecte et s'annonce de manière invalide 
+    (mauvais nombre de paramètre pour seed)
+    (les chaines de correspondent pas à des hashs valides pour leech)
+
+7. plusieurs clients se connectent et annoncent des fichiers différents.
+
+8. plusieurs clients se connectent et annoncent le même fichier
+
+9. plusieurs clients se connectent et annoncent à la fois des fichiers différents
+    et au moins un fichier communs
+    
+
