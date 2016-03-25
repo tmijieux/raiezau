@@ -19,7 +19,7 @@ class Client {
 
     public void start() {
         new Thread(server).start();
-	strategy.share(tracker, server);
+	//strategy.share(tracker, server);
     }
 
     public static void main(String args[]) {
@@ -41,11 +41,7 @@ class Client {
             System.exit(1);
         }
 
-        Client.client = new Client(
-            strategy,
-            tracker,
-            clientServer
-        );
+        Client.client = new Client(strategy, tracker, clientServer);
         Client.client.start();
     }
 }

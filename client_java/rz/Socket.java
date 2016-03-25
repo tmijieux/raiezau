@@ -68,7 +68,11 @@ class Socket {
         } catch (Exception e) {
             Log.debug(e.toString());
         }
-	return new String(t).getBytes(); // TODO faire un bon truc
+	byte b[] = new byte[length];
+	for (int i = 0; i < length; i++) {
+	    b[i] = (byte) t[i];
+	}
+	return b;
     }
     
     public String receiveLine() {
