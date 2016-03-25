@@ -34,3 +34,10 @@ derriere une parenthèse, c'est :
 et de préférence
 (setq indent-tabs-mode nil)  ; pas de tabulation
 M-x untabify
+
+
+
+sinon pour regler un problème d'indentation quelconque
+faites C-c C-s sur l'element mal indenté,
+regarder le nom de la propriété et ajouté le dans 
+le code lisp en prenant pour modèle le reste 
