@@ -154,7 +154,6 @@ public class Peer {
 
     /* -------------------- Server side -------------------- */
 
-    private static final int KEY_LEN = 4;
     private static final String PREFIX = "receive";
     private static final int PREFIX_LEN = PREFIX.length();
 
@@ -164,16 +163,17 @@ public class Peer {
     private static void putProtocol(String method) {
 	try {
 	    String key = method.substring(
-		PREFIX_LEN, PREFIX_LEN + KEY_LEN).toLowerCase();
+		PREFIX_LEN, method.length()).toLowerCase();
 	    protocol.put(
 		key,
-		Peer.class.getMethod(method, String.class));
+		Peer.class.getMethod(method));
 	} catch (Exception e) {
 	    System.out.println(e);
 	}
     }
 
     static {
+	Peer.putProtocol("receiveError");
 	Peer.putProtocol("receiveHave");
 	Peer.putProtocol("receiveInterested");
 	Peer.putProtocol("receiveGetpieces");
@@ -181,58 +181,64 @@ public class Peer {
 
     public void handleRequest()
 	throws RZNoMatchException, ReflectiveOperationException {
-	byte[] keyBytes = socket.receiveByte(KEY_LEN);
-	String key = new String(keyBytes);
-	if (!protocol.containsKey(key)) {
+	String protocolKey = socket.receiveWord();
+	if (!protocol.containsKey(protocolKey)) {
 	    throw new RZNoMatchException(
-		"Invalid request with '" + key + "'");
+		"Invalid request with '" + protocolKey + "'");
 	}
 	
-	Method method = protocol.get(key);
-	method.invoke(this, key);
+	Method method = protocol.get(protocolKey);
+	method.invoke(this);
     }
 
-    private void checkProtocolKeyEnd(String name) 
-	throws RZNoMatchException {
-	String expected = name.substring(KEY_LEN, name.length());
-	if (expected.length() == 0)
-	    return;
-	check(expected);
-    }
-
-    private void check(String expected)
-	throws RZNoMatchException {
-	String received = new String(
-	    socket.receiveByte(expected.length()));
-	if (expected.compareTo(received) != 0) {
-	    throw new RZNoMatchException( // TODO failing 
-		"Check failed received '" + expected + "'");
-	}
-    }
-    
     /* -------------------- Reception -------------------- */
 
-    private String receiveHash() {
-	int len = Config.getInt("hash-size");
-	return new String(socket.receiveByte(len));
+    public void receiveError() {
+	Log.severe("Received error! " + socket);
     }
 
-    public void receiveHave(String key) 
-	throws RZNoMatchException {
-	checkProtocolKeyEnd("have");
-	// TODO
+    public void receiveHave() {
+	File file = getFileWithReception();
+	byte[] bufferMap = socket.receiveByte((int)file.getLength());
+	// TODO update buffer map(?)
+	sendHave(file);
     }
 
-    public void receiveInterested(String key) 
-	throws RZNoMatchException {
-	checkProtocolKeyEnd("interested");
-	// TODO call parseInterested
+    public void receiveInterested() {
+	File file = getFileWithReception();
+	sendHave(file);
     }
 
-    public void receiveGetpieces(String key) 
-	throws RZNoMatchException {
-	checkProtocolKeyEnd("getpieces");
-	// TODO call parseGetpieces
+    public void receiveGetpieces() {
+	File file = getFileWithReception();
+	socket.receiveByte(1); // '['
+	ArrayList<Integer> indexList = new ArrayList<Integer>();
+	while(true) {
+	    String str = socket.receiveWord();
+	    if (str == "]")
+		break;
+	    indexList.add(Integer.parseInt(str));
+	}
+	int index[] = convertIntegers(indexList);
+	sendData(file, index);
     }
 
+    private File getFileWithReception() {
+	String hash = socket.receiveHash();
+	File file = File.getByKey(hash);
+	if (file == null) {
+	    Log.warning("Asked for unknown file hash '%s'", hash);
+	    socket.sendError();
+	    throw new RZNoFileException("No file " + hash);
+	}
+	return file;
+    }
+
+    private static int[] convertIntegers(List<Integer> integers) {
+	int[] ret = new int[integers.size()];
+	for (int i = 0; i < ret.length; i++) {
+	    ret[i] = integers.get(i).intValue();
+	}
+	return ret;
+    }
 }

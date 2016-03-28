@@ -75,6 +75,32 @@ class Socket {
 	return b;
     }
     
+    public String receiveWord() {
+	StringBuilder sb = new StringBuilder();
+	while(true) {
+	    char tmp[] = new char[1];
+	    try {
+		from.read(tmp, 0, 1);
+	    } catch (Exception e) {
+		Log.debug(e.toString());
+	    }
+	    if (tmp[0] == ' ' || tmp[0] == '\n')
+		break;
+	    sb.append(tmp[0]);
+	}
+	return sb.toString();
+    }
+
+    public String receiveHash() {
+	// maybe should assert or throw exception
+	return receiveWord();
+    }
+
+    public void receiveBlank() {
+	// maybe should assert or throw exception
+	receiveByte(1);
+    }
+
     public String receiveLine() {
         String response = null;
         try {

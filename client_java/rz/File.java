@@ -33,7 +33,7 @@ class File implements Serializable{
         return new ArrayList<File>(filesByKey.values());
     }
 
-    private static void loadIncompleteFileFromDirectory(java.io.File folder){
+    private static void loadIncompleteFileFromDirectory(java.io.File folder) {
 	if (!folder.isDirectory()){
 	    throw new IllegalArgumentException();
         }

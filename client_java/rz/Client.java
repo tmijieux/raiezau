@@ -26,13 +26,13 @@ class Client {
         short clientServerPort = Config.getShort("user-port");
         String trackerAdress = Config.get("tracker-address");
         short trackerPort = Config.getShort("tracker-port");
-
+	
 	Strategy strategy = new StrategyTest();
         Server clientServer = new Server(clientServerPort);
 
         Tracker tracker = null;
         try {
-            tracker = new Tracker(
+	    tracker = new Tracker(
                 Config.get("tracker-address"),
                 Config.getShort("tracker-port")
             );
