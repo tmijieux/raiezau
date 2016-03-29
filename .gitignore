@@ -15,3 +15,5 @@ TAGS
 *.lck
 *.tar
 *.gz
+yaml_path
+usr
