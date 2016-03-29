@@ -16,3 +16,5 @@ TAGS
 *.tar
 *.gz
 yaml-0.1.5/
+yaml_path
+usr
