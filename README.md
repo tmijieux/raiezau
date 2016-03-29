@@ -2,6 +2,10 @@
 
 # lancements des programmes:
 compilation et lancement du tracker:
+    if you lack the yaml dependency:
+    ./deps_install.sh
+
+    then:
     cd tracker; make; ./trackme
 
 # scripts
