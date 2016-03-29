@@ -6,29 +6,15 @@ import java.lang.*;
 import java.lang.reflect.*;
 
 public class Peer {
+    private Socket socket;
+    private boolean connected;
+
     private String addr;
     private short port;
     
-    private Socket socket;
-    private boolean connected;
-    
-    private BufferMap bufferMap;
-    private File file;
-    
-    public Peer(File file, String ip, short port, int i) {
-        this.addr = ip;
-        this.port = port;
-        this.connected = false;
-        this.bufferMap = new BufferMap(file);
-        this.file = file;
-        
-        /* maybe we should connect to the remote peer
-           only when we try to send a request */
-        connect();
-    }
-
     /**
      * @brief Create Peer for ServerThread
+     * Peer only need a socket
      */
     public Peer(Socket socket) {
 	this.socket = socket;
@@ -36,19 +22,17 @@ public class Peer {
     }
 
     /**
-     * @brief Create a peer form an inline couple: "addr:port"
+     * @brief Create a peer from an inline couple: "addr:port"
+     * This Peer is in a peer list in a File
      */
-
     public Peer(String peerSockAddr) {
 	String[] addrPort = peerSockAddr.split(":");
 	if (addrPort.length != 2) {
 	    throw new RuntimeException(
                 "Wrong group 'addr:port': \"" + peerSockAddr + '"');
         }
-        
         this.addr = addrPort[0];
         this.port = Short.parseShort(addrPort[0]);
-        this.connect();
     }
 
     private void connect() {

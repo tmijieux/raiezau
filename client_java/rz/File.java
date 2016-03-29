@@ -4,7 +4,7 @@ import java.util.*;
 import java.io.*;
 import java.security.*;
 
-class File implements Serializable{
+class File implements Serializable {
 
     private static final int pieceSize = Config.getInt("piece-size");
     private static final Map<String, File> filesByKey;
@@ -56,7 +56,6 @@ class File implements Serializable{
         for (java.io.File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
                 loadCompleteFileFromDirectory(fileEntry);
-
             } else {
                 String name = fileEntry.getName();
                 Log.info("loading file " + name);
@@ -87,8 +86,7 @@ class File implements Serializable{
         return insertFile(newFile);
     }
 
-    public static File addFile(String name, long length, String key)
-    {
+    public static File addFile(String name, long length, String key) {
         File newFile = new File(name, length, key);
         return insertFile(newFile);
     }

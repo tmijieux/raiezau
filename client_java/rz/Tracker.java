@@ -78,6 +78,7 @@ public class Tracker {
 	    return;
         }
 
+	Log.debug(match.group(2)); // something fishy
 	String[] peers = match.group(2).split("\\s+");
 	for(String peer : peers) {
 	    file.addPeer(new Peer(peer));
