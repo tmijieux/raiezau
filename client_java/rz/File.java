@@ -174,6 +174,10 @@ class File implements Serializable{
 	return length;
     }
 
+    public int getPieceSize() {
+	return pieceSize;
+    }
+
     public boolean isSeeded() {
 	return seeded;
     }

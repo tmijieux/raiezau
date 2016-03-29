@@ -74,9 +74,14 @@ class Socket {
 	}
 	return b;
     }
-    
-    public String receiveWord() {
+
+    /**
+     * Get the string received until encountering one of the char in parameters
+     * The char will not be in the string returned and will be "eaten"
+     */
+    public String receiveUntil(char ... c) {
 	StringBuilder sb = new StringBuilder();
+	while_loop:
 	while(true) {
 	    char tmp[] = new char[1];
 	    try {
@@ -84,11 +89,16 @@ class Socket {
 	    } catch (Exception e) {
 		Log.debug(e.toString());
 	    }
-	    if (tmp[0] == ' ' || tmp[0] == '\n')
-		break;
+	    for (int i = 0; i < c.length; i++)
+		if (tmp[0] == c[i])
+		    break while_loop;
 	    sb.append(tmp[0]);
 	}
 	return sb.toString();
+    }
+    
+    public String receiveWord() {
+	return receiveUntil(' ', '\n');
     }
 
     public String receiveHash() {

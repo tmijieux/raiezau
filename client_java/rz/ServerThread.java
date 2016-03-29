@@ -16,7 +16,7 @@ class ServerThread implements Runnable {
     public void run() {
 	try {
 	    while (true) {
-                peer.handleRequest();
+                peer.handleRequest(true);
 	    }
 	} catch (Exception e) {
 	    Log.severe("Exception in client reception: %s", 

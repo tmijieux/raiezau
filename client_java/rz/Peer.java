@@ -38,6 +38,7 @@ public class Peer {
     /**
      * @brief Create a peer form an inline couple: "addr:port"
      */
+
     public Peer(String peerSockAddr) {
 	String[] addrPort = peerSockAddr.split(":");
 	if (addrPort.length != 2) {
@@ -58,13 +59,43 @@ public class Peer {
             throw new RuntimeException(e);
         }
     }
-
+    
     @Override
     public String toString() {
 	return String.format("[peer: %s]", socket);
     }
     
+    /* -------------------- DO -------------------- */
+
+    public void doInterested(File file) {
+	sendInterested(file);
+	String protocolKey = socket.receiveWord();
+	if (protocolKey == "have")
+	    receiveHave(false);
+	else
+	    throw new RuntimeException("Wrong response");
+    }
+
+    public void doHave(File file) {
+	sendHave(file);
+	String protocolKey = socket.receiveWord();
+	if (protocolKey == "have")
+	    receiveHave(false);
+	else
+	    throw new RuntimeException("Wrong response");
+    }
+
+    public void doGetpieces(File file, int[] index) {
+	sendGetpieces(file, index);
+	String protocolKey = socket.receiveWord();
+	if (protocolKey == "data")
+	    receiveData(false);
+	else
+	    throw new RuntimeException("Wrong response");
+    }
+
     /* -------------------- SEND -------------------- */
+
     private void send(String format, Object ... args) {
         if (!connected) {
             connect();
@@ -72,74 +103,20 @@ public class Peer {
         socket.send(format, args);
     }
     
-    public void sendInterested(File file) {
-	this.send("interested %s", file.getKey());
+    private void sendInterested(File file) {
+	send("interested %s", file.getKey());
     }
 
-    public void sendHave(File file) {
-	this.send("have %s %s", file.getKey(), "TODO");
+    private void sendHave(File file) {
+	send("have %s %s", file.getKey(), "TODO");
     }
-
-    public void sendGetpieces(File file, int[] index) {
-	this.send("getpieces %s [%s]", file.getKey(), indexString(index));
+    
+    private void sendGetpieces(File file, int[] index) {
+	send("getpieces %s [%s]", file.getKey(), indexString(index));
     }
-
-    public void sendData(File file, int[] index) {
-	this.send("data %s [%s]", file.getKey(), "TODO");
-    }
-
-    /* -------------------- Reception -------------------- */
-    public void parseInterested(String question) {
-	Matcher match = PatternMatcher.INTERESTED.getMatcher(question);
-	File file = File.getByKey(match.group(1));
-	sendHave(file);
-    }
-
-    public void parseHave(String question) {
-        /* this function does not work with a binary buffer map */
-	Matcher match = PatternMatcher.HAVE.getMatcher(question);
-        String key = match.group(1);
-        String strBufferMap = match.group(2);
-        
-        if (!(key.compareTo(this.file.getKey()) == 0)) {
-            throw new RuntimeException("bad key");
-        }
-        
-	byte bufferMap[] = strBufferMap.getBytes();
-        
-        for (int i = 0; i < bufferMap.length; ++i) {
-            byte b = bufferMap[i];
-            if (b != 0) {
-                this.bufferMap.addCompletedPart(i);
-            }
-        }
-    }
-
-    public void parseGetpieces(String question) {
-	Matcher match = PatternMatcher.GETPIECES.getMatcher(question);
-	String key = match.group(1);
-	String[] strIndex = match.group(2).split("\\s+");
-	int[] index = Arrays.stream(strIndex)
-            .mapToInt(Integer::parseInt)
-            .toArray();
-	File file = File.getByKey(match.group(1));
-        sendData(file, index);
-    }
-
-    public void parseData(String question) {
-        /* this function does not work with a binary buffer map */
-	Matcher match = PatternMatcher.DATA.getMatcher(question);
-	File file = File.getByKey(match.group(1));
-	String[] piecesStr = match.group(2).split("\\s+");
-
-	for (String piece: piecesStr) {
-	    String[] tmp = piece.split(":");
-	    if (tmp.length != 2) {
-		throw new RuntimeException("Wrong group 'pieceIndex:data'");
-            }
-	    int i = Integer.parseInt(tmp[0]);
-	    file.addPiece(i, tmp[1].getBytes());
-	}
+    
+    private void sendData(File file, int[] index) {
+	send("data %s [%s]", file.getKey(), "TODO");
     }
 
     /* -------------------- SEND RELATED -------------------- */
@@ -154,7 +131,7 @@ public class Peer {
 
     /* -------------------- Server side -------------------- */
 
-    private static final String PREFIX = "receive";
+    private static final String PREFIX  = "receive";
     private static final int PREFIX_LEN = PREFIX.length();
 
     private static Map<String, Method> protocol =
@@ -166,12 +143,12 @@ public class Peer {
 		PREFIX_LEN, method.length()).toLowerCase();
 	    protocol.put(
 		key,
-		Peer.class.getMethod(method));
+		Peer.class.getMethod(method, boolean.class));
 	} catch (Exception e) {
 	    System.out.println(e);
 	}
     }
-
+    
     static {
 	Peer.putProtocol("receiveError");
 	Peer.putProtocol("receiveHave");
@@ -179,7 +156,7 @@ public class Peer {
 	Peer.putProtocol("receiveGetpieces");
     }
 
-    public void handleRequest()
+    public void handleRequest(boolean sendCallBack)
 	throws RZNoMatchException, ReflectiveOperationException {
 	String protocolKey = socket.receiveWord();
 	if (!protocol.containsKey(protocolKey)) {
@@ -188,28 +165,29 @@ public class Peer {
 	}
 	
 	Method method = protocol.get(protocolKey);
-	method.invoke(this);
+	method.invoke(this, sendCallBack);
     }
-
+    
     /* -------------------- Reception -------------------- */
-
-    public void receiveError() {
+    
+    public void receiveError(boolean sendCallBack) {
 	Log.severe("Received error! " + socket);
     }
-
-    public void receiveHave() {
+    
+    public void receiveHave(boolean sendCallBack) {
 	File file = getFileWithReception();
 	byte[] bufferMap = socket.receiveByte((int)file.getLength());
 	// TODO update buffer map(?)
-	sendHave(file);
+	if (sendCallBack)
+	    sendHave(file);
     }
-
-    public void receiveInterested() {
+    
+    public void receiveInterested(boolean sendCallBack) {
 	File file = getFileWithReception();
 	sendHave(file);
     }
-
-    public void receiveGetpieces() {
+    
+    public void receiveGetpieces(boolean sendCallBack) {
 	File file = getFileWithReception();
 	socket.receiveByte(1); // '['
 	ArrayList<Integer> indexList = new ArrayList<Integer>();
@@ -222,6 +200,46 @@ public class Peer {
 	int index[] = convertIntegers(indexList);
 	sendData(file, index);
     }
+				    
+    public void receiveData(boolean sendCallBack) {
+        File file = getFileWithReception();
+	socket.receiveByte(1); // '['
+        while(true) {
+	    String str = socket.receiveUntil(':', ' ', '\n');
+            if (str == "]")
+		break;
+	    int index = Integer.parseInt(str);
+            byte[] piece = socket.receiveByte(file.getPieceSize());
+            // must add piece
+	    socket.receiveByte(1); // ' '
+	}
+    }
+
+    /* -------------------- Default arg for recetion -------------------- */
+
+    private final static boolean DEFAULT_SENDCALLBACK = false;
+
+    public void receiveError() {
+	receiveError(DEFAULT_SENDCALLBACK);
+    }
+
+    public void receiveHave() {
+	receiveHave(DEFAULT_SENDCALLBACK);
+    }
+
+    public void receiveInterested() {
+	receiveInterested(DEFAULT_SENDCALLBACK);
+    }
+
+    public void receiveGetpieces() {
+	receiveGetpieces(DEFAULT_SENDCALLBACK);
+    }
+
+    public void receiveData() {
+	receiveData(DEFAULT_SENDCALLBACK);
+    }
+
+    /* ---------------------------------------- */
 
     private File getFileWithReception() {
 	String hash = socket.receiveHash();
