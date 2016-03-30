@@ -4,17 +4,22 @@ import java.util.*;
 import java.io.*;
 
 class Config {
-    private static final String filename = "config.ini";
+    private static final String DEFAULT_INIT_PATH = "config.ini";
     private static final Properties props = new Properties();
 
-    static {
+    public static void init() {
+	init(DEFAULT_INIT_PATH);
+    }
+
+    public static void init(String path) {
 	try {
-            FileInputStream in = new FileInputStream(filename);
+	    Log.info("path: " + path);
+            FileInputStream in = new FileInputStream(path);
 	    props.load(in);
             in.close();
 	} catch (Exception e) {
             System.err.println(
-                "Cannot load configuration file '"+filename+"'");
+                "Cannot load configuration file '"+ path +"'");
             System.exit(1);
 	}
     }

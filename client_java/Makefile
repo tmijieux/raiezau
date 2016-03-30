@@ -13,6 +13,8 @@ src: build
 
 run:
 	@java -classpath build/:jyaml/ rz.Client
+run2:
+	@java -classpath build/:jyaml/ rz.Client config2.ini
 
 debug:
 	@jdb -sourcepath . -classpath build/:jyaml/ rz.Client

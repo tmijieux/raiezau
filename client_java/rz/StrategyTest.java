@@ -10,9 +10,10 @@ class StrategyTest implements Strategy {
 	System.out.println("Getfile: " + file);
     }
 
-    private void testLook(LookRequest lr) {
+    private List<File> testLook(LookRequest lr) {
         List<File> results = tracker.doLook(lr);
 	System.out.println("Looked: " + results);
+	return results;
     }
 
     @Override
@@ -23,15 +24,12 @@ class StrategyTest implements Strategy {
         
 	testGetfile(fileList.get(0));
 	testGetfile(fileList.get(1));
-	testGetfile(fileList.get(1));
-	testGetfile(fileList.get(2));
 	testGetfile(fileList.get(2));
 
 	// exist beacause it's mine
 	LookRequest lr = new LookRequest();
-	lr.addFilename("fifi.dat");
-	lr.addSizeLT(2048);
-        testLook(lr);
+	lr.addFilename("p0rn.dat");
+	lr.addSizeLT(8000);
         testLook(lr);
 
 	// not exist
@@ -39,7 +37,14 @@ class StrategyTest implements Strategy {
 	lr.addFilename("gayPorn.XXX");
 	lr.addSizeLT(1024);
         testLook(lr);
-        testLook(lr);
+
+	// other peer
+	lr = new LookRequest();
+	lr.addFilename("fifi.dat.XXX");
+	lr.addSizeLT(2048);
+        List<File> files = testLook(lr);
+
+	testGetfile(files.get(0));
 
 	tracker.doUpdate(fileList);
     }
