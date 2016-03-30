@@ -27,9 +27,17 @@ class StrategyTest implements Strategy {
 	testGetfile(fileList.get(2));
 	testGetfile(fileList.get(2));
 
+	// exist beacause it's mine
 	LookRequest lr = new LookRequest();
-	lr.addFilename("bobi");
-	lr.addSizeLT(80);
+	lr.addFilename("fifi.dat");
+	lr.addSizeLT(2048);
+        testLook(lr);
+        testLook(lr);
+
+	// not exist
+	lr = new LookRequest();
+	lr.addFilename("gayPorn.XXX");
+	lr.addSizeLT(1024);
         testLook(lr);
         testLook(lr);
 

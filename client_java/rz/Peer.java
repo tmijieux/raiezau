@@ -32,7 +32,7 @@ public class Peer {
                 "Wrong group 'addr:port': \"" + peerSockAddr + '"');
         }
         this.addr = addrPort[0];
-        this.port = Short.parseShort(addrPort[0]);
+        this.port = Short.parseShort(addrPort[1]);
     }
 
     private void connect() {
