@@ -173,7 +173,7 @@ static struct list *get_seed_file_list(const char *seed_str)
             atol(tab[i+1]), // file size (byte)
             atoi(tab[i+2]), // piece_size
             tab[i+3]        // key (md5)
-            );
+        );
         list_append(l, f);
         free(tab[i]); free(tab[i+1]); free(tab[i+2]); free(tab[i+3]);
     }
@@ -300,14 +300,16 @@ static int prot_update(struct client *c, char *req_value)
         n = string_split2(criterion, (string), &spl);                   \
         if (n != 2) {                                                   \
             rz_debug(_("invalid criterion for '" string                 \
-                       "' operator %s\n"), criterion);                  \
+                       "' operator: "COLOR(RED, "NOT MATCHING")         \
+                       ": %s\n"), criterion);                           \
             for (int i = 0; i < n; ++i)                                 \
                 free(spl[i]);                                           \
             free(spl);                                                  \
             return;                                                     \
         }                                                               \
         rz_debug(_("criterion for '" string                             \
-                   "' operator MATCH %s\n"), criterion);                \
+                   "' operator "COLOR(GREEN, "MATCHING")                \
+                   " %s\n"), criterion);                                \
                                                                         \
         char *field = spl[0];                                           \
         char *value = spl[1];                                           \

@@ -119,6 +119,21 @@ void list_append_list(struct list *l1, const struct list *l2)
 	list_append(l1, list_get(l2, i));
 }
 
+void list_remove_value(struct list *l, void *value)
+{
+    struct list_node *n, *next;
+    n = l->front_sentinel;
+    do {
+        next = node_next(n);
+        if (!node_is_sentinel(next) && node_get_data(next) == value) {
+            l->size--;
+            node_set_next(n, node_next(next));
+            node_free(next);
+        }
+        n = node_next(n);
+    } while (!node_is_sentinel(n));
+}
+
 void list_insert(struct list *list, unsigned int n, const void *element)
 {
     struct list_node *previous = list_get_node(list, n-1);
@@ -151,7 +166,6 @@ void *list_to_array(const struct list *l)
     void **array = malloc(sizeof(*array) * l->size);
     for (unsigned i = 0; i < l->size; ++i)
 	array[i] = list_get(l, i);
-
     return array;
 }
 

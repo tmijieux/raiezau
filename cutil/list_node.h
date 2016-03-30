@@ -42,5 +42,5 @@ struct list_node {
 #define node_get_data(no)      ((no)->data)
 #define node_set_data(no, da)  ((no)->data = (da))
 #define node_is_sentinel(no)   ((no)->is_sentinel)
-
+#define node_next node_get_next
 #endif //LIST_NODE_H

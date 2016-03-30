@@ -14,6 +14,11 @@
 
 #define STRING_EQUAL(x, y) (!strcmp((x), (y)))
 
+#define RED_COLOR "31;1"
+#define GREEN_COLOR "32"
+#define RESET_COLOR "0"
+#define COLOR(__c, __s) ESCAPE(__c) __s ESCAPE(RESET)
+#define ESCAPE(__s) "\x1B[" __s##_COLOR "m"
 
 
 void start_detached_thread(

@@ -100,7 +100,8 @@ static int add_new_client_to_fds(int sock)
         fds_buffer_size *= 2;
         fds = realloc(fds, sizeof*fds * fds_buffer_size);
     }
-    
+
+    rz_debug("adding client to slot %d\n", nfds);
     fds[nfds].fd = sock;
     fds[nfds].events = POLLIN;
     fds[nfds].revents = 0;
@@ -124,9 +125,11 @@ static void handle_incoming_data(void)
                 mark_client_for_deletion(c);
             // remove the client only if no threads are currently
             // working on it
+            rz_debug("mark client for deletion\n");
         } else if ((fds[i].revents & POLLIN) != 0) {
             fds[i].events = 0;
             fds[i].revents = 0;
+            rz_debug("start req handler thread\n");
             start_server_reqhandler_thread(fds[i].fd, i);
         }
     }
@@ -197,7 +200,10 @@ void server_run(uint32_t addr, uint16_t port)
         rz_debug("poll event !!\n");
         if ((fds[0].revents & POLLIN) != 0) {
             // if the event is on the first slot, there is a new connection
+            rz_debug("handle new connection\n");
             handle_new_connection(listener);
+        } else {
+            rz_debug("no new connection\n");
         }
         handle_pending_clients();
         clean_fds();

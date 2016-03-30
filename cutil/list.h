@@ -46,6 +46,7 @@ void * list_get(const struct list*, unsigned int i); // returns data
 void list_add(struct list*, const void*);
 void list_insert(struct list*, unsigned int i, const void *data);
 void list_remove(struct list*, unsigned int i);
+void list_remove_value(struct list *l, void *value);
 
 void list_append(struct list *list, const void *element);
 void list_append_list(struct list *l1, const struct list *l2);

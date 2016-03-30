@@ -11,6 +11,7 @@
 #include "cutil/error.h"
 #include "cutil/hash_table.h"
 #include "network.h"
+#include "file.h"
 
 static struct hash_table *clients;
 static struct list *handle_list;
@@ -31,9 +32,11 @@ struct client *client_create(int sock, int slot)
         rz_error("getpeername: %s\n", strerror(errno));
         return NULL;
     }
-    
+
     c->sock = sock;
     c->slot = slot;
+    c->files_seed = list_new(0);
+    c->files_leech = list_new(0);
 #ifdef DEBUG
     char *dbgstr = sockaddr_stringify(&c->addr);
     rz_debug(_("new client connected from %s\n"),  dbgstr);
@@ -44,6 +47,19 @@ struct client *client_create(int sock, int slot)
 
 void client_free(struct client *c)
 {
+    int i, s = list_size(c->files_seed);
+    for (i = 1; i <= s; ++i) {
+        struct file *f;
+        f = list_get(c->files_seed, i);
+        file_remove_client(f, c);
+    }
+    s = list_size(c->files_leech);
+    for (i = 1; i <= s; ++i) {
+        struct file *f;
+        f = list_get(c->files_leech, i);
+        file_remove_client(f, c);
+    }
+
     free(c);
 }
 
@@ -58,7 +74,6 @@ struct client *get_or_create_client(int sock, int slot)
     free(key);
     return c;
 }
-
 
 struct client *get_client(int sock, int slot)
 {
@@ -84,7 +99,7 @@ static void delete_client(int sock, int slot)
         rz_debug(_("really deleting client %s\n"), client_to_string(c));
         client_free(c);
         ht_remove_entry(clients, socket_str);
-    } 
+    }
     free(socket_str);
 }
 
@@ -109,7 +124,7 @@ void handle_pending_clients(void)
     struct list *remaining_list, *tmp;
     if (NULL == handle_list)
         return;
-    
+
     remaining_list = list_new(0);
     pthread_mutex_lock(&handle_mutex);
     size_t s = list_size(handle_list);
@@ -125,7 +140,7 @@ void handle_pending_clients(void)
             } else {
                 rz_debug(_("client %s rehear %d\n"),
                          client_to_string(c), fds[c->slot].fd);
-                fds[c->slot].events = POLLIN; 
+                fds[c->slot].events = POLLIN;
                 fds[c->slot].revents = 0;
                 rz_debug(_("slot: %d, nfds: %d\n"), c->slot, nfds);
             }
@@ -137,7 +152,7 @@ void handle_pending_clients(void)
     tmp = handle_list;
     handle_list = remaining_list;
     pthread_mutex_unlock(&handle_mutex);
-    
+
     list_free(tmp);
 }
 

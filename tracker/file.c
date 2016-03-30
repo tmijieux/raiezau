@@ -52,6 +52,11 @@ void file_add_client(struct file *f, struct client *c)
     list_add(f->clients, c);
 }
 
+void file_remove_client(struct file *f, struct client *c)
+{
+    list_remove_value(f->clients, c);
+}
+
 static struct file *file_get_by_(struct hash_table *ht, const char *what)
 {
     struct file *f = NULL;
