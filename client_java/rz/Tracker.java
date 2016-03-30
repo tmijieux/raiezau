@@ -63,18 +63,28 @@ public class Tracker {
     }
 
     private void receiveDeclare() {
-	socket.receiveAndGetMatcher(PatternMatcher.OK);
+	try {
+	    socket.receiveAndGetMatcher(PatternMatcher.OK);
+	} catch (RZNoResponseException e) {
+	    Log.warning(this + " is not responding.");
+	}
     }
 
     private void receiveGetfile(File file) {
-	Matcher match = socket.receiveAndGetMatcher(PatternMatcher.GETFILE);
+	Matcher match;
+	try {
+	    match = socket.receiveAndGetMatcher(PatternMatcher.GETFILE);
+	} catch (RZNoResponseException e) {
+	    Log.warning(this + " is not responding.");
+	    return;
+	}
 	String key = match.group(1);
 
 	if (!file.isKey(key)) {
 	    throw new RuntimeException("getfile: wrong key");
         }
 
-	if (RZPattern.isEmpty(match.group(2))) {
+	if (PatternMatcher.EMPTY.matches(match.group(2))) {
 	    return;
         }
 
@@ -85,16 +95,22 @@ public class Tracker {
     }
 
     private List<File> receiveLook() {
-	Matcher match = socket.receiveAndGetMatcher(PatternMatcher.LOOK);
+	Matcher match;
 	List<File> files = new ArrayList<File>();
+	try {
+	    match = socket.receiveAndGetMatcher(PatternMatcher.LOOK);
+	} catch (RZNoResponseException e) {
+	    Log.warning(this + " is not responding.");
+	    return files;
+	}
 
-	if (RZPattern.isEmpty(match.group(1))) {
+	if (PatternMatcher.EMPTY.matches(match.group(1))) {
 	    return files;
         }
 
 	String[] filesStr = match.group(1).split("\\s+");
 	if (filesStr.length % 4 != 0) {
-            throw new RuntimeException("Invalid list size in look response");
+            throw new RuntimeException("Invalid list size in look response. " + filesStr.toString());
         }
 
 	for (int i = 0; i < filesStr.length; i += 4) {
@@ -104,12 +120,11 @@ public class Tracker {
 		throw new RuntimeException(
                     "Remote and local piece size do not match");
             }
-
-            File.addFile(
-                filesStr[i],
-                Integer.parseInt(filesStr[i+1]),
-                filesStr[i+3]
-            );
+	    
+	    File file = File.addFile(filesStr[i], 
+			 Integer.parseInt(filesStr[i+1]),
+			 filesStr[i+3]);
+	    files.add(file);
 	}
 	return files;
     }

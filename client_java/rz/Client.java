@@ -5,24 +5,18 @@ import java.io.*;
 import java.lang.*;
 
 class Client {
+    /* Static & main */
+
     public static Client client;
 
-    private Tracker tracker;
-    private Strategy strategy;
-    private Server server;
-
-    public Client(Strategy strategy, Tracker tracker, Server server) {
-        this.tracker = tracker;
-	this.strategy = strategy;
-        this.server = server;
-    }
-
-    public void start() {
-        new Thread(server).start();
-	//strategy.share(tracker, server);
-    }
-
     public static void main(String args[]) {
+	for (int i = 0; i < args.length; i++)
+	    Log.debug(args[i]);
+	if (args.length >= 1)
+	    Config.init(args[0]);
+	else
+	    Config.init();
+
         short clientServerPort = Config.getShort("user-port");
         String trackerAdress = Config.get("tracker-address");
         short trackerPort = Config.getShort("tracker-port");
@@ -43,5 +37,25 @@ class Client {
 
         Client.client = new Client(strategy, tracker, clientServer);
         Client.client.start();
+    }
+
+    /* Client */
+
+    private Tracker tracker;
+    private Strategy strategy;
+    private Server server;
+
+    public Client(Strategy strategy, Tracker tracker, Server server) {
+        this.tracker = tracker;
+	this.strategy = strategy;
+        this.server = server;
+    }
+
+    public void start() {
+        new Thread(server).start();
+        List<File> fileList = File.getFileList();
+	tracker.doAnnounce(fileList, server.getPort());
+
+	strategy.share(tracker);
     }
 }
