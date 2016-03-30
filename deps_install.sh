@@ -42,7 +42,7 @@ gcc -x c $tmpfile -o /dev/null &&
 ok=$?
 
 [ $ok -eq 0 ] && echo "yaml dep is ok"
-[ $ok -neq 0 ] && (echo "yaml dep is NOT ok"; install_yaml_dep)
+[ $ok -ne 0 ] && (echo "yaml dep is NOT ok"; install_yaml_dep)
 
 rm -rf $tmpfile
 rm -rf $yaml
