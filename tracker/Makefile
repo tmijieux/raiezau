@@ -1,6 +1,7 @@
 TARGET=trackme
 SRC=$(wildcard *.c) $(wildcard ../cutil/*.c)
 CFLAGS=-Wall -std=gnu99 -I..
+DEBUG=1
 ifdef DEBUG
 	CFLAGS+=-ggdb -O0 -DDEBUG
 else
@@ -24,5 +25,5 @@ $(TARGET): $(OBJ)
 	gcc -MM $(CFLAGS) $*.c > $*.d
 
 clean: 
-	$(RM) $(OBJ) $(DEP)
+	$(RM) $(OBJ) $(DEP) *.d
 	make -C ../cutil clean
