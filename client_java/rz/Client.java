@@ -3,27 +3,39 @@ package rz;
 import java.util.*;
 import java.io.*;
 import java.lang.*;
+import java.lang.reflect.*;
 
 class Client {
     /* Static & main */
 
     public static Client client;
+    private static Map<String, Constructor<Strategy>> strats = 
+	new HashMap<String, Constructor<Strategy>>();
 
-    public static void main(String args[]) {
-	for (int i = 0; i < args.length; i++)
-	    Log.debug(args[i]);
+    private static void putConstructor(String key, Class klass) {
+	try {
+	    // a check should be done
+	    @SuppressWarnings("unchecked")
+		Class<Strategy> strategy = klass;
+	    strats.put(key, strategy.getConstructor());
+	} catch (Exception e) {
+	    Log.severe(e.toString());
+	}
+    }
+
+    static {
+	putConstructor("sleepy", StrategySleepy.class);
+	putConstructor("test",   StrategyTest.class);
+    }
+
+    private static void ApplyArgs(String args[]) {
 	if (args.length >= 1)
 	    Config.init(args[0]);
 	else
 	    Config.init();
+    }
 
-        short clientServerPort = Config.getShort("user-port");
-        String trackerAdress = Config.get("tracker-address");
-        short trackerPort = Config.getShort("tracker-port");
-	
-	Strategy strategy = new StrategyTest();
-        Server clientServer = new Server(clientServerPort);
-
+    private static Tracker getTracker() {
         Tracker tracker = null;
         try {
 	    tracker = new Tracker(
@@ -31,9 +43,37 @@ class Client {
                 Config.getShort("tracker-port")
             );
         } catch (Exception e) {
-            Log.severe(e.toString());
+            Log.severe("Error in Tracker creation: " + e.toString());
             System.exit(1);
         }
+	return tracker;
+    }
+
+    private static Server getServer() {
+        short clientServerPort = Config.getShort("user-port");
+	Server clientServer = new Server(clientServerPort);
+	return clientServer;
+    }
+
+    private static Strategy getStrategy() {
+	Constructor<Strategy> constr = 
+	    strats.get(Config.get("strategy"));
+	Strategy strategy = null;
+	try {
+	    strategy = constr.newInstance();
+        } catch (Exception e) {
+            Log.severe("Error in Strategy creation: " + e.toString());
+            System.exit(1);
+        }
+	return strategy;
+    }
+
+    public static void main(String args[]) {
+	ApplyArgs(args);
+	
+	Strategy strategy = getStrategy();
+	Server clientServer = getServer();
+	Tracker tracker = getTracker();
 
         Client.client = new Client(strategy, tracker, clientServer);
         Client.client.start();

@@ -5,6 +5,9 @@ import java.util.*;
 class StrategyTest implements Strategy {
     private Tracker tracker;
 
+    public StrategyTest() {
+    }
+
     private void testGetfile(File file) {
 	tracker.doGetfile(file);
 	System.out.println("Getfile: " + file);
@@ -16,10 +19,7 @@ class StrategyTest implements Strategy {
 	return results;
     }
 
-    @Override
-    public void share(Tracker tracker) {
-        this.tracker = tracker;
-
+    private void testTracker() {
 	List<File> fileList = File.getFileList();
         
 	testGetfile(fileList.get(0));
@@ -38,14 +38,40 @@ class StrategyTest implements Strategy {
 	lr.addSizeLT(1024);
         testLook(lr);
 
-	// other peer
-	lr = new LookRequest();
-	lr.addFilename("fifi.dat.XXX");
+	tracker.doUpdate(fileList);
+    }
+
+    private void testPeer() {
+	LookRequest lr = new LookRequest();
+	lr.addFilename("fifi.dat");
 	lr.addSizeLT(2048);
         List<File> files = testLook(lr);
 
-	testGetfile(files.get(0));
+	File file;
+	try {
+	    file = files.get(0);
+	} catch (Exception e) {
+	    Log.warning(e.toString());
+	    return;
+	}
+	testGetfile(file);
 
-	tracker.doUpdate(fileList);
+	List<Peer> peers = file.getPeerList();
+	Peer peer;
+	try {
+	    peer = peers.get(0);
+	} catch (Exception e) {
+	    Log.warning(e.toString());
+	    return;
+	}
+	peer.doInterested(file);
+	peer.doHave(file);
+    }
+
+    @Override
+    public void share(Tracker tracker) {
+        this.tracker = tracker;
+	testTracker();
+	testPeer();
     }
 }

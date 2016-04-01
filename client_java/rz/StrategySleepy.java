@@ -3,6 +3,9 @@ package rz;
 import java.util.*;
 
 class StrategySleepy implements Strategy {
+    public StrategySleepy() {
+    }
+
     @Override
     public void share(Tracker tracker) {
 	List<File> fileList = File.getFileList();
@@ -10,7 +13,7 @@ class StrategySleepy implements Strategy {
 	while(true) {
 	    tracker.doUpdate(fileList);
 	    try {
-		wait(1000);
+		Thread.sleep(10000);
 	    } catch (InterruptedException e) {
 		break;
 	    }

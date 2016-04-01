@@ -129,7 +129,7 @@ public class Peer {
 		key,
 		Peer.class.getMethod(method, boolean.class));
 	} catch (Exception e) {
-	    System.out.println(e);
+	    Log.severe(e.toString());
 	}
     }
     
@@ -197,30 +197,6 @@ public class Peer {
             // must add piece
 	    socket.receiveByte(1); // ' '
 	}
-    }
-
-    /* -------------------- Default arg for recetion -------------------- */
-
-    private final static boolean DEFAULT_SENDCALLBACK = false;
-
-    public void receiveError() {
-	receiveError(DEFAULT_SENDCALLBACK);
-    }
-
-    public void receiveHave() {
-	receiveHave(DEFAULT_SENDCALLBACK);
-    }
-
-    public void receiveInterested() {
-	receiveInterested(DEFAULT_SENDCALLBACK);
-    }
-
-    public void receiveGetpieces() {
-	receiveGetpieces(DEFAULT_SENDCALLBACK);
-    }
-
-    public void receiveData() {
-	receiveData(DEFAULT_SENDCALLBACK);
     }
 
     /* ---------------------------------------- */

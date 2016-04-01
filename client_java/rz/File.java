@@ -155,6 +155,10 @@ class File implements Serializable {
 	return piece;
     }
 
+    public List<Peer> getPeerList() {
+	return peers;
+    }
+
     public void addPeer(Peer peer) {
 	peers.add(peer);
     }
