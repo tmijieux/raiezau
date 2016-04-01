@@ -48,8 +48,15 @@ class Socket {
         setupStreams();
     }
 
+    public void sendByte(byte[] bytes) {
+	char[] t = ArrayByteToChar(bytes);
+	to.write(t);
+	to.flush();
+    }
+
     public void send(String text) {
-	to.println(text);
+	to.write(text);
+	to.flush();
 	Log.info("Send %s '%s'", this, text);
     }
 
@@ -61,6 +68,22 @@ class Socket {
 	send("error");
     }
     
+    private byte[] ArrayCharToByte(char[] t) {
+	byte b[] = new byte[t.length];
+	for (int i = 0; i < t.length; i++) {
+	    b[i] = (byte) t[i];
+	}
+	return b;
+    }
+
+    private char[] ArrayByteToChar(byte[] t) {
+	char b[] = new char[t.length];
+	for (int i = 0; i < t.length; i++) {
+	    b[i] = (char) t[i];
+	}
+	return b;
+    }
+
     public byte[] receiveByte(int length) {
 	char t[] = new char[length];
         try {
@@ -68,11 +91,7 @@ class Socket {
         } catch (Exception e) {
             Log.debug(e.toString());
         }
-	byte b[] = new byte[length];
-	for (int i = 0; i < length; i++) {
-	    b[i] = (byte) t[i];
-	}
-	return b;
+	return ArrayCharToByte(t);
     }
 
     /**

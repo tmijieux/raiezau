@@ -21,12 +21,12 @@ public class Tracker {
     }
 
     public void doGetfile(File file) {
-	socket.send("getfile %s", file.getKey());
+	socket.send("getfile %s\n", file.getKey());
 	receiveGetfile(file);
     }
 
     public List<File> doLook(LookRequest lr) {
-	socket.send("look [%s]", lr);
+	socket.send("look [%s]\n", lr);
 	return receiveLook();
     }
 
@@ -58,7 +58,7 @@ public class Tracker {
     }
 
     private void sendDeclare(String announcement, List<File> files) {
-	socket.send("%s %s %s", announcement,
+	socket.send("%s %s %s\n", announcement,
                     seedString(files), leechString(files));
     }
 
