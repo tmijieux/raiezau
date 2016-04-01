@@ -39,4 +39,8 @@ public class BufferMap {
         }
         return stringedBufferMap;
     }
+
+    public byte[] toByteArray(){
+	return bitSet.toByteArray();
+    }
 }

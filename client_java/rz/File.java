@@ -180,6 +180,21 @@ class File implements Serializable {
 	return pieceSize;
     }
 
+    public byte[] getPiece(int pieceIndex){
+	long startPos = pieceSize * pieceIndex;
+	byte[] data = new byte[pieceSize];
+	try{
+	    if (bufferMap.isCompleted(pieceIndex)) {
+	    
+		file.seek(startPos);
+		file.readFully(data, (pieceSize * pieceIndex), pieceSize);
+	    }
+	    return data;
+	}catch (Exception e) {
+            throw new RuntimeException(e);
+       }
+    }
+	
     public boolean isSeeded() {
 	return seeded;
     }
@@ -205,6 +220,10 @@ class File implements Serializable {
 
     public BufferMap getLocalBufferMap() {
         return bufferMap;
+    }
+
+    public byte[] getBinaryBufferMap(){
+	return bufferMap.toByteArray();
     }
 
     @Override
