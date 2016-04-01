@@ -92,6 +92,7 @@ public class Peer {
     }
 
     private void sendHave(File file) {
+	byte[] bufferMap = file.getBinaryBufferMap();
 	send("have %s %s", file.getKey(), "TODO");
     }
     
@@ -102,6 +103,8 @@ public class Peer {
     private void sendData(File file, int[] index) {
 	send("data %s [%s]", file.getKey(), "TODO");
     }
+
+   
 
     /* -------------------- SEND RELATED -------------------- */
 
