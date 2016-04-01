@@ -28,13 +28,13 @@ class StrategyTest implements Strategy {
 
 	// exist beacause it's mine
 	LookRequest lr = new LookRequest();
-	lr.addFilename("p0rn.dat");
+	lr.addFilename("file.dat");
 	lr.addSizeLT(8000);
         testLook(lr);
 
 	// not exist
 	lr = new LookRequest();
-	lr.addFilename("gayPorn.XXX");
+	lr.addFilename("file.XXX");
 	lr.addSizeLT(1024);
         testLook(lr);
 

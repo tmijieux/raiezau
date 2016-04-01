@@ -101,7 +101,12 @@ public class Peer {
     }
     
     private void sendData(File file, int[] index) {
-	send("data %s [%s]", file.getKey(), "TODO");
+	send("data %s [", file.getKey());
+        for (int i = 0; i < index.length; ++i) {
+            send(" %d:", index[i]);
+            //  socket.sendBytes(file.getPiece(index[i]));
+        }
+        send(" ]\n");
     }
 
    
@@ -178,7 +183,7 @@ public class Peer {
 	File file = getFileWithReception();
 	socket.receiveByte(1); // '['
 	ArrayList<Integer> indexList = new ArrayList<Integer>();
-	while(true) {
+	while (true) {
 	    String str = socket.receiveWord();
 	    if (str == "]")
 		break;
@@ -191,14 +196,14 @@ public class Peer {
     public void receiveData(boolean sendCallBack) {
         File file = getFileWithReception();
 	socket.receiveByte(1); // '['
-        while(true) {
+        while (true) {
 	    String str = socket.receiveUntil(':', ' ', '\n');
-            if (str == "]")
+            if (str.compareTo("]") == 0)
 		break;
 	    int index = Integer.parseInt(str);
             byte[] piece = socket.receiveByte(file.getPieceSize());
-            // must add piece
-	    socket.receiveByte(1); // ' '
+            file.addPiece(index, piece);
+     	    socket.receiveByte(1); // ' '
 	}
     }
 

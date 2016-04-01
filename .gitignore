@@ -11,6 +11,7 @@ a.out
 .*.swp
 TAGS
 *.log
+*.log.*
 *.jar
 *.lck
 *.tar

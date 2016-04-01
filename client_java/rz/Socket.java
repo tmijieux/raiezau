@@ -29,6 +29,7 @@ class Socket {
         OutputStreamWriter writer;
         writer = new OutputStreamWriter(sock.getOutputStream());
         to = new PrintWriter(writer, true);
+
     }
 
     public Socket(String ip, short port)
@@ -64,6 +65,10 @@ class Socket {
 	send(String.format(format, args));
     }
 
+    public void sendBytes(byte[] data) {
+        //        sock.write(data);
+    }
+    
     public void sendError() {
 	send("error");
     }

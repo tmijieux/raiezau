@@ -110,7 +110,10 @@ public class Tracker {
 
 	String[] filesStr = match.group(1).split("\\s+");
 	if (filesStr.length % 4 != 0) {
-            throw new RuntimeException("Invalid list size in look response. " + filesStr.toString());
+            throw new RuntimeException(
+                "Invalid list size in look response. " +
+                filesStr.toString()
+            );
         }
 
 	for (int i = 0; i < filesStr.length; i += 4) {
