@@ -34,7 +34,6 @@ struct list;
     ({ assert(sizeof typ < sizeof (void*)) ;				\
 	union { typ t; void *v}e; e.t = da; list_push(li, e.v);})
 
-
 #define list_getg(typ, li, i)						\
     ({ assert(sizeof typ < sizeof (void*)) ;				\
 	union { typ t; void *v}e; e.v = list_get((li), (i)); e.t;})

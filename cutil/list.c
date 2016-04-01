@@ -20,6 +20,7 @@
 #include "list.h"
 #include "list_node.h"
 #include "hash_table.h"
+#include <pthread.h>
 
 struct list {
     struct list_node *front_sentinel;
@@ -29,11 +30,17 @@ struct list {
     size_t size;
     unsigned int curpos;
     unsigned int flags;
+
+    pthread_mutex_t m;
 };
 
-static struct list_node *list_get_node(const struct list *list, unsigned int n)
+void break_() {}
+
+static struct list_node *list_get_node(
+    const struct list *list, unsigned int n)
 {
     unsigned int k = n;
+    pthread_mutex_lock(&((struct list*)list)->m);
     struct list_node *node = list->front_sentinel;
     if (list->curpos <= k) {
 	k -= list->curpos;
@@ -43,6 +50,9 @@ static struct list_node *list_get_node(const struct list *list, unsigned int n)
 	node = node_get_next(node);
     ((struct list*)list)->cursor = node;
     ((struct list*)list)->curpos = n;
+    break_();
+
+    pthread_mutex_unlock(&((struct list*)list)->m);
     return node;
 }
 
@@ -54,6 +64,11 @@ size_t list_size(const struct list *list)
 struct list *list_new(int flags, ...)
 {
     struct list *list = calloc(sizeof(*list), 1);
+    
+    pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
+    list->m = m;
+    pthread_mutex_lock(&list->m);
+    
     list->front_sentinel = node_new(NULL, SENTINEL_NODE);
     node_set_next(list->front_sentinel, node_new(NULL, 1));
     list->flags = flags;
@@ -61,6 +76,7 @@ struct list *list_new(int flags, ...)
     list->curpos = 0;
     list->size = 0;
 
+    pthread_mutex_unlock(&list->m);
     va_list ap;
     va_start(ap, flags);
     if ((flags & LI_FREE) != 0)
@@ -72,7 +88,6 @@ struct list *list_new(int flags, ...)
 	    if (arg != NULL) list_append(list, arg);
 	} while (NULL != arg);
     }
-
     return list;
 }
 
@@ -102,9 +117,13 @@ void *list_get(const struct list *list, unsigned int n)
 void list_add(struct list *list, const void *element)
 {
     struct list_node *tmp = node_new(element, 0);
+    pthread_mutex_lock(&list->m);
     node_set_next(tmp, node_get_next(list->front_sentinel));
     node_set_next(list->front_sentinel, tmp);
     list->size ++;
+    if (list->curpos != 0)
+        list->curpos++;
+    pthread_mutex_unlock(&list->m);
 }
 
 void list_append(struct list *list, const void *element)
@@ -122,6 +141,9 @@ void list_append_list(struct list *l1, const struct list *l2)
 void list_remove_value(struct list *l, void *value)
 {
     struct list_node *n, *next;
+    pthread_mutex_lock(&l->m);
+    l->curpos = 0;
+    l->cursor = l->front_sentinel;
     n = l->front_sentinel;
     do {
         next = node_next(n);
@@ -132,6 +154,7 @@ void list_remove_value(struct list *l, void *value)
         }
         n = node_next(n);
     } while (!node_is_sentinel(n));
+    pthread_mutex_unlock(&l->m);
 }
 
 void list_insert(struct list *list, unsigned int n, const void *element)
@@ -169,8 +192,8 @@ void *list_to_array(const struct list *l)
     return array;
 }
 
-struct hash_table *list_to_hashtable(const struct list *l,
-				     const char *(*element_keyname) (void *))
+struct hash_table *list_to_hashtable(
+    const struct list *l, const char *(*element_keyname) (void *))
 {
     struct hash_table *ht = ht_create(2 * l->size, NULL);
 
