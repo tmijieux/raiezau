@@ -49,6 +49,7 @@ struct file *file_new(
 
 void file_add_client(struct file *f, struct client *c)
 {
+    list_remove_value(f->clients, c);
     list_add(f->clients, c);
 }
 
