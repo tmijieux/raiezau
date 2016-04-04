@@ -6,6 +6,8 @@ class StrategySleepy implements Strategy {
     public StrategySleepy() {
     }
 
+    private final int MS_SLEEP = 10000;
+
     @Override
     public void share(Tracker tracker) {
 	List<File> fileList = File.getFileList();
@@ -13,7 +15,7 @@ class StrategySleepy implements Strategy {
 	while(true) {
 	    tracker.doUpdate(fileList);
 	    try {
-		Thread.sleep(10000);
+		Thread.sleep(MS_SLEEP);
 	    } catch (InterruptedException e) {
 		break;
 	    }

@@ -33,7 +33,7 @@ class Socket {
     }
 
     public Socket(String ip, short port)
-      throws java.net.UnknownHostException, IOException {
+	throws java.net.UnknownHostException, IOException {
         this.ip = ip;
         this.port = port;
 
@@ -42,7 +42,7 @@ class Socket {
     }
 
     public Socket(java.net.Socket sock)
-      throws java.net.UnknownHostException, IOException {
+	throws java.net.UnknownHostException, IOException {
         this.ip = ip;
         this.port = port;
         this.sock = sock;
@@ -53,6 +53,7 @@ class Socket {
 	char[] t = ArrayByteToChar(bytes);
 	to.write(t);
 	to.flush();
+	Log.info("Send %s '%%bytes%%'", this);	
     }
 
     public void send(String text) {
@@ -63,10 +64,6 @@ class Socket {
 
     public void send(String format, Object... args) {
 	send(String.format(format, args));
-    }
-
-    public void sendBytes(byte[] data) {
-        //        sock.write(data);
     }
     
     public void sendError() {
@@ -103,24 +100,32 @@ class Socket {
      * Get the string received until encountering one of the char in parameters
      * The char will not be in the string returned and will be "eaten"
      */
-    public String receiveUntil(char ... c) {
-	StringBuilder sb = new StringBuilder();
-	while_loop:
-	while(true) {
+    private final int MAX_BUFFER_SIZE = 256;
+    public String receiveUntil(char ... t) {
+	Log.info("Doing receiveUntil...");
+	StringBuffer sb = new StringBuffer(MAX_BUFFER_SIZE);
+	for(int i = 0; i < MAX_BUFFER_SIZE; i++) {
 	    char tmp[] = new char[1];
 	    try {
 		from.read(tmp, 0, 1);
 	    } catch (Exception e) {
 		Log.debug(e.toString());
 	    }
-	    for (int i = 0; i < c.length; i++)
-		if (tmp[0] == c[i])
-		    break while_loop;
+	    if (arrayHasChar(t, tmp[0]))
+		break;
 	    sb.append(tmp[0]);
 	}
+	Log.info("Finished! '" + sb + "'");
 	return sb.toString();
     }
     
+    private boolean arrayHasChar(char[] t, char c) {
+	for (int i = 0; i < t.length; i++)
+	    if (c == t[i])
+		return true;
+	return false;
+    }
+
     public String receiveWord() {
 	return receiveUntil(' ', '\n');
     }

@@ -54,7 +54,7 @@ public class Peer {
     public void doInterested(File file) {
 	sendInterested(file);
 	String protocolKey = socket.receiveWord();
-	if (protocolKey == "have")
+	if (protocolKey.compareTo("have") == 0)
 	    receiveHave(false);
 	else
 	    throw new RuntimeException("Wrong response");
@@ -63,7 +63,7 @@ public class Peer {
     public void doHave(File file) {
 	sendHave(file);
 	String protocolKey = socket.receiveWord();
-	if (protocolKey == "have")
+	if (protocolKey.compareTo("have") == 0)
 	    receiveHave(false);
 	else
 	    throw new RuntimeException("Wrong response");
@@ -72,7 +72,7 @@ public class Peer {
     public void doGetpieces(File file, int[] index) {
 	sendGetpieces(file, index);
 	String protocolKey = socket.receiveWord();
-	if (protocolKey == "data")
+	if (protocolKey.compareTo("data") == 0)
 	    receiveData(false);
 	else
 	    throw new RuntimeException("Wrong response");
@@ -88,12 +88,14 @@ public class Peer {
     }
     
     private void sendInterested(File file) {
-	send("interested %s", file.getKey());
+	// The space at the end IS important
+	send("interested %s ", file.getKey());
     }
 
     private void sendHave(File file) {
 	byte[] bufferMap = file.getBinaryBufferMap();
-	send("have %s %s", file.getKey(), "TODO");
+	send("have %s ", file.getKey());
+	socket.sendByte(bufferMap);
     }
     
     private void sendGetpieces(File file, int[] index) {
@@ -104,12 +106,10 @@ public class Peer {
 	send("data %s [", file.getKey());
         for (int i = 0; i < index.length; ++i) {
             send(" %d:", index[i]);
-            //  socket.sendBytes(file.getPiece(index[i]));
+	    socket.sendByte(file.getPiece(index[i]));
         }
         send(" ]\n");
     }
-
-   
 
     /* -------------------- SEND RELATED -------------------- */
 
@@ -133,9 +133,7 @@ public class Peer {
 	try {
 	    String key = method.substring(
 		PREFIX_LEN, method.length()).toLowerCase();
-	    protocol.put(
-		key,
-		Peer.class.getMethod(method, boolean.class));
+	    protocol.put(key, Peer.class.getMethod(method, boolean.class));
 	} catch (Exception e) {
 	    Log.severe(e.toString());
 	}
