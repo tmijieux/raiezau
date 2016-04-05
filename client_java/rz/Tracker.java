@@ -12,7 +12,7 @@ public class Tracker {
 	socket = new Socket(ip, port);
     }
 
-    public void doAnnounce(List<File> files, short port) {
+    public void doAnnounce(List<File> files, int port) {
 	doDeclare("announce " + listenString(port), files);
     }
 
@@ -30,7 +30,7 @@ public class Tracker {
 	return receiveLook();
     }
 
-    private String listenString(short port) {
+    private String listenString(int port) {
 	return "listen " + port;
     }
 

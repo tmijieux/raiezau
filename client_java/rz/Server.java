@@ -3,21 +3,33 @@ package rz;
 import java.net.ServerSocket;
 
 class Server implements Runnable {
-    private short port;
+    private int port;
     private java.net.ServerSocket listener;
 
-    public Server(short port) {
-	this.port = port;
+    public Server(int port) {
+        this.port = port;
         try {
-            listener = new ServerSocket(port);
+            try {
+                listener = new ServerSocket(port);
+            } catch (java.net.BindException e){
+                listener = new ServerSocket(0);
+                // 0 --> ask the system random port
+            }
+            listener.setReuseAddress(true);
+            this.port = listener.getLocalPort();
+            Log.debug("Server port is " + this.port);
         } catch (java.io.IOException e) {
             Log.severe("Cannot start client's server: " + e.toString());
             System.exit(1);
         }
     }
 
-    public short getPort() {
-        return port;
+    public Server() {
+        this(0); // 0 --> ask the system random port
+    }
+
+    public int getPort() {
+        return  port;
     }
 
     public void run() {

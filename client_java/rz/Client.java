@@ -50,7 +50,7 @@ class Client {
     }
 
     private static Server getServer() {
-        short clientServerPort = Config.getShort("user-port");
+        int clientServerPort = Config.getShort("user-port");
 	Server clientServer = new Server(clientServerPort);
 	return clientServer;
     }
@@ -95,7 +95,6 @@ class Client {
         new Thread(server).start();
         List<File> fileList = File.getFileList();
 	tracker.doAnnounce(fileList, server.getPort());
-
 	strategy.share(tracker);
     }
 }

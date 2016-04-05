@@ -176,7 +176,7 @@ static void print_client_list(void)
 
     for (unsigned i = 1; i <= l; ++i) {
         struct client *c = list_get(cl, i);
-        printf(_("#%d: %s listening on port %hd\n"), i,
+        printf(_("#%d: %s listening on port %hu\n"), i,
                ip_stringify(c->addr.sin_addr.s_addr),
                c->listening_port);
     }
