@@ -9,8 +9,8 @@ public class Peer {
     private Socket socket;
     private boolean connected;
 
-    private String addr;
-    private short port;
+    private String ip;
+    private int port;
     
     /**
      * @brief Create Peer for ServerThread
@@ -18,26 +18,26 @@ public class Peer {
      */
     public Peer(Socket socket) {
 	this.socket = socket;
-	this.connected = true;	
+	this.connected = true;
     }
 
     /**
-     * @brief Create a peer from an inline couple: "addr:port"
+     * @brief Create a peer from an inline couple: "ip:port"
      * This Peer is in a peer list in a File
      */
     public Peer(String peerSockAddr) {
-	String[] addrPort = peerSockAddr.split(":");
-	if (addrPort.length != 2) {
+	String[] ipPort = peerSockAddr.split(":");
+	if (ipPort.length != 2) {
 	    throw new RuntimeException(
                 "Wrong group 'addr:port': \"" + peerSockAddr + '"');
         }
-        this.addr = addrPort[0];
-        this.port = Short.parseShort(addrPort[1]);
+        this.ip   = ipPort[0];
+        this.port = Integer.parseInt(ipPort[1]);
     }
 
     private void connect() {
         try {
-            socket = new Socket(addr, port);
+            socket = new Socket(ip, port);
             this.connected = true;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -46,7 +46,10 @@ public class Peer {
     
     @Override
     public String toString() {
-	return String.format("[peer: %s]", socket);
+	if (socket != null)
+	    return String.format("[peer: %s]", socket);
+	else
+	    return String.format("[peer: %s:%d]", ip, port);
     }
     
     /* -------------------- DO -------------------- */
@@ -93,9 +96,10 @@ public class Peer {
     }
 
     private void sendHave(File file) {
-	byte[] bufferMap = file.getLocalBufferMap().toByteArray();
+	BufferMap bm = file.getLocalBufferMap();
+	Log.info(bm.toString());
 	send("have %s ", file.getKey());
-	socket.sendByte(bufferMap);
+	socket.sendByte(bm.toByteArray());
     }
     
     private void sendGetpieces(File file, int[] index) {
@@ -166,7 +170,9 @@ public class Peer {
     
     public void receiveHave(boolean sendCallBack) {
 	File file = getFileWithReception();
-	byte[] bufferMap = socket.receiveByte((int)file.getLength());
+	byte[] bufferMap = socket.receiveByte(
+	    (int) Math.ceil(file.getLength() / 8)); 
+	// buffermap is binary so: / 8
 	// TODO update buffer map(?)
 	if (sendCallBack)
 	    sendHave(file);

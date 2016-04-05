@@ -3,12 +3,13 @@ package rz;
 import java.util.*;
 
 public class BufferMap {
-    private int size;
+    private int size; // length in byte
     private BitSet bitSet;
 
     public BufferMap(int size) {
         this.size = size;
 	bitSet = new BitSet(size);
+	bitSet.set(0, size, false);
     }
 
     public BufferMap(File file){

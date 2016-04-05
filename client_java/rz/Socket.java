@@ -11,7 +11,8 @@ import java.io.IOException;
 
 class Socket {
     private java.net.Socket sock;
-    private short port;
+
+    private int port;
     private String ip;
 
     private BufferedReader from;
@@ -32,20 +33,19 @@ class Socket {
 
     }
 
-    public Socket(String ip, short port)
+    public Socket(String ip, int port)
 	throws java.net.UnknownHostException, IOException {
         this.ip = ip;
         this.port = port;
-
-        sock = new java.net.Socket(ip, port);
+        this.sock = new java.net.Socket(ip, port);
         setupStreams();
     }
 
-    public Socket(java.net.Socket sock)
+    public Socket(java.net.Socket socket)
 	throws java.net.UnknownHostException, IOException {
-        this.ip = ip;
-        this.port = port;
-        this.sock = sock;
+        this.ip = socket.getInetAddress().getHostAddress();
+        this.port = socket.getPort();
+        this.sock = socket;
         setupStreams();
     }
 

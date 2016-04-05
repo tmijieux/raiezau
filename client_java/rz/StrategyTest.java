@@ -65,7 +65,9 @@ class StrategyTest implements Strategy {
 	    Log.warning(e.toString());
 	    return;
 	}
+	Log.info("File: " + file);
 	peer.doInterested(file);
+	Log.info("File: " + file);
 	peer.doHave(file);
     }
 

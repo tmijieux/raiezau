@@ -78,6 +78,34 @@ class File implements Serializable {
         return insertFile(newFile);
     }
 
+    public static void saveFileState(File file) {
+	try {
+	    FileOutputStream saveFile =
+                new FileOutputStream("./" + file.name +".ser");
+	    ObjectOutputStream out = new ObjectOutputStream(saveFile);
+	    out.writeObject(file);
+	    out.close();
+	    saveFile.close();
+	} catch (IOException e){
+	}
+    }
+
+    public static File restoreFileState(java.io.File file) {
+	File f = null;
+	try {
+	    FileInputStream saveFile = new FileInputStream(file);
+	    ObjectInputStream in = new ObjectInputStream(saveFile);
+	    f = (File) in.readObject();
+	    in.close();
+	    saveFile.close();
+
+	} catch (FileNotFoundException e) {
+
+	} catch (IOException | ClassNotFoundException e) {
+	}
+	return f;
+    }
+
     /* ------------------- Static get ----------------- */
 
     public static List<File> getFileList() {
@@ -201,40 +229,11 @@ class File implements Serializable {
         }
     }
 
+    /* ------------------- Get Local ----------------- */
+
     public BufferMap getLocalBufferMap() {
         return bufferMap;
     }
-
-
-    public static void saveFileState(File file) {
-	try {
-	    FileOutputStream saveFile =
-                new FileOutputStream("./" + file.name +".ser");
-	    ObjectOutputStream out = new ObjectOutputStream(saveFile);
-	    out.writeObject(file);
-	    out.close();
-	    saveFile.close();
-	} catch (IOException e){
-	}
-    }
-
-    public static File restoreFileState(java.io.File file) {
-	File f = null;
-	try {
-	    FileInputStream saveFile = new FileInputStream(file);
-	    ObjectInputStream in = new ObjectInputStream(saveFile);
-	    f = (File) in.readObject();
-	    in.close();
-	    saveFile.close();
-
-	} catch (FileNotFoundException e) {
-
-	} catch (IOException | ClassNotFoundException e) {
-	}
-	return f;
-    }
-
-    /* ------------------- Get Local ----------------- */
 
     public long getLength() {
 	return length;
