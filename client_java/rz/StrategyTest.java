@@ -54,6 +54,7 @@ class StrategyTest implements Strategy {
 	    Log.warning(e.toString());
 	    return;
 	}
+	Log.info("File: " + file);
 	testGetfile(file);
 
 	List<Peer> peers = file.getPeerList();

@@ -125,8 +125,8 @@ public class Tracker {
             }
 	    
 	    File file = File.addFile(filesStr[i], 
-			 Integer.parseInt(filesStr[i+1]),
-			 filesStr[i+3]);
+				     Integer.parseInt(filesStr[i+1]),
+				     filesStr[i+3]);
 	    files.add(file);
 	}
 	return files;

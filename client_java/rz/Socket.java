@@ -53,7 +53,7 @@ class Socket {
 	char[] t = ArrayByteToChar(bytes);
 	to.write(t);
 	to.flush();
-	Log.info("Send %s '%%bytes%%'", this);	
+	Log.info("Send %s '%%bytes[%d]%%'", this,  bytes.length);	
     }
 
     public void send(String text) {
@@ -87,6 +87,7 @@ class Socket {
     }
 
     public byte[] receiveByte(int length) {
+	Log.info("Receive '%%bytes[%d]%%'", length);	
 	char t[] = new char[length];
         try {
 	    from.read(t, 0, length);

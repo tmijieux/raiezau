@@ -12,7 +12,7 @@ public class BufferMap {
     }
 
     public BufferMap(File file){
-	this((int) file.size());
+	this((int) file.getLength());
         if (file.isSeeded()) {
             /* when the file is already fully present on the disk
                just fill the bitSet: */

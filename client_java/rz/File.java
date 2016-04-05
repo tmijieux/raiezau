@@ -5,19 +5,10 @@ import java.io.*;
 import java.security.*;
 
 class File implements Serializable {
+    /* ------------------- Static ----------------- */
 
     private static final int pieceSize = Config.getInt("piece-size");
     private static final Map<String, File> filesByKey;
-
-    private java.io.File jFile;
-    private RandomAccessFile file;
-
-    private BufferMap bufferMap;
-    private String name;
-    private String key;
-    private long length; // length in byte
-    private boolean seeded;
-    private List<Peer> peers;
 
     static {
         filesByKey = new HashMap<String, File>();
@@ -27,10 +18,6 @@ class File implements Serializable {
             fileDir.mkdir();
         }
         loadCompleteFileFromDirectory(fileDir);
-    }
-
-    public static List<File> getFileList() {
-        return new ArrayList<File>(filesByKey.values());
     }
 
     private static void loadIncompleteFileFromDirectory(java.io.File folder) {
@@ -47,7 +34,7 @@ class File implements Serializable {
 	}
     }
 
-    public static void loadCompleteFileFromDirectory(java.io.File folder) {
+    private static void loadCompleteFileFromDirectory(java.io.File folder) {
         if (!folder.isDirectory()) {
             throw new IllegalArgumentException();
         }
@@ -77,7 +64,7 @@ class File implements Serializable {
             return f;
         }
         filesByKey.put(newFile.key, newFile);
-        System.err.println("size: " + filesByKey.size());
+	Log.info("Inserted file " + newFile);
         return newFile;
     }
 
@@ -91,15 +78,40 @@ class File implements Serializable {
         return insertFile(newFile);
     }
 
+    /* ------------------- Static get ----------------- */
+
+    public static List<File> getFileList() {
+        return new ArrayList<File>(filesByKey.values());
+    }
+
+    public static File getByKey(String key) {
+	return filesByKey.get(key);
+    }
+
+    /* ------------------- File ----------------- */
+
+    private java.io.File jFile;
+    private RandomAccessFile file;
+
+    private BufferMap bufferMap;
+    private String name;
+    private String key;
+    private long length; // length in byte
+    private boolean seeded;
+    private List<Peer> peers;
+
     /**
      * For uncompleted files
      */
     private File(String name, long length, String key) {
+	this.name = name;
+	this.length = length;
 	this.key = key;
 	this.seeded = false;
-        jFile = new java.io.File(name);
-	bufferMap = new BufferMap(this);
-	peers = new ArrayList<Peer>();
+        this.jFile = new java.io.File(name);
+	this.bufferMap = new BufferMap(this);
+	this.peers = new ArrayList<Peer>();
+	Log.info(this.toString());
     }
 
     /**
@@ -107,31 +119,23 @@ class File implements Serializable {
      */
     private File(String name) {
 	this.name = name;
+	this.peers = new ArrayList<Peer>();
         String filePath = name;
         if (name.charAt(0) != '/') {
             String dir = Config.get("completed-files-directory");
             filePath =  dir +'/'+ name;
         }
+	this.jFile = new java.io.File(filePath);
         try {
-            jFile = new java.io.File(filePath);
             file = new RandomAccessFile(jFile, "rw");
-            seeded = true;
             key  = this.MD5Hash();
             length = file.length();
-            bufferMap = new BufferMap(this);
-            peers = new ArrayList<Peer>();
         } catch (IOException e) {
             throw new RuntimeException("File exception: "+filePath);
         }
-    }
-
-    public static File getByKey(String key) {
-	return filesByKey.get(key);
-    }
-
-    public static List<File> getByName(String name) {
-        List<File> fileList = new ArrayList<File>();
-        return fileList;
+	this.seeded = true;
+	this.bufferMap = new BufferMap(this);
+	Log.info(this.toString());
     }
 
     private String MD5Hash() throws IOException {
@@ -155,10 +159,6 @@ class File implements Serializable {
 	return piece;
     }
 
-    public List<Peer> getPeerList() {
-	return peers;
-    }
-
     public void addPeer(Peer peer) {
 	peers.add(peer);
     }
@@ -168,29 +168,16 @@ class File implements Serializable {
             Config.getInt("piece-size") + " " + key;
     }
 
-    public String getKey() {
-	return key;
-    }
-
-    public long getLength() {
-	return length;
-    }
-
-    public int getPieceSize() {
-	return pieceSize;
-    }
-
     public byte[] getPiece(int pieceIndex){
 	long startPos = pieceSize * pieceIndex;
 	byte[] data = new byte[pieceSize];
 	try{
 	    if (bufferMap.isCompleted(pieceIndex)) {
-	    
 		file.seek(startPos);
 		file.readFully(data, (pieceSize * pieceIndex), pieceSize);
 	    }
 	    return data;
-	}catch (Exception e) {
+	} catch (Exception e) {
             throw new RuntimeException(e);
        }
     }
@@ -214,22 +201,10 @@ class File implements Serializable {
         }
     }
 
-    public long size() {
-        return this.length;
-    }
-
     public BufferMap getLocalBufferMap() {
         return bufferMap;
     }
 
-    public byte[] getBinaryBufferMap(){
-	return bufferMap.toByteArray();
-    }
-
-    @Override
-    public String toString() {
-	return name+": "+ peers;
-    }
 
     public static void saveFileState(File file) {
 	try {
@@ -259,7 +234,31 @@ class File implements Serializable {
 	return f;
     }
 
+    /* ------------------- Get Local ----------------- */
+
+    public long getLength() {
+	return length;
+    }
+
+    public int getPieceSize() {
+	return pieceSize;
+    }
+
+    public List<Peer> getPeerList() {
+	return peers;
+    }
+
+    public String getKey() {
+	return key;
+    }
+
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+	return String.format("File: '%s' '%s' '%s'", 
+			     name, peers, bufferMap);
     }
 }

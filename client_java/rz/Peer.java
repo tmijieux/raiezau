@@ -93,7 +93,7 @@ public class Peer {
     }
 
     private void sendHave(File file) {
-	byte[] bufferMap = file.getBinaryBufferMap();
+	byte[] bufferMap = file.getLocalBufferMap().toByteArray();
 	send("have %s ", file.getKey());
 	socket.sendByte(bufferMap);
     }
