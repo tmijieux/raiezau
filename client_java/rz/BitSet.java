@@ -6,8 +6,13 @@ class BitSet
 
     public BitSet(int size)
     {
-        bits = new byte [ (size+7) / 8 ];
+        bits = new byte[ (size+7) / 8 ];
         clearAllBytes();
+    }
+
+    private BitSet(byte[] bits)
+    {
+        this.bits = bits;
     }
 
     public void set(int i)
@@ -42,7 +47,7 @@ class BitSet
         return (bits[i/8] & (1 << (i%8))) != 0;
     }
 
-    byte[] toByteArray()
+    public byte[] toByteArray()
     {
         byte [] copy = new byte[bits.length];
         for (int i = 0; i < bits.length; ++i)
@@ -50,9 +55,14 @@ class BitSet
         return copy;
     }
 
+    public static BitSet fromByteArray(byte[] array)
+    {
+        return new BitSet(array);
+    }
+    
     public String toHexString()
     {
-        String s = new String();
+        String s = "";
         for (int i = 0; i < bits.length; ++i)
             s += String.format("%02x", bits[i]);
         return s;

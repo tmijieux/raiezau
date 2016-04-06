@@ -9,6 +9,11 @@ public class BufferMap {
 	bitSet = new BitSet(size);
     }
 
+    private BufferMap(BitSet bitSet)
+    {
+        this.bitSet = bitSet;
+    }
+
     public BufferMap(File file){
 	int size = file.getPieceCount();
 	bitSet = new BitSet(size);
@@ -31,5 +36,10 @@ public class BufferMap {
 
     public byte[] toByteArray(){
 	return bitSet.toByteArray();
+    }
+
+    public static BufferMap fromByteArray(byte[] array)
+    {
+        return new BufferMap(BitSet.fromByteArray(array));
     }
 }
