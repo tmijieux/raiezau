@@ -11,7 +11,6 @@ import java.io.IOException;
 
 class Socket {
     private java.net.Socket sock;
-
     private int port;
     private String ip;
 
