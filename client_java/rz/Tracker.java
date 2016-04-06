@@ -124,9 +124,11 @@ public class Tracker {
                     "Remote and local piece size do not match");
             }
 	    
-	    File file = File.addFile(filesStr[i], 
-				     Integer.parseInt(filesStr[i+1]),
-				     filesStr[i+3]);
+	    File file = FileManager.addFile(
+                filesStr[i], 
+                Integer.parseInt(filesStr[i+1]),
+                filesStr[i+3]
+            );
 	    files.add(file);
 	}
 	return files;

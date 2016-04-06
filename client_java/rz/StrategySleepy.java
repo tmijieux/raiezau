@@ -10,7 +10,7 @@ class StrategySleepy implements Strategy {
 
     @Override
     public void share(Tracker tracker) {
-	List<File> fileList = File.getFileList();
+	List<File> fileList = FileManager.getFileList();
 
 	while(true) {
 	    tracker.doUpdate(fileList);

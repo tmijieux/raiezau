@@ -93,7 +93,7 @@ class Client {
 
     public void start() {
         new Thread(server).start();
-        List<File> fileList = File.getFileList();
+        List<File> fileList = FileManager.getFileList();
 	tracker.doAnnounce(fileList, server.getPort());
 	strategy.share(tracker);
     }

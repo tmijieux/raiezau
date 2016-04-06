@@ -20,7 +20,7 @@ class StrategyTest implements Strategy {
     }
 
     private void testTracker() {
-	List<File> fileList = File.getFileList();
+	List<File> fileList = FileManager.getFileList();
         
 	testGetfile(fileList.get(0));
 	testGetfile(fileList.get(1));

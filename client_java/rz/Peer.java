@@ -215,7 +215,7 @@ public class Peer {
 
     private File getFileWithReception() {
 	String hash = socket.receiveHash();
-	File file = File.getByKey(hash);
+	File file = FileManager.getByKey(hash);
 	if (file == null) {
 	    Log.warning("Asked for unknown file hash '%s'", hash);
 	    socket.sendError();

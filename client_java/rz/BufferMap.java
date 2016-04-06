@@ -4,21 +4,20 @@ import java.util.*;
 
 public class BufferMap {
     private int size; // length in byte
-    private BitSet bitSet;
+    private java.util.BitSet bitSet;
     private byte[] bufferMap;
 
     public BufferMap(int size) {
         this.size = size;
-	bitSet = new BitSet(size);
+	bitSet = new java.util.BitSet(size);
 	bitSet.set(0, size, false);
-
-	bufferMap = new byte[size/8];
+	bufferMap = new byte[(size+7)/8];
     }
 
     public BufferMap(File file){
 	this.size = (int) file.getLength();
-	bitSet = new BitSet(size);
-	bufferMap = new byte[size/8];
+	bitSet = new java.util.BitSet(size);
+	bufferMap = new byte[(size+7)/8];
         if (file.isSeeded()) {
             /* when the file is already fully present on the disk
                just fill the bitSet: */
@@ -52,7 +51,6 @@ public class BufferMap {
     private void setBit(int bitNumber){
 	int bitIndex = bitNumber/8;
 	int pos = (bitIndex + bitNumber%8) -1;
-
 	bufferMap[bitIndex] |= 1 << pos; // shall set the bit to 1
     }
 
