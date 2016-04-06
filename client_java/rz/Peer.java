@@ -170,8 +170,7 @@ public class Peer {
     
     public void receiveHave(boolean sendCallBack) {
 	File file = getFileWithReception();
-	byte[] bufferMap = socket.receiveByte(
-	    (int) Math.ceil(file.getLength() / 8)); 
+	byte[] bufferMap = socket.receiveByte(file.getPieceCount());
 	// buffermap is binary so: / 8
 	// TODO update buffer map(?)
 	if (sendCallBack)
