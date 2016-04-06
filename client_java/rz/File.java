@@ -123,6 +123,11 @@ class File implements Serializable {
     public BufferMap getLocalBufferMap() {
         return bufferMap;
     }
+
+    public int getPieceCount()
+    {
+        return (int) (length + (pieceSize-1)) / pieceSize;
+    }
     
     public long getLength() {
 	return length;

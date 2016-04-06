@@ -3,74 +3,33 @@ package rz;
 import java.util.*;
 
 public class BufferMap {
-    private int size; // length in byte
-    private java.util.BitSet bitSet;
-    private byte[] bufferMap;
+    private BitSet bitSet;
 
     public BufferMap(int size) {
-        this.size = size;
-	bitSet = new java.util.BitSet(size);
-	bitSet.set(0, size, false);
-	bufferMap = new byte[(size+7)/8];
+	bitSet = new BitSet(size);
     }
 
     public BufferMap(File file){
-	this.size = (int) file.getLength();
-	bitSet = new java.util.BitSet(size);
-	bufferMap = new byte[(size+7)/8];
-        if (file.isSeeded()) {
-            /* when the file is already fully present on the disk
-               just fill the bitSet: */
-            bitSet.set(0, size, true);
-	    //this.setAllBits();
-        }
+	int size = file.getPieceCount();
+	bitSet = new BitSet(size);
+        if (file.isSeeded())
+            bitSet.setAll();
     }
 
     public void addCompletedPart(int partNumber) {
-	//bitSet.set(partNumber);
-        this.setBit(partNumber);
+        bitSet.set(partNumber);
     }
 
     public boolean isCompleted(int partNumber){
-	//return bitSet.get(partNumber);
-	return this.isBitSet(partNumber);
+	return bitSet.test(partNumber);
     }
 
-    @Override //Useless method
+    @Override
     public String toString() {
-        String stringedBufferMap = new String();
-        for(int i = 0; i < size; i++) {
-            if (bitSet.get(i))
-                stringedBufferMap += "1";
-            else
-                stringedBufferMap += "0";
-        }
-        return stringedBufferMap;
+        return bitSet.toString();
     }
 
-    private void setBit(int bitNumber){
-	int bitIndex = bitNumber/8;
-	int pos = (bitIndex + bitNumber%8) -1;
-	bufferMap[bitIndex] |= 1 << pos; // shall set the bit to 1
-    }
-
-    private void setAllBits(){
-	for (int index = 0; index < bufferMap.length; index++){
-	    for (int bit = 0; bit < 8; bit++){
-		bufferMap[index] |= 1 << bit;
-	    }
-	}
-    }
-
-    private boolean isBitSet(int bitNumber){
-	int bitIndex = bitNumber/8;
-	int pos = (bitIndex + bitNumber%8) -1;
-
-	return (bufferMap[bitIndex] & (1 << pos)) == 1;
-    }
-
-    
     public byte[] toByteArray(){
-	return bufferMap;
+	return bitSet.toByteArray();
     }
 }

@@ -2,22 +2,22 @@ package rz;
 
 class BitSet
 {
-    byte [] bits;
-    
+    private byte[] bits;
+
     public BitSet(int size)
     {
         bits = new byte [ (size+7) / 8 ];
-        clearAll();
+        clearAllBytes();
     }
 
     public void set(int i)
     {
-        bits[i / 8] |= (1 << (i % 8));
+        bits[i/8] |= (1 << (i%8));
     }
 
     public void clear(int i)
     {
-        bits[i / 8] &= ~(1 << (i % 8));
+        bits[i/8] &= ~(1 << (i%8));
     }
 
     public void setAll()
@@ -26,22 +26,41 @@ class BitSet
             bits[i] = (byte)0xFF;
     }
 
-    public void clearAll()
+    private void clearAllBytes()
     {
         for (int i = 0; i < bits.length; ++i)
-            bits[i] = 0;
+            bits[i] = (byte) 0;
+    }
+
+    public void clearAll()
+    {
+        clearAllBytes();
     }
 
     public boolean test(int i)
     {
-        return (bits[i/8] & (1 << (i % 8))) != 0;
+        return (bits[i/8] & (1 << (i%8))) != 0;
     }
 
-    byte [] toByteArray()
+    byte[] toByteArray()
     {
         byte [] copy = new byte[bits.length];
         for (int i = 0; i < bits.length; ++i)
             copy[i] = bits[i];
         return copy;
+    }
+
+    public String toHexString()
+    {
+        String s = new String();
+        for (int i = 0; i < bits.length; ++i)
+            s += String.format("%02x", bits[i]);
+        return s;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return toHexString();
     }
 }
