@@ -62,5 +62,5 @@ int main(int argc, char *argv[])
 
     port = option_get_port();
     server_run_bind_any_addr(port);
-    return 0;
+    return EXIT_SUCCESS;
 }
