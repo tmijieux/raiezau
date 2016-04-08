@@ -109,16 +109,20 @@ public class Peer {
     }
     
     private void sendGetpieces(File file, int[] index) {
-	send("getpieces %s [%s]", file.getKey(), indexString(index));
+	// the space at the end IS important
+	send("getpieces %s [%s] ", file.getKey(), indexString(index));
     }
     
     private void sendData(File file, int[] index) {
 	send("data %s [", file.getKey());
         for (int i = 0; i < index.length; ++i) {
-            send(" %d:", index[i]);
-	    socket.sendByte(file.getPiece(index[i]));
+            send("%d:", index[i]);
+	    Log.info("Will send byte " + i);
+	    Log.info("part is " + index[i]);
+	    socket.sendByte(file.readPiece(index[i]));
         }
-        send(" ]\n");
+	// the space at the end IS important
+        send("] ");
     }
 
     /* -------------------- SEND RELATED -------------------- */
@@ -141,7 +145,6 @@ public class Peer {
     public void receiveHave() {
 	File file = getFileWithReception();
 	byte[] bufferMap = socket.receiveByte(file.getPieceCount());
-	// buffermap is binary so: / 8
 	// TODO update buffer map(?)
 	if (sendCallBack())
 	    sendHave(file);
@@ -158,7 +161,7 @@ public class Peer {
 	ArrayList<Integer> indexList = new ArrayList<Integer>();
 	while (true) {
 	    String str = socket.receiveWord();
-	    if (str == "]")
+	    if (str.compareTo("]") == 0)
 		break;
 	    indexList.add(Integer.parseInt(str));
 	}
@@ -175,8 +178,7 @@ public class Peer {
 		break;
 	    int index = Integer.parseInt(str);
             byte[] piece = socket.receiveByte(file.getPieceSize());
-            file.addPiece(index, piece);
-     	    socket.receiveByte(1); // ' '
+            file.writePiece(index, piece);
 	}
     }
 
