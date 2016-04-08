@@ -5,13 +5,12 @@ import java.util.regex.*;
 import java.lang.*;
 import java.lang.reflect.*;
 
-public class Peer {
+public abstract class Peer {
     protected Socket socket;
     private boolean connected;
 
     private String ip;
     private int port;
-
 
     protected boolean sendCallBack()
     {
@@ -51,41 +50,13 @@ public class Peer {
     }
     
     @Override
-    public String toString() {
+        public String toString() {
 	if (socket != null)
 	    return String.format("[peer: %s]", socket);
 	else
 	    return String.format("[peer: %s:%d]", ip, port);
     }
     
-    /* -------------------- DO -------------------- */
-
-    public void doInterested(File file) {
-	sendInterested(file);
-	String protocolKey = socket.receiveWord();
-	if (protocolKey.compareTo("have") == 0)
-	    receiveHave();
-	else
-	    throw new RuntimeException("Wrong response");
-    }
-
-    public void doHave(File file) {
-	sendHave(file);
-	String protocolKey = socket.receiveWord();
-	if (protocolKey.compareTo("have") == 0)
-	    receiveHave();
-	else
-	    throw new RuntimeException("Wrong response");
-    }
-
-    public void doGetpieces(File file, int[] index) {
-	sendGetpieces(file, index);
-	String protocolKey = socket.receiveWord();
-	if (protocolKey.compareTo("data") == 0)
-	    receiveData();
-	else
-	    throw new RuntimeException("Wrong response");
-    }
 
     /* -------------------- SEND -------------------- */
 
@@ -96,19 +67,19 @@ public class Peer {
         socket.send(format, args);
     }
     
-    private void sendInterested(File file) {
+    protected void sendInterested(File file) {
 	// The space at the end IS important
 	send("interested %s ", file.getKey());
     }
 
-    private void sendHave(File file) {
+    protected void sendHave(File file) {
 	BufferMap bm = file.getLocalBufferMap();
 	Log.info(bm.toString());
 	send("have %s ", file.getKey());
 	socket.sendByte(bm.toByteArray());
     }
     
-    private void sendGetpieces(File file, int[] index) {
+    protected void sendGetpieces(File file, int[] index) {
 	// the space at the end IS important
 	send("getpieces %s [%s] ", file.getKey(), indexString(index));
     }
@@ -142,12 +113,12 @@ public class Peer {
 	Log.severe("Received error! " + socket);
     }
     
-    public void receiveHave() {
+    public byte[] receiveHave() {
 	File file = getFileWithReception();
 	byte[] bufferMap = socket.receiveByte(file.getPieceCount());
-	// TODO update buffer map(?)
 	if (sendCallBack())
 	    sendHave(file);
+        return bufferMap;
     }
     
     public void receiveInterested() {

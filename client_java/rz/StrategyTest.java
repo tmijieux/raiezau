@@ -57,8 +57,8 @@ class StrategyTest implements Strategy {
 	Log.info("File: " + file);
 	testGetfile(file);
 
-	List<Peer> peers = file.getPeerList();
-	Peer peer;
+	List<FilePeer> peers = file.getPeerList();
+	FilePeer peer;
 	try {
 	    peer = peers.get(0);
 	} catch (Exception e) {
