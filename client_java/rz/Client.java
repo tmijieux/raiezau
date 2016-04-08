@@ -17,7 +17,7 @@ class Client {
 	    // a check should be done
 	    @SuppressWarnings("unchecked")
 		Class<Strategy> strategy = klass;
-	    strats.put(key, strategy.getConstructor());
+	    strats.put(key, strategy.getConstructor(Tracker.class));
 	} catch (Exception e) {
 	    Log.severe(e.toString());
 	}
@@ -55,12 +55,12 @@ class Client {
 	return clientServer;
     }
 
-    private static Strategy getStrategy() {
+    private static Strategy getStrategy(Tracker tracker) {
 	Constructor<Strategy> constr = 
 	    strats.get(Config.get("strategy"));
 	Strategy strategy = null;
 	try {
-	    strategy = constr.newInstance();
+	    strategy = constr.newInstance(tracker);
         } catch (Exception e) {
             Log.severe("Error in Strategy creation: " + e.toString());
             System.exit(1);
@@ -71,9 +71,9 @@ class Client {
     public static void main(String args[]) {
 	ApplyArgs(args);
 	
-	Strategy strategy = getStrategy();
-	Server clientServer = getServer();
 	Tracker tracker = getTracker();
+	Server clientServer = getServer();
+	Strategy strategy = getStrategy(tracker);
 
         Client.client = new Client(strategy, tracker, clientServer);
         Client.client.start();
@@ -95,6 +95,6 @@ class Client {
         new Thread(server).start();
         List<File> fileList = FileManager.getFileList();
 	tracker.doAnnounce(fileList, server.getPort());
-	strategy.share(tracker);
+	strategy.share();
     }
 }

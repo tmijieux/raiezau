@@ -2,16 +2,16 @@ package rz;
 
 import java.util.*;
 
-class StrategySleepy implements Strategy {
-    public StrategySleepy() {
-    }
-
+class StrategySleepy implements Strategy, Runnable {
+    private Tracker tracker;
     private final int MS_SLEEP = 10000;
 
-    @Override
-    public void share(Tracker tracker) {
-	List<File> fileList = FileManager.getFileList();
+    public StrategySleepy(Tracker tracker) {
+	this.tracker = tracker;
+    }
 
+    public void run() {
+	List<File> fileList = FileManager.getFileList();
 	while(true) {
 	    tracker.doUpdate(fileList);
 	    try {
@@ -19,6 +19,11 @@ class StrategySleepy implements Strategy {
 	    } catch (InterruptedException e) {
 		break;
 	    }
-	}
+	}	
+    }
+
+    @Override
+    public void share() {
+	run();
     }
 }

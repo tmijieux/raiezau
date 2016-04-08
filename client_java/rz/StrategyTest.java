@@ -5,7 +5,8 @@ import java.util.*;
 class StrategyTest implements Strategy {
     private Tracker tracker;
 
-    public StrategyTest() {
+    public StrategyTest(Tracker tracker) {
+	this.tracker = tracker;
     }
 
     private void testGetfile(File file) {
@@ -77,8 +78,7 @@ class StrategyTest implements Strategy {
     }
 
     @Override
-    public void share(Tracker tracker) {
-        this.tracker = tracker;
+    public void share() {
 	testTracker();
 	testPeer();
 	Log.info("Test finished :)");
