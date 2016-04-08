@@ -7,20 +7,19 @@ import java.lang.*;
 import java.lang.reflect.*;
 
 class ServerThread implements Runnable {
-    private Peer peer;
+    private ServerPeer peer;
 
-    public ServerThread(Peer peer) {
+    public ServerThread(ServerPeer peer) {
 	this.peer = peer;
     }
 
     public void run() {
 	try {
 	    while (true) {
-                peer.handleRequest(true);
+                peer.handleRequest();
 	    }
 	} catch (Exception e) {
-	    Log.severe("Exception in client reception: %s", 
-		       e.toString());
+	    Log.severe("Exception in client reception: %s", e.toString());
 	}
     }
 }

@@ -6,17 +6,23 @@ import java.lang.*;
 import java.lang.reflect.*;
 
 public class Peer {
-    private Socket socket;
+    protected Socket socket;
     private boolean connected;
 
     private String ip;
     private int port;
+
+
+    protected boolean sendCallBack()
+    {
+        return false;
+    }
     
     /**
      * @brief Create Peer for ServerThread
      * Peer only need a socket
      */
-    public Peer(Socket socket) {
+    protected Peer(Socket socket) {
 	this.socket = socket;
 	this.connected = true;
     }
@@ -58,7 +64,7 @@ public class Peer {
 	sendInterested(file);
 	String protocolKey = socket.receiveWord();
 	if (protocolKey.compareTo("have") == 0)
-	    receiveHave(false);
+	    receiveHave();
 	else
 	    throw new RuntimeException("Wrong response");
     }
@@ -67,7 +73,7 @@ public class Peer {
 	sendHave(file);
 	String protocolKey = socket.receiveWord();
 	if (protocolKey.compareTo("have") == 0)
-	    receiveHave(false);
+	    receiveHave();
 	else
 	    throw new RuntimeException("Wrong response");
     }
@@ -76,7 +82,7 @@ public class Peer {
 	sendGetpieces(file, index);
 	String protocolKey = socket.receiveWord();
 	if (protocolKey.compareTo("data") == 0)
-	    receiveData(false);
+	    receiveData();
 	else
 	    throw new RuntimeException("Wrong response");
     }
@@ -125,64 +131,28 @@ public class Peer {
 	return out;
     }
 
-    /* -------------------- Server side -------------------- */
-
-    private static final String PREFIX  = "receive";
-    private static final int PREFIX_LEN = PREFIX.length();
-
-    private static Map<String, Method> protocol =
-	new HashMap<String, Method>();
-
-    private static void putProtocol(String method) {
-	try {
-	    String key = method.substring(
-		PREFIX_LEN, method.length()).toLowerCase();
-	    protocol.put(key, Peer.class.getMethod(method, boolean.class));
-	} catch (Exception e) {
-	    Log.severe(e.toString());
-	}
-    }
-    
-    static {
-	Peer.putProtocol("receiveError");
-	Peer.putProtocol("receiveHave");
-	Peer.putProtocol("receiveInterested");
-	Peer.putProtocol("receiveGetpieces");
-    }
-
-    public void handleRequest(boolean sendCallBack)
-	throws RZNoMatchException, ReflectiveOperationException {
-	String protocolKey = socket.receiveWord();
-	if (!protocol.containsKey(protocolKey)) {
-	    throw new RZNoMatchException(
-		"Invalid request with '" + protocolKey + "'");
-	}
-	
-	Method method = protocol.get(protocolKey);
-	method.invoke(this, sendCallBack);
-    }
     
     /* -------------------- Reception -------------------- */
     
-    public void receiveError(boolean sendCallBack) {
+    public void receiveError() {
 	Log.severe("Received error! " + socket);
     }
     
-    public void receiveHave(boolean sendCallBack) {
+    public void receiveHave() {
 	File file = getFileWithReception();
 	byte[] bufferMap = socket.receiveByte(file.getPieceCount());
 	// buffermap is binary so: / 8
 	// TODO update buffer map(?)
-	if (sendCallBack)
+	if (sendCallBack())
 	    sendHave(file);
     }
     
-    public void receiveInterested(boolean sendCallBack) {
+    public void receiveInterested() {
 	File file = getFileWithReception();
 	sendHave(file);
     }
     
-    public void receiveGetpieces(boolean sendCallBack) {
+    public void receiveGetpieces() {
 	File file = getFileWithReception();
 	socket.receiveByte(1); // '['
 	ArrayList<Integer> indexList = new ArrayList<Integer>();
@@ -196,7 +166,7 @@ public class Peer {
 	sendData(file, index);
     }
 				    
-    public void receiveData(boolean sendCallBack) {
+    public void receiveData() {
         File file = getFileWithReception();
 	socket.receiveByte(1); // '['
         while (true) {

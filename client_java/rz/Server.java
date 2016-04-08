@@ -44,18 +44,16 @@ class Server implements Runnable {
     private void acceptConnections() {
 	Log.info("Client server is listening on port:" + this.port);
 	while (true) {
-            Peer peer;
+            ServerPeer peer;
 
             try {
                 java.net.Socket clientSocket = listener.accept();
-                peer = new Peer(new Socket(clientSocket));
+                peer = new ServerPeer(new Socket(clientSocket));
+                Log.info("New client: " + peer);
+                new Thread(new ServerThread(peer)).start();
             } catch (Exception e) {
                 Log.severe(e.toString());
-                continue;
             }
-
-	    Log.info("New client: " + peer);
-	    new Thread(new ServerThread(peer)).start();
 	}
     }
 }
