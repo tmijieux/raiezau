@@ -244,9 +244,10 @@ static char **my_completion(const char *text, int start,  int end)
     return matches;
 }
 
-char *my_generator(const char* text, int state)
+static char *my_generator(const char* text, int state)
 {
-    static char *cmd [] = { "quit", "exit", "help" ,"client", "file", NULL };
+    static char *cmd [] = {
+        "quit", "exit", "help" ,"client", "file", NULL };
     static int list_index, len;
     char *name;
 
