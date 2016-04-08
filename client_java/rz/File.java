@@ -15,12 +15,12 @@ class File implements Serializable {
     private String key;
     private long length; // length in byte
     private boolean seeded;
-    private List<Peer> peers;
+    private List<FilePeer> peers;
     
     private File(String name, boolean seeded) {
 	this.name = name;
 	this.seeded = seeded;
-	this.peers = new ArrayList<Peer>();
+	this.peers = new ArrayList<FilePeer>();
 
 	String filePath = getFilePath();
 	this.jFile = new java.io.File(filePath);
@@ -70,7 +70,7 @@ class File implements Serializable {
 	return filePath;
     }
 
-    public void addPeer(Peer peer) {
+    public void addPeer(FilePeer peer) {
 	peers.add(peer);
     }
 
@@ -130,7 +130,7 @@ class File implements Serializable {
 	return pieceSize;
     }
     
-    public List<Peer> getPeerList() {
+    public List<FilePeer> getPeerList() {
 	return peers;
     }
     
