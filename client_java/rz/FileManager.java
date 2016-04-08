@@ -6,8 +6,7 @@ import java.security.*;
 
 class FileManager {
     private static final Map<String, File> filesByKey;
-    
-    
+        
     static {
         filesByKey = new HashMap<String, File>();
         String dirname = Config.get("completed-files-directory");
@@ -97,7 +96,7 @@ class FileManager {
 	    in.close();
 	    saveFile.close();
 	} catch (FileNotFoundException e) {
-
+	    
 	} catch (IOException | ClassNotFoundException e) {
             
 	}
@@ -111,4 +110,4 @@ class FileManager {
     public static File getByKey(String key) {
 	return filesByKey.get(key);
     }
-};
+}

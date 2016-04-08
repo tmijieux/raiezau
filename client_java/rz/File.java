@@ -17,17 +17,28 @@ class File implements Serializable {
     private boolean seeded;
     private List<Peer> peers;
     
+    private File(String name, boolean seeded) {
+	this.name = name;
+	this.seeded = seeded;
+	this.peers = new ArrayList<Peer>();
+
+	String filePath = getFilePath();
+	this.jFile = new java.io.File(filePath);
+        try {
+            this.file = new RandomAccessFile(jFile, "rw");
+	} catch (IOException e) {
+            throw new RuntimeException("File exception: "+filePath);
+        }
+    }
+
     /**
      * For uncompleted files
      */
     public File(String name, long length, String key) {
-	this.name = name;
+	this(name, false);
 	this.length = length;
 	this.key = key;
-	this.seeded = false;
-        this.jFile = new java.io.File(name);
 	this.bufferMap = new BufferMap(this);
-	this.peers = new ArrayList<Peer>();
 	Log.info(this.toString());
     }
 
@@ -35,22 +46,13 @@ class File implements Serializable {
      * For seeded file
      */
     public File(String name) {
-	this.name = name;
-	this.peers = new ArrayList<Peer>();
-        String filePath = name;
-        if (name.charAt(0) != '/') {
-            String dir = Config.get("completed-files-directory");
-            filePath =  dir +'/'+ name;
-        }
-	this.jFile = new java.io.File(filePath);
+	this(name, true);
         try {
-            file = new RandomAccessFile(jFile, "rw");
-            key  = this.MD5Hash();
-            length = file.length();
+            this.key  = this.MD5Hash();
+	    this.length = file.length();
         } catch (IOException e) {
-            throw new RuntimeException("File exception: "+filePath);
+            throw new RuntimeException("File exception: " + name);
         }
-	this.seeded = true;
 	this.bufferMap = new BufferMap(this);
 	Log.info(this.toString());
     }
@@ -59,21 +61,13 @@ class File implements Serializable {
         return MD5.hash(new FileInputStream(jFile));
     }
 
-    public byte[] getByte(int pieceIndex) {
-	int offset = pieceIndex * pieceSize;
-	if (offset > length) {
-	    throw new RuntimeException("Out of file index");
+    private String getFilePath() {
+        String filePath = name;
+        if (name.charAt(0) != '/') {
+            String dir = Config.get("completed-files-directory");
+            filePath =  dir +'/'+ name;
         }
-	if (!bufferMap.isCompleted(pieceIndex)) {
-	    throw new RuntimeException("Request for unpossessed piece");
-        }
-	byte[] piece = new byte[pieceSize];
-        try {
-            file.read(piece, offset, pieceSize);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-	return piece;
+	return filePath;
     }
 
     public void addPeer(Peer peer) {
@@ -85,19 +79,35 @@ class File implements Serializable {
             Config.getInt("piece-size") + " " + key;
     }
     
-    public byte[] getPiece(int pieceIndex){
+    /* ------------- Piece read / write -------------*/
+
+    public byte[] readPiece(int pieceIndex) {
 	long startPos = pieceSize * pieceIndex;
 	byte[] data = new byte[pieceSize];
+	if (!bufferMap.isCompleted(pieceIndex))
+	    throw new RuntimeException("Request for unpossessed piece");
 	try{
-	    if (bufferMap.isCompleted(pieceIndex)) {
-		file.seek(startPos);
-		file.readFully(data, (pieceSize * pieceIndex), pieceSize);
-	    }
-	    return data;
+	    file.seek(startPos);
+	    file.read(data);
 	} catch (Exception e) {
             throw new RuntimeException(e);
         }
+	return data;
     }
+    
+    public void writePiece(int index, byte[] data) {
+        long pos = pieceSize * index;
+	Log.info("hey " + data + " or " + file);
+        try {
+            file.seek(pos);
+            file.write(data);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+	bufferMap.addCompletedPart(index);
+    }
+
+    /* ------------------- Get ----------------- */
     
     public boolean isSeeded() {
 	return seeded;
@@ -107,19 +117,6 @@ class File implements Serializable {
 	return key.compareTo(key2) == 0;
     }
     
-    public void addPiece(int index, byte[] data) {
-        long pos = pieceSize * index;
-        try {
-            file.seek(pos);
-            file.write(data);
-            bufferMap.addCompletedPart(index);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /* ------------------- Get Local ----------------- */
-    
     public BufferMap getLocalBufferMap() {
         return bufferMap;
     }
@@ -128,11 +125,7 @@ class File implements Serializable {
     {
         return (int) (length + (pieceSize-1)) / pieceSize;
     }
-    
-    public long getLength() {
-	return length;
-    }
-    
+
     public int getPieceSize() {
 	return pieceSize;
     }

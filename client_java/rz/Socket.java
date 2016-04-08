@@ -52,7 +52,7 @@ class Socket {
 	char[] t = ArrayByteToChar(bytes);
 	to.write(t);
 	to.flush();
-	Log.info("Send %s '%%bytes[%d]%%'", this,  bytes.length);	
+	Log.info("Send %s '%%bytes[%d]%%'", this, bytes.length);
     }
 
     public void send(String text) {
@@ -86,13 +86,14 @@ class Socket {
     }
 
     public byte[] receiveByte(int length) {
-	Log.info("Receive '%%bytes[%d]%%'", length);	
+	Log.info("Receiving '%%bytes[%d]%%'", length);	
 	char t[] = new char[length];
         try {
 	    from.read(t, 0, length);
         } catch (Exception e) {
             Log.debug(e.toString());
         }
+	Log.info("Received '%%bytes[%d]%%'", t.length);
 	return ArrayCharToByte(t);
     }
 
@@ -115,7 +116,7 @@ class Socket {
 		break;
 	    sb.append(tmp[0]);
 	}
-	Log.info("Finished! '" + sb + "'");
+	Log.info("Finished receiveUntil! '" + sb + "'");
 	return sb.toString();
     }
     

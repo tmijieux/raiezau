@@ -69,6 +69,11 @@ class StrategyTest implements Strategy {
 	peer.doInterested(file);
 	Log.info("File: " + file);
 	peer.doHave(file);
+	peer.doHave(file);
+	
+	int[] index = new int[1];
+	index[0] = 0;
+	peer.doGetpieces(file, index);
     }
 
     @Override
@@ -76,5 +81,6 @@ class StrategyTest implements Strategy {
         this.tracker = tracker;
 	testTracker();
 	testPeer();
+	Log.info("Test finished :)");
     }
 }
