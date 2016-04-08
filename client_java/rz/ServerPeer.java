@@ -6,8 +6,6 @@ import java.lang.reflect.*;
 
 class ServerPeer extends Peer
 {
-    private static final String PREFIX  = "receive";
-    private static final int PREFIX_LEN = PREFIX.length();
     private static Map<String, Method> protocol =
 	new HashMap<String, Method>();
 
@@ -32,8 +30,8 @@ class ServerPeer extends Peer
     private static void putProtocol(String method) {
 	try {
 	    String key = method.substring(
-		PREFIX_LEN, method.length()).toLowerCase();
-	    protocol.put(key, Peer.class.getMethod(method, boolean.class));
+		"receive".length(), method.length()).toLowerCase();
+	    protocol.put(key, Peer.class.getMethod(method));
 	} catch (Exception e) {
 	    Log.severe(e.toString());
 	}

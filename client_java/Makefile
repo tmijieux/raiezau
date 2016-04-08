@@ -12,7 +12,9 @@ src: build
 	javac -Xlint:unchecked -cp .:jar/jyaml-1.3.jar -g:source,lines,vars -d build/ $(SRC)
 
 run:
+	$(RM) completed/fifi.dat
 	@java -classpath build/:jyaml/ rz.Client
+
 run2:
 	@java -classpath build/:jyaml/ rz.Client config2.ini
 
