@@ -409,7 +409,7 @@ static char *prot_look_build_file_list(struct list *file_list)
 
 static int prot_look(struct client *c, char *req_value)
 {
-    int ret, len;
+    int ret;
     char *criterions = NULL, *response, *file_list_str, *regexp;
     regmatch_t pmatch[4];
 
@@ -422,7 +422,7 @@ static int prot_look(struct client *c, char *req_value)
             req_value+pmatch[1].rm_so, pmatch[1].rm_eo - pmatch[1].rm_so);
         l = prot_look_process_criterions(c, criterions);
         file_list_str = prot_look_build_file_list(l);
-        len = asprintf(&response, "list [%s]\n",  file_list_str);
+        int len = asprintf(&response, "list [%s]\n",  file_list_str);
         socket_write_string(c->sock, len, response);
         free(file_list_str);
         free(response);
@@ -441,7 +441,8 @@ static void str_trim_prot_getfile(char *req)
     *req = '\0';
 }
 
-static char *prot_getfile_build_peer_string_list(struct list *cli)
+static char *prot_getfile_build_peer_string_list(
+    struct client *current, struct list *cli)
 {
     char *out, *tmp = "";
     unsigned len;
@@ -451,6 +452,8 @@ static char *prot_getfile_build_peer_string_list(struct list *cli)
 
     for (unsigned i = 1; i <= len; ++i) {
         struct client *c = list_get(cli, i);
+        if (c == current)
+            continue;
         char *addr = ip_stringify(c->addr.sin_addr.s_addr);
         asprintf(&out, "%s%s%s:%hd", tmp, i > 1 ? " " : "",
                  addr, c->listening_port);
@@ -479,7 +482,7 @@ static int prot_getfile(struct client *c, char *req_value)
         rz_debug(_("No such file key: '%s'\n"), req_value);
         endpoints_list = strdup("");
     } else {
-        endpoints_list = prot_getfile_build_peer_string_list(f->clients);
+        endpoints_list = prot_getfile_build_peer_string_list(c, f->clients);
     }
     len = asprintf(&response, "peers %s [%s]\n", req_value, endpoints_list);
     dump(response);
