@@ -73,7 +73,7 @@ public abstract class Peer {
     }
 
     protected void sendHave(File file) {
-	BufferMap bm = file.getLocalBufferMap();
+	BufferMap bm = file.getBufferMap();
 	Log.info(bm.toString());
 	send("have %s ", file.getKey());
 	socket.sendByte(bm.toByteArray());
@@ -136,7 +136,7 @@ public abstract class Peer {
 		break;
 	    indexList.add(Integer.parseInt(str));
 	}
-	int index[] = convertIntegers(indexList);
+	int index[] = Utils.convertIntegers(indexList);
 	sendData(file, index);
     }
 				    
@@ -164,13 +164,5 @@ public abstract class Peer {
 	    throw new RZNoFileException("No file " + hash);
 	}
 	return file;
-    }
-
-    private static int[] convertIntegers(List<Integer> integers) {
-	int[] ret = new int[integers.size()];
-	for (int i = 0; i < ret.length; i++) {
-	    ret[i] = integers.get(i).intValue();
-	}
-	return ret;
     }
 }

@@ -48,8 +48,11 @@ public class FilePeer extends Peer {
 	    throw new RuntimeException("Wrong response");
     }
 
-    public BufferMap getBufferMap()
-    {
+    public BufferMap getBufferMap() {
         return bm;
+    }
+
+    public int getPieceCount() {
+	return file.getPieceCount();
     }
 }

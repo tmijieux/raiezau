@@ -18,6 +18,10 @@ run:
 run2:
 	@java -classpath build/:jyaml/ rz.Client config2.ini
 
+run3:
+	$(RM) completed/fifi.dat
+	@java -classpath build/:jyaml/ rz.Client config3.ini
+
 debug:
 	@jdb -sourcepath . -classpath build/:jyaml/ rz.Client
 

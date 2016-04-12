@@ -42,6 +42,7 @@ class LookRequest {
 	return list;
     }
 
+    @Override
     public String toString() {
 	return String.join(" ", mapToString());
     }

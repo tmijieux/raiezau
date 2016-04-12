@@ -9,12 +9,11 @@ public class BufferMap {
 	bitSet = new BitSet(size);
     }
 
-    private BufferMap(BitSet bitSet)
-    {
+    private BufferMap(BitSet bitSet) {
         this.bitSet = bitSet;
     }
 
-    public BufferMap(File file){
+    public BufferMap(File file) {
 	int size = file.getPieceCount();
 	bitSet = new BitSet(size);
         if (file.isSeeded())
@@ -38,8 +37,7 @@ public class BufferMap {
 	return bitSet.toByteArray();
     }
 
-    public static BufferMap fromByteArray(byte[] array)
-    {
+    public static BufferMap fromByteArray(byte[] array) {
         return new BufferMap(BitSet.fromByteArray(array));
     }
 }

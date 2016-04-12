@@ -39,7 +39,6 @@ class File implements Serializable {
 	this.length = length;
 	this.key = key;
 	this.bufferMap = new BufferMap(this);
-	Log.info(this.toString());
     }
 
     /**
@@ -54,7 +53,6 @@ class File implements Serializable {
             throw new RuntimeException("File exception: " + name);
         }
 	this.bufferMap = new BufferMap(this);
-	Log.info(this.toString());
     }
 
     private String MD5Hash() throws IOException {
@@ -85,7 +83,7 @@ class File implements Serializable {
 	long startPos = pieceSize * pieceIndex;
 	byte[] data = new byte[pieceSize];
 	if (!bufferMap.isCompleted(pieceIndex))
-	    throw new RuntimeException("Request for unpossessed piece");
+	    throw new RZNoPartException("Request for unpossessed piece");
 	try{
 	    file.seek(startPos);
 	    file.read(data);
@@ -97,7 +95,6 @@ class File implements Serializable {
     
     public void writePiece(int index, byte[] data) {
         long pos = pieceSize * index;
-	Log.info("hey " + data + " or " + file);
         try {
             file.seek(pos);
             file.write(data);
@@ -117,12 +114,11 @@ class File implements Serializable {
 	return key.compareTo(key2) == 0;
     }
     
-    public BufferMap getLocalBufferMap() {
+    public BufferMap getBufferMap() {
         return bufferMap;
     }
 
-    public int getPieceCount()
-    {
+    public int getPieceCount() {
         return (int) (length + (pieceSize-1)) / pieceSize;
     }
 

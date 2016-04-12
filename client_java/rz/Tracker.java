@@ -121,7 +121,8 @@ public class Tracker {
             int receivedPieceSize = Integer.parseInt(filesStr[i+2]);
 	    if (localPieceSize != receivedPieceSize) {
 		throw new RuntimeException(
-                    "Remote and local piece size do not match");
+                    "Remote and local piece size do not match: " + 
+		    localPieceSize + " !=  "+ receivedPieceSize);
             }
 	    
 	    File file = FileManager.addFile(

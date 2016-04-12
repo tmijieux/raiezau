@@ -24,8 +24,9 @@ class Client {
     }
 
     static {
-	putConstructor("sleepy", StrategySleepy.class);
-	putConstructor("test",   StrategyTest.class);
+	putConstructor("sleepy",   StrategySleepy.class);
+	putConstructor("test",     StrategyTest.class);
+	putConstructor("advanced", StrategyAdvanced.class);
     }
 
     private static void ApplyArgs(String args[]) {

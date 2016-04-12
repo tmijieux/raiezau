@@ -52,10 +52,12 @@ class FileManager {
     private static File insertFile(File newFile) {
         File f = filesByKey.get(newFile.getKey());
         if (f != null) {
-            Log.warning(
+            /*
+	    Log.warning(
                 "file " + newFile.getName() + " with key "+
                 newFile.getKey() + " is already present in "+
                 "the file store and it is know as '"+f.getName()+"'.");
+	    */
             newFile = null;
             return f;
         }
