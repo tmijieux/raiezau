@@ -14,6 +14,7 @@
 #include "file.h"
 
 static struct hash_table *clients;
+
 static struct list *handle_list;
 static pthread_mutex_t handle_mutex;
 int handled_client_count = 0;
@@ -33,32 +34,54 @@ struct client *client_create(int sock, int slot)
         return NULL;
     }
 
+    c->conn_addr_key = sockaddr_stringify(&c->addr);
+    c->listen_addr_key = NULL;
+
     c->sock = sock;
     c->slot = slot;
     c->files_seed = list_new(0);
     c->files_leech = list_new(0);
+
 #ifdef DEBUG
     char *dbgstr = sockaddr_stringify(&c->addr);
     rz_debug(_("new client connected from %s\n"),  dbgstr);
     free(dbgstr);
 #endif
+
     return c;
 }
 
-void client_free(struct client *c)
+void client_set_listening_port(struct client *c, uint16_t port)
 {
-    int i, s = list_size(c->files_seed);
+    char *ip;
+    c->listening_port = port;
+
+    ip = ip_stringify(c->addr.sin_addr.s_addr);
+    asprintf(&c->listen_addr_key, "%s:%hu", ip, port);
+    free(ip);
+}
+
+static void remove_client_from_file_list(
+    struct client *c, struct list *files)
+{
+    int i, s;
+    s = list_size(files);
     for (i = 1; i <= s; ++i) {
         struct file *f;
-        f = list_get(c->files_seed, i);
+        f = list_get(files, i);
         file_remove_client(f, c);
     }
-    s = list_size(c->files_leech);
-    for (i = 1; i <= s; ++i) {
-        struct file *f;
-        f = list_get(c->files_leech, i);
-        file_remove_client(f, c);
-    }
+}
+
+static void client_free(struct client *c)
+{
+    remove_client_from_file_list(c, c->files_seed);
+    list_free(c->files_seed);
+    remove_client_from_file_list(c, c->files_leech);
+    list_free(c->files_leech);
+
+    free(c->conn_addr_key);
+    free(c->listen_addr_key);
 
     free(c);
 }
@@ -128,19 +151,24 @@ void handle_pending_clients(void)
     remaining_list = list_new(0);
     pthread_mutex_lock(&handle_mutex);
     size_t s = list_size(handle_list);
+
     for (unsigned i = 1; i <= s; ++i) {
         struct client *c;
         c = list_get(handle_list, i);
         if (!c->thread_handling) {
             if (c->delete) {
-                rz_debug(_("try to delete client %s\n"), client_to_string(c));
-                fds[c->slot].fd= -1;
+                rz_debug(
+                    _("try to delete client %s\n"),
+                    client_to_string(c)
+                );
+
+                fds[c->slot].fd = -1;
                 close(c->sock);
                 delete_client(c->sock, c->slot);
             } else {
                 rz_debug(_("client %s rehear %d\n"),
                          client_to_string(c), fds[c->slot].fd);
-                fds[c->slot].events = POLLIN;
+                fds[c->slot].events = POLLIN | POLLRDHUP;
                 fds[c->slot].revents = 0;
                 rz_debug(_("slot: %d, nfds: %d\n"), c->slot, nfds);
             }
@@ -149,6 +177,7 @@ void handle_pending_clients(void)
             list_add(remaining_list, c);
         }
     }
+
     tmp = handle_list;
     handle_list = remaining_list;
     pthread_mutex_unlock(&handle_mutex);
@@ -160,7 +189,7 @@ void handle_pending_clients(void)
 
 const char *client_to_string(struct client *c)
 {
-    return sockaddr_stringify(&c->addr);
+    return c->conn_addr_key;
 }
 
 #endif

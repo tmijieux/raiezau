@@ -103,7 +103,7 @@ static int add_new_client_to_fds(int sock)
 
     rz_debug("adding client to slot %d\n", nfds);
     fds[nfds].fd = sock;
-    fds[nfds].events = POLLIN;
+    fds[nfds].events = POLLIN | POLLRDHUP;
     fds[nfds].revents = 0;
     return nfds++;
 }
@@ -118,16 +118,19 @@ static void handle_new_connection(int listener)
 static void handle_incoming_data(void)
 {
     for (int i = 1; i < nfds; ++i) {
-        if ((fds[i].revents & POLLHUP) != 0) {
-            fds[i].fd = -1;
+        if ((fds[i].revents & (POLLHUP|POLLRDHUP|POLLERR|POLLNVAL)) != 0) {
             struct client *c = get_client(fds[i].fd, i);
             if (NULL != c)
                 mark_client_for_deletion(c);
+            fds[i].fd = -1;
+            fds[i].events = 0;
+            fds[i].revents = 0;
+            
             // remove the client only if no threads are currently
             // working on it
             rz_debug("mark client for deletion\n");
         } else if ((fds[i].revents & POLLIN) != 0) {
-            fds[i].events = 0;
+            fds[i].events = POLLRDHUP;
             fds[i].revents = 0;
             rz_debug("start req handler thread\n");
             start_server_reqhandler_thread(fds[i].fd, i);
@@ -160,8 +163,10 @@ static void install_network_signal_handler(void)
 
 static void clean_fds(void)
 {
-    if (handled_client_count > 0)
+    if (handled_client_count > 0) {
+        rz_debug("cannot clean fds, there still are pending clients\n");
         return;
+    }
     for (int i = 1; i < nfds; ++i) {
         while (fds[i].fd == -1) {
             if (i >= nfds-1) {
@@ -181,10 +186,10 @@ void server_run(uint32_t addr, uint16_t port)
     block_all_signals_but_usr1();
     install_network_signal_handler();
     // I think it is important that poll never get interrupted by signals
-    
+
     make_listener_socket(addr, port, &listener);
     fds = malloc(sizeof*fds * fds_buffer_size);
-    
+
     // put the listener socket in the first slot of the pollfds
     fds[0].fd = listener;  fds[0].events = POLLIN;
     for (;ever;) {
@@ -205,14 +210,17 @@ void server_run(uint32_t addr, uint16_t port)
         } else {
             rz_debug("no new connection\n");
         }
+        handle_incoming_data();
         handle_pending_clients();
         clean_fds();
-        handle_incoming_data();
+        rz_debug("\n\n---------------------------------\n");
     }
+
+    rz_debug("no new connection\n");
 }
 
 void server_run_bind_any_addr(uint16_t port)
-{ 
+{
     server_run(INADDR_ANY, port);
 }
 

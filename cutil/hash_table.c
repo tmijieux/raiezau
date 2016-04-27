@@ -38,11 +38,11 @@ int ht_add_entry(struct hash_table *h, const char *key, void *data)
     struct ht_entry *entry = malloc(sizeof*entry);
     entry->data = (void*) data;
     entry->key = strdup(key);
-    
+
     pthread_rwlock_wrlock(&h->rwlock);
     HASH_ADD_STR(h->h, key, entry);
     pthread_rwlock_unlock(&h->rwlock);
-    
+
     return 0;
 }
 
@@ -50,7 +50,7 @@ int ht_add_unique_entry(struct hash_table *h, const char *key, void *data)
 {
     int err = -1;
     struct ht_entry *entry;
-    
+
     pthread_rwlock_wrlock(&h->rwlock);
     HASH_FIND_STR(h->h, key, entry);
     if (entry == NULL) {
@@ -78,7 +78,7 @@ int ht_remove_entry(struct hash_table *h, const char *key)
         err = 0;
     }
     pthread_rwlock_unlock(&h->rwlock);
-    
+
     return err;
 }
 
@@ -86,7 +86,7 @@ int ht_has_entry(struct hash_table *h, const char *key)
 {
     int res = 0;
     struct ht_entry *entry;
-    
+
     pthread_rwlock_rdlock(&h->rwlock);
     HASH_FIND_STR(h->h, key, entry);
     res = (entry != NULL);
@@ -98,7 +98,7 @@ int ht_get_entry(struct hash_table *h, const char *key, void *ret)
 {
     int err = -1;
     struct ht_entry *entry;
-    
+
     pthread_rwlock_rdlock(&h->rwlock);
     HASH_FIND_STR(h->h, key, entry);
     if (NULL != entry) {
@@ -125,7 +125,7 @@ void ht_for_each(struct hash_table *h,
 		 void (*fun)(const char *, void*, void*), void *args)
 {
     struct ht_entry *entry, *tmp;
-    
+
     pthread_rwlock_rdlock(&h->rwlock);
     HASH_ITER(hh, h->h, entry, tmp) {
         fun(entry->key, entry->data, args);

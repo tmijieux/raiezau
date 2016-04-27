@@ -27,7 +27,6 @@ static void file_init(void)
 static void file_register(const struct file *f)
 {
     assert( NULL != f );
-
     ht_add_entry(file_by_hash, f->md5_str, (void*) f);
 }
 
@@ -40,8 +39,7 @@ struct file *file_new(
     f->length = length;
     f->piece_size = piece_size;
     f->piece_count = (length / piece_size) + ((length%piece_size) ? 1 : 0);
-
-    f->clients = list_new(0);
+    f->clients = ht_create(0, NULL);
 
     file_register(f);
     return f;
@@ -49,13 +47,12 @@ struct file *file_new(
 
 void file_add_client(struct file *f, struct client *c)
 {
-    list_remove_value(f->clients, c);
-    list_add(f->clients, c);
+    ht_add_unique_entry(f->clients, c->listen_addr_key, c);
 }
 
 void file_remove_client(struct file *f, struct client *c)
 {
-    list_remove_value(f->clients, c);
+    ht_remove_entry(f->clients, c->listen_addr_key);
 }
 
 static struct file *file_get_by_(struct hash_table *ht, const char *what)

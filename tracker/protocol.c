@@ -231,7 +231,7 @@ static void seed_leech_match_and_parse(
 static void announce_match_and_parse(
     struct client *c, char *req, regmatch_t pmatch[])
 {
-    c->listening_port = atoi(req+pmatch[1].rm_so);
+    client_set_listening_port(c, atoi(req+pmatch[1].rm_so));
     pmatch[1] = pmatch[0];
     seed_leech_match_and_parse(c, req, &pmatch[1]);
 }
@@ -442,29 +442,23 @@ static void str_trim_prot_getfile(char *req)
 }
 
 static char *prot_getfile_build_peer_string_list(
-    struct client *current, struct list *cli)
+    struct client *current, struct hash_table *cli)
 {
-    char *out = NULL;
-    char *tmp = strdup("");
-    unsigned len = 0;
+    char *output = strdup("");
+    if (cli == NULL)
+        return output;
 
-    if (cli == NULL || (len = list_size(cli)) == 0)
-        return strdup("");
-
-    for (unsigned i = 1; i <= len; ++i) {
-        struct client *c = list_get(cli, i);
-        if (c == current)
-            continue;
-        char *addr = ip_stringify(c->addr.sin_addr.s_addr);
-        asprintf(&out, "%s%s%s:%hd", tmp, i > 1 ? " " : "",
-                 addr, c->listening_port);
-        free(addr);
-        free(tmp);
-        tmp = out;
+    void build_list(const char *n, void *c_, void *ctx)
+    {
+        if (c_ != current) {
+            char *tmp = output;
+            struct client *c = c_;
+            asprintf(&output, "%s %s", output, c->listen_addr_key);
+            free(tmp);
+        }
     }
-    if (out == NULL)
-        out = strdup("");
-    return out;
+    ht_for_each(cli, &build_list, NULL);
+    return output;
 }
 
 static int prot_getfile(struct client *c, char *req_value)

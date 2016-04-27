@@ -21,8 +21,9 @@ struct client {
     bool thread_handling;
     
     struct sockaddr_in addr;
-
     uint16_t listening_port;
+    char *conn_addr_key;
+    char *listen_addr_key;
     
     struct list *files_seed;
     struct list *files_leech;
@@ -34,6 +35,7 @@ struct client {
 struct client *get_or_create_client(int sock, int slot);
 struct client *get_client(int sock, int slot);
 struct list *client_list(void);
+void client_set_listening_port(struct client *c, uint16_t port);
 
 void mark_client_for_deletion(struct client *c);
 void add_client_to_pending_list(struct client *c);

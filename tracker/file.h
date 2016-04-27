@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include <stdint.h>
+#include "cutil/hash_table.h"
 #include "cutil/list.h"
 
 struct file {
@@ -12,7 +13,7 @@ struct file {
     uint32_t piece_count;
     uint32_t piece_size;
 
-    struct list *clients; // seeders or leechers on this file
+    struct hash_table *clients; // seeders or leechers on this file
 };
 
 #include "client.h"
