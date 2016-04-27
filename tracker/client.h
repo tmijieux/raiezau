@@ -7,40 +7,36 @@
 #include "network.h"
 #include "cutil/list.h"
 
-extern int handled_client_count;
-
 struct conn_state {
     bool announced;
 };
-    
-struct client {
-    int sock;
-    int slot;
 
-    bool delete;
-    bool thread_handling;
-    
+struct client {
+    int socket;
     struct sockaddr_in addr;
-    uint16_t listening_port;
     char *conn_addr_key;
+
+    uint16_t listening_port;
     char *listen_addr_key;
-    
+
     struct list *files_seed;
     struct list *files_leech;
 
+    int ref_count;
+    int can_rehear;
     pthread_t current_thr;
     struct conn_state state;
 };
 
-struct client *get_or_create_client(int sock, int slot);
-struct client *get_client(int sock, int slot);
+struct client *client_get_or_create(int socket);
+struct client *client_get(const char *conn_key);
+
 struct list *client_list(void);
 void client_set_listening_port(struct client *c, uint16_t port);
 
-void mark_client_for_deletion(struct client *c);
-void add_client_to_pending_list(struct client *c);
-void handle_pending_clients(void);
-const char *client_to_string(struct client *c);
+void client_inc_ref(struct client *c);
+void client_dec_ref(struct client *c);
 
+const char *client_to_string(struct client *c);
 
 #endif //CLIENT_H

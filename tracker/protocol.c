@@ -1,6 +1,9 @@
 /* protocol.c -- code for handling our P2P protocol */
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -56,7 +59,6 @@ static void dump(const char *s)
     puts("");
     printf("length: %d\n", i);
 }
-
 
 static req_handler_t get_request_handler(const char *buf_c)
 {
@@ -125,10 +127,10 @@ static void get_and_call_handler(
         // call handler
         if (request_handler(c, req_value) < 0) {
             rz_error(_("Handling request `%s´ failed\n"), req_name);
-            negative_answer(c->sock);
+            negative_answer(c->socket);
         }
     } else {
-        negative_answer(c->sock);
+        negative_answer(c->socket);
     }
     free(req_name); free(req_value);
 }
@@ -138,22 +140,22 @@ void handle_request(struct client *c)
 {
     int ret;
     char *req_name = NULL, *req_value = NULL;
-    ret = read_request(c->sock, &req_name, &req_value);
 
-    if (ret > 0) {
+    c->current_thr = pthread_self();
+    ret = read_request(c->socket, &req_name, &req_value);
+    if (ret > 0)
         get_and_call_handler(c, req_name, req_value);
-    } else if (ret == SOCKET_ERROR) {
+    else if (ret == SOCKET_ERROR)
         rz_debug(_("socket error\n"));
-        c->delete = true;
-    }
-    c->thread_handling = false;
-    add_client_to_pending_list(c);
-    pthread_kill(network_thread, SIGUSR1);
+
+    c->can_rehear = 1;
+    client_dec_ref(c);
+    pthread_kill(network_thread, SIGUSR1); // THINK ME
 }
 
 static struct list *get_seed_file_list(const char *seed_str)
 {
-    int n;
+   int n;
     char **tab;
 
     n = string_split(seed_str, " ", &tab);
@@ -255,7 +257,7 @@ static int prot_announce(struct client *c, char *req_value)
     if (ret < 0)
         return -1;
     announce_match_and_parse(c, req_value, match);
-    write_ok(c->sock);
+    write_ok(c->socket);
     return 0;
 }
 
@@ -270,7 +272,7 @@ static int prot_update(struct client *c, char *req_value)
     if (ret < 0)
         return -1;
     update_match_and_parse(c, req_value, match);
-    write_ok(c->sock);
+    write_ok(c->socket);
     return 0;
 }
 
@@ -423,7 +425,7 @@ static int prot_look(struct client *c, char *req_value)
         l = prot_look_process_criterions(c, criterions);
         file_list_str = prot_look_build_file_list(l);
         int len = asprintf(&response, "list [%s]\n",  file_list_str);
-        socket_write_string(c->sock, len, response);
+        socket_write_string(c->socket, len, response);
         free(file_list_str);
         free(response);
         ret = 0;
@@ -483,7 +485,7 @@ static int prot_getfile(struct client *c, char *req_value)
     }
     len = asprintf(&response, "peers %s [%s]\n", req_value, endpoints_list);
     dump(response);
-    socket_write_string(c->sock, len, response);
+    socket_write_string(c->socket, len, response);
 
     free(response);
     free(endpoints_list);

@@ -23,7 +23,8 @@
 pthread_t network_thread;
 int nfds = 1;
 uint32_t fds_buffer_size = INITIAL_PEERFD_BUFSIZE;
-struct pollfd *fds;
+struct pollfd *fds = NULL;
+static struct client **clients = NULL;
 
 #define CHK(mesg, X_) do { if ((X_) < 0) { perror(#mesg);       \
             exit(EXIT_FAILURE);} } while(0)
@@ -66,14 +67,13 @@ static int make_listener_socket(uint32_t addr, uint16_t port, int *sock)
     return 1;
 }
 
-static void start_server_reqhandler_thread(int sock, int slot)
+static void start_server_reqhandler_thread(struct client *c)
 {
-    struct client *c = NULL;
-    c = get_or_create_client(sock, slot);
     if (NULL != c) {
-        c->thread_handling = true;
-        ++ handled_client_count;
+        client_inc_ref(c);
         start_detached_thread((void*(*)(void*))handle_request, c, "request");
+    } else {
+        rz_debug("invalid client\n");
     }
 }
 
@@ -94,46 +94,63 @@ static int accept_connection(int listener)
     return accept_s;
 }
 
-static int add_new_client_to_fds(int sock)
+static void add_new_client_to_fds(struct client *c)
 {
     if (nfds+1 > fds_buffer_size) {
         fds_buffer_size *= 2;
         fds = realloc(fds, sizeof*fds * fds_buffer_size);
+        clients = realloc(clients, sizeof*clients * fds_buffer_size);
     }
 
     rz_debug("adding client to slot %d\n", nfds);
-    fds[nfds].fd = sock;
+
+    client_inc_ref(c);
+    clients[nfds] = c;
+//    c->fds_slot = nfds;
+
+    fds[nfds].fd = c->socket;
     fds[nfds].events = POLLIN | POLLRDHUP;
     fds[nfds].revents = 0;
-    return nfds++;
+    ++nfds;
 }
 
 static void handle_new_connection(int listener)
 {
-    int sock;
-    sock = accept_connection(listener);
-    add_new_client_to_fds(sock);
+    int socket;
+    struct client *c;
+
+    socket = accept_connection(listener);
+    c = client_get_or_create(socket);
+    add_new_client_to_fds(c);
 }
 
 static void handle_incoming_data(void)
 {
     for (int i = 1; i < nfds; ++i) {
+        if (fds[i].fd < 0)
+            continue;
+
+        if (clients[i]->can_rehear) {
+            clients[i]->can_rehear = 0;
+            fds[i].events = POLLIN | POLLRDHUP;
+        }
+
         if ((fds[i].revents & (POLLHUP|POLLRDHUP|POLLERR|POLLNVAL)) != 0) {
-            struct client *c = get_client(fds[i].fd, i);
-            if (NULL != c)
-                mark_client_for_deletion(c);
-            fds[i].fd = -1;
-            fds[i].events = 0;
-            fds[i].revents = 0;
-            
-            // remove the client only if no threads are currently
-            // working on it
-            rz_debug("mark client for deletion\n");
+            struct client *c = clients[i];
+            if (NULL != c) {
+                client_dec_ref(clients[i]);
+                clients[i] = NULL;
+
+                fds[i].fd = -1;
+                fds[i].events = 0;
+                fds[i].revents = 0;
+            }
+
         } else if ((fds[i].revents & POLLIN) != 0) {
             fds[i].events = POLLRDHUP;
             fds[i].revents = 0;
             rz_debug("start req handler thread\n");
-            start_server_reqhandler_thread(fds[i].fd, i);
+            start_server_reqhandler_thread(clients[i]);
         }
     }
 }
@@ -148,7 +165,7 @@ static void block_all_signals_but_usr1(void)
 
 static void usr1_handler(int sig)
 {
-    //nothing
+    // nothing here: just useful to interrupt the poll syscall
 }
 
 static void install_network_signal_handler(void)
@@ -163,17 +180,15 @@ static void install_network_signal_handler(void)
 
 static void clean_fds(void)
 {
-    if (handled_client_count > 0) {
-        rz_debug("cannot clean fds, there still are pending clients\n");
-        return;
-    }
     for (int i = 1; i < nfds; ++i) {
         while (fds[i].fd == -1) {
-            if (i >= nfds-1) {
+            if (i == nfds-1) {
                 --nfds;
-                fds[i].fd = -2;
+                fds[i].fd = -2; // make the condition false to break out the loop
             } else {
-                fds[i].fd = fds[--nfds].fd;
+                fds[i] = fds[nfds-1];
+                clients[i] = clients[nfds-1];
+                --nfds;
             }
         }
     }
@@ -185,13 +200,16 @@ void server_run(uint32_t addr, uint16_t port)
     network_thread = pthread_self();
     block_all_signals_but_usr1();
     install_network_signal_handler();
-    // I think it is important that poll never get interrupted by signals
+    // I think it is important that poll never get interrupted by signals!=USR1
 
     make_listener_socket(addr, port, &listener);
     fds = malloc(sizeof*fds * fds_buffer_size);
+    clients = malloc(sizeof*clients * fds_buffer_size);
 
     // put the listener socket in the first slot of the pollfds
-    fds[0].fd = listener;  fds[0].events = POLLIN;
+    fds[0].fd = listener;
+    fds[0].events = POLLIN;
+
     for (;ever;) {
         // wait for an event
         ret = poll(fds, nfds, -1);
@@ -200,7 +218,7 @@ void server_run(uint32_t addr, uint16_t port)
                 rz_error("poll: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
-//            rz_error(_("POLL INTERRUPTED: %s\n"), strerror(errno));
+            //rzerror(_("POLL INTERRUPTED: %s\n"), strerror(errno));
         }
         rz_debug("poll event !!\n");
         if ((fds[0].revents & POLLIN) != 0) {
@@ -211,7 +229,7 @@ void server_run(uint32_t addr, uint16_t port)
             rz_debug("no new connection\n");
         }
         handle_incoming_data();
-        handle_pending_clients();
+        //handle_pending_clients();
         clean_fds();
         rz_debug("\n\n---------------------------------\n");
     }

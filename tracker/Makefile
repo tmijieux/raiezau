@@ -21,8 +21,8 @@ $(TARGET): $(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
+	@gcc -MM $(CFLAGS) $*.c > $*.d
 	gcc -c $(CFLAGS) $*.c -o $*.o
-	gcc -MM $(CFLAGS) $*.c > $*.d
 
 clean: 
 	$(RM) $(OBJ) $(DEP) *.d *.o
