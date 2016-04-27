@@ -90,7 +90,7 @@ class Socket {
 	char t[] = new char[length];
         try {
 	    from.read(t, 0, length);
-        } catch (Exception e) {
+        } catch (IOException e) {
             Log.debug(e.toString());
         }
 	Log.info("Received '%%bytes[%d]%%'", t.length);
@@ -109,7 +109,7 @@ class Socket {
 	    char tmp[] = new char[1];
 	    try {
 		from.read(tmp, 0, 1);
-	    } catch (Exception e) {
+	    } catch (IOException e) {
 		Log.debug(e.toString());
 	    }
 	    if (arrayHasChar(t, tmp[0]))
@@ -145,7 +145,7 @@ class Socket {
         String response = null;
         try {
             response = from.readLine();
-        } catch (Exception e) {
+        } catch (IOException e) {
             Log.debug(e.toString());
         }
 

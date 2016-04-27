@@ -113,8 +113,6 @@ class FileManager {
 	    f = (File) in.readObject();
 	    in.close();
 	    saveFile.close();
-	} catch (FileNotFoundException e) {
-	    
 	} catch (IOException | ClassNotFoundException e) {
             
 	}

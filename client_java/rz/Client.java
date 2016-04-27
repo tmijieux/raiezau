@@ -12,13 +12,16 @@ class Client {
     private static Map<String, Constructor<Strategy>> strats = 
 	new HashMap<String, Constructor<Strategy>>();
 
+    /**
+     * klass must be a class implementing Strategy
+     */
     private static void putConstructor(String key, Class klass) {
 	try {
 	    // a check should be done
 	    @SuppressWarnings("unchecked")
 		Class<Strategy> strategy = klass;
 	    strats.put(key, strategy.getConstructor(Tracker.class));
-	} catch (Exception e) {
+	} catch (ReflectiveOperationException e) {
 	    Log.severe(e.toString());
 	}
     }
@@ -43,9 +46,8 @@ class Client {
                 Config.get("tracker-address"),
                 Config.getShort("tracker-port")
             );
-        } catch (Exception e) {
-            Log.severe("Error in Tracker creation: " + e.toString());
-            System.exit(1);
+        } catch (IOException e) {
+            Log.abort("Error in Tracker creation: " + e.toString());
         }
 	return tracker;
     }
@@ -62,9 +64,8 @@ class Client {
 	Strategy strategy = null;
 	try {
 	    strategy = constr.newInstance(tracker);
-        } catch (Exception e) {
-            Log.severe("Error in Strategy creation: " + e.toString());
-            System.exit(1);
+        } catch (ReflectiveOperationException e) {
+            Log.abort("Error in Strategy creation: " + e.toString());
         }
 	return strategy;
     }

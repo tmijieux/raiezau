@@ -1,10 +1,5 @@
 package rz;
 
-import java.util.*;
-import java.util.regex.*;
-import java.lang.*;
-import java.lang.reflect.*;
-
 public class FilePeer extends Peer {
     private BufferMap bm;
     private File file;

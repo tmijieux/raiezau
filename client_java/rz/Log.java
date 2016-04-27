@@ -15,15 +15,14 @@ class Log {
             file.setFormatter(formatter);
 	    logger.addHandler(file);
 	    logger.setLevel(Level.ALL);
-	} catch (Exception e) {
+	} catch (IOException e) {
 	    System.err.println("Cannot initiate logging capabilities");
 	    System.exit(1);
 	}
     }
 
-
     public static void debug(String s) {
-        Log.info("[DEBUG]: " + s);
+	Log.info("[DEBUG]: " + s);
     }
 
     public static void info(String s) {
@@ -31,7 +30,7 @@ class Log {
     }
 
     public static void info(String format, Object... args) {
-	logger.info(String.format(format, args));
+	info(String.format(format, args));
     }
 
     public static void warning(String s) {
@@ -39,7 +38,7 @@ class Log {
     }
 
     public static void warning(String format, Object... args) {
-	logger.warning(String.format(format, args));
+	warning(String.format(format, args));
     }
 
     public static void severe(String s) {
@@ -47,6 +46,15 @@ class Log {
     }
 
     public static void severe(String format, Object... args) {
-	logger.severe(String.format(format, args));
+	severe(String.format(format, args));
+    }
+
+    public static void abort(String s) {
+	logger.severe(s);
+	System.exit(1);
+    }
+
+    public static void abort(String format, Object... args) {
+	abort(String.format(format, args));
     }
 }

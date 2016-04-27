@@ -1,4 +1,5 @@
 package rz;
+
 import java.util.*;
 import java.util.regex.*;
 import java.lang.*;
@@ -29,7 +30,7 @@ class ServerPeer extends Peer {
 	    String key = method.substring(
 		"receive".length(), method.length()).toLowerCase();
 	    protocol.put(key, Peer.class.getMethod(method));
-	} catch (Exception e) {
+	} catch (ReflectiveOperationException e) {
 	    Log.severe(e.toString());
 	}
     }

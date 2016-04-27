@@ -1,5 +1,7 @@
 package rz;
 
+import java.net.*;
+import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import java.lang.*;
@@ -7,8 +9,7 @@ import java.lang.*;
 public class Tracker {
     Socket socket;
 
-    public Tracker(String ip, short port)
-      throws java.net.UnknownHostException, java.io.IOException {
+    public Tracker(String ip, short port) throws IOException {
 	socket = new Socket(ip, port);
     }
 
