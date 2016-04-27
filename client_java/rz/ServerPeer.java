@@ -16,14 +16,12 @@ class ServerPeer extends Peer
 	putProtocol("receiveGetpieces");
     }
     
-    public ServerPeer(Socket s)
-    {
+    public ServerPeer(Socket s) {
         super(s);
     }
     
     @Override
-    protected boolean sendCallBack()
-    {
+    protected boolean sendCallBack() {
         return true;
     }
 
@@ -38,8 +36,7 @@ class ServerPeer extends Peer
     }
 
     public void handleRequest()
-	throws RZNoMatchException, ReflectiveOperationException
-    {
+	throws RZNoMatchException, ReflectiveOperationException {
 	String protocolKey = socket.receiveWord();
         
 	if (!protocol.containsKey(protocolKey)) {

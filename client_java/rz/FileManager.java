@@ -3,6 +3,8 @@ package rz;
 import java.util.*;
 import java.io.*;
 import java.security.*;
+import java.lang.*;
+import java.lang.reflect.*;
 
 class FileManager {
     private static final Map<String, File> filesByKey;
@@ -17,36 +19,50 @@ class FileManager {
         loadCompleteFileFromDirectory(fileDir);
     }
 
-    private static void loadIncompleteFileFromDirectory(java.io.File folder) {
+    private static void loadFileFromDirectory(java.io.File folder, Method fileJob) {
 	if (!folder.isDirectory()) {
 	    throw new IllegalArgumentException();
         }
+        Log.debug("Entering directory " + folder);
 
 	for (java.io.File fileEntry : folder.listFiles()) {
 	    if (fileEntry.isDirectory()) {
-		loadIncompleteFileFromDirectory(fileEntry);
+		loadFileFromDirectory(fileEntry, fileJob);
 	    } else {
-		restoreFileState(fileEntry);
+		try {
+		    fileJob.invoke(null, fileEntry);
+		} catch (ReflectiveOperationException e) {
+		    Log.severe(e.toString());
+		}
 	    }
+	}	
+    }
+
+    private static void loadFileFromDirectory(java.io.File folder, String name) {
+	try {
+	    Method method = FileManager.class.getMethod(name, java.io.File.class);
+	    loadFileFromDirectory(folder, method);
+	} catch (NoSuchMethodException e) {
+	    Log.severe(e.toString());
 	}
     }
 
-    private static void loadCompleteFileFromDirectory(java.io.File folder) {
-        if (!folder.isDirectory()) {
-            throw new IllegalArgumentException();
-        }
-        Log.debug("Entering directory " + folder);
+    public static void loadIncompleteFile(java.io.File fileEntry) {
+	restoreFileState(fileEntry);
+    }
 
-        for (java.io.File fileEntry : folder.listFiles()) {
-            if (fileEntry.isDirectory()) {
-                loadCompleteFileFromDirectory(fileEntry);
-            } else {
-                String name = fileEntry.getName();
-                Log.info("loading file " + name);
-                addCompleteFile(name);
-            }
-        }
-        Log.debug("Leaving directory " + folder);
+    public static void loadCompleteFile(java.io.File fileEntry) {
+	String name = fileEntry.getName();
+	Log.info("loading file " + name);
+	addCompleteFile(name);	
+    }
+
+    private static void loadIncompleteFileFromDirectory(java.io.File folder) {
+	loadFileFromDirectory(folder, "loadIncompleteFile");
+    }
+    
+    private static void loadCompleteFileFromDirectory(java.io.File folder) {
+	loadFileFromDirectory(folder, "loadCompleteFile");
     }
     
     private static File insertFile(File newFile) {
