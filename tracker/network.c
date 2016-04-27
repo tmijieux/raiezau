@@ -195,7 +195,7 @@ void server_run(uint32_t addr, uint16_t port)
                 rz_error("poll: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
-            rz_error(_("POLL INTERRUPTED: %s\n"), strerror(errno));
+//            rz_error(_("POLL INTERRUPTED: %s\n"), strerror(errno));
         }
         rz_debug("poll event !!\n");
         if ((fds[0].revents & POLLIN) != 0) {
