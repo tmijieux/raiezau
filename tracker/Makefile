@@ -25,5 +25,9 @@ $(TARGET): $(OBJ)
 	gcc -MM $(CFLAGS) $*.c > $*.d
 
 clean: 
-	$(RM) $(OBJ) $(DEP) *.d
+	$(RM) $(OBJ) $(DEP) *.d *.o
 	make -C ../cutil clean
+
+mrproper: clean
+	$(RM) $(TARGET)
+
