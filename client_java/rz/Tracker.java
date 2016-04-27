@@ -81,7 +81,7 @@ public class Tracker {
 	String key = match.group(1);
 
 	if (!file.isKey(key)) {
-	    throw new RuntimeException("getfile: wrong key");
+	    throw new RZWrongKeyException("getfile: wrong key");
         }
 
 	if (PatternMatcher.EMPTY.matches(match.group(2))) {
@@ -110,7 +110,7 @@ public class Tracker {
 
 	String[] filesStr = match.group(1).split("\\s+");
 	if (filesStr.length % 4 != 0) {
-            throw new RuntimeException(
+            throw new RZInvalidResponseException(
                 "Invalid list size in look response. " +
                 filesStr.toString()
             );
@@ -120,7 +120,7 @@ public class Tracker {
             int localPieceSize = Config.getInt("piece-size");
             int receivedPieceSize = Integer.parseInt(filesStr[i+2]);
 	    if (localPieceSize != receivedPieceSize) {
-		throw new RuntimeException(
+		throw new RZInvalidResponseException(
                     "Remote and local piece size do not match: " + 
 		    localPieceSize + " !=  "+ receivedPieceSize);
             }

@@ -4,8 +4,7 @@ import java.util.regex.*;
 import java.lang.*;
 import java.lang.reflect.*;
 
-class ServerPeer extends Peer
-{
+class ServerPeer extends Peer {
     private static Map<String, Method> protocol =
 	new HashMap<String, Method>();
 

@@ -12,8 +12,7 @@ public abstract class Peer {
     private String ip;
     private int port;
 
-    protected boolean sendCallBack()
-    {
+    protected boolean sendCallBack() {
         return false;
     }
     

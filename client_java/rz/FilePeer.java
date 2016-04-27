@@ -25,7 +25,7 @@ public class FilePeer extends Peer {
 	if (protocolKey.compareTo("have") == 0)
 	    receiveHave();
 	else
-	    throw new RuntimeException("Wrong response");
+	    throw new RZInvalidResponseException("Wrong response in interested");
     }
     
     public void doHave(File file) {
@@ -35,7 +35,7 @@ public class FilePeer extends Peer {
 	    byte[] bufferMap = receiveHave();
             this.bm = BufferMap.fromByteArray(bufferMap);
 	} else {
-	    throw new RuntimeException("Wrong response");
+	    throw new RZInvalidResponseException("Wrong response in have");
         }
     }
     
@@ -45,7 +45,7 @@ public class FilePeer extends Peer {
 	if (protocolKey.compareTo("data") == 0)
 	    receiveData();
 	else
-	    throw new RuntimeException("Wrong response");
+	    throw new RZInvalidResponseException("Wrong response in getpieces");
     }
 
     public BufferMap getBufferMap() {

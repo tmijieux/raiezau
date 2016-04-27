@@ -1,6 +1,6 @@
 .PHONY = clean build recette build-tst run-tst run
 
-SRC=rz/*.java
+SRC=rz/*.java rz/Exception/*.java
 
 KLASS=$(SRC:.java=.class)
 CLASS=$(foreach klass, $(KLASS), build/$(klass))
