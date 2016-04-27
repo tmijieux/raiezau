@@ -444,8 +444,8 @@ static void str_trim_prot_getfile(char *req)
 static char *prot_getfile_build_peer_string_list(
     struct client *current, struct list *cli)
 {
-    char *out, *tmp = "";
-    unsigned len;
+    char *out = NULL, *tmp = "";
+    unsigned len = 0;
 
     if (cli == NULL || (len = list_size(cli)) == 0)
         return strdup("");
@@ -461,6 +461,8 @@ static char *prot_getfile_build_peer_string_list(
         if (i > 1) free(tmp);
         tmp = out;
     }
+    if (out == NULL)
+        out = strdup("");
     return out;
 }
 
