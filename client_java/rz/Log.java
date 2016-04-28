@@ -4,6 +4,9 @@ import java.io.*;
 import java.util.logging.*;
 
 class Log {
+    private Log() {
+    }
+
     private static final String name = "client.log";
     private static final Logger logger = Logger.getLogger(name);
 

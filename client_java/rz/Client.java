@@ -17,7 +17,7 @@ class Client {
      */
     private static void putConstructor(String key, Class klass) {
 	try {
-	    // a check should be done
+	    // a check could be done
 	    @SuppressWarnings("unchecked")
 		Class<Strategy> strategy = klass;
 	    strats.put(key, strategy.getConstructor(Tracker.class));
@@ -32,6 +32,9 @@ class Client {
 	putConstructor("advanced", StrategyAdvanced.class);
     }
 
+    /**
+     * First argument is the path to the config.ini file wanted.
+     */
     private static void ApplyArgs(String args[]) {
 	if (args.length >= 1)
 	    Config.init(args[0]);

@@ -3,6 +3,9 @@ package rz;
 import java.util.*;
 
 class Utils {
+    private Utils() {
+    }
+
     public static int[] convertIntegers(List<Integer> integers) {
 	int[] ret = new int[integers.size()];
 	for (int i = 0; i < ret.length; i++) {

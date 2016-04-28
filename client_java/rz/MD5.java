@@ -4,10 +4,10 @@ import java.io.*;
 import java.security.*;
 
 public class MD5 {
-    private static final int BUFFER_SIZE = 1024;
-
     private MD5() {
     }
+
+    private static final int BUFFER_SIZE = 1024;
 
     private static MessageDigest getMD5Instance() {
         MessageDigest md = null;
