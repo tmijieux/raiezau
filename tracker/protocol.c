@@ -1,6 +1,9 @@
 /* protocol.c -- code for handling our P2P protocol */
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -56,7 +59,6 @@ static void dump(const char *s)
     puts("");
     printf("length: %d\n", i);
 }
-
 
 static req_handler_t get_request_handler(const char *buf_c)
 {
@@ -125,10 +127,10 @@ static void get_and_call_handler(
         // call handler
         if (request_handler(c, req_value) < 0) {
             rz_error(_("Handling request `%s´ failed\n"), req_name);
-            negative_answer(c->sock);
+            negative_answer(c->socket);
         }
     } else {
-        negative_answer(c->sock);
+        negative_answer(c->socket);
     }
     free(req_name); free(req_value);
 }
@@ -138,22 +140,22 @@ void handle_request(struct client *c)
 {
     int ret;
     char *req_name = NULL, *req_value = NULL;
-    ret = read_request(c->sock, &req_name, &req_value);
 
-    if (ret > 0) {
+    c->current_thr = pthread_self();
+    ret = read_request(c->socket, &req_name, &req_value);
+    if (ret > 0)
         get_and_call_handler(c, req_name, req_value);
-    } else if (ret == SOCKET_ERROR) {
+    else if (ret == SOCKET_ERROR)
         rz_debug(_("socket error\n"));
-        c->delete = true;
-    }
-    c->thread_handling = false;
-    add_client_to_pending_list(c);
-    pthread_kill(network_thread, SIGUSR1);
+
+    c->can_rehear = 1;
+    client_dec_ref(c);
+    pthread_kill(network_thread, SIGUSR1); // THINK ME
 }
 
 static struct list *get_seed_file_list(const char *seed_str)
 {
-    int n;
+   int n;
     char **tab;
 
     n = string_split(seed_str, " ", &tab);
@@ -231,7 +233,7 @@ static void seed_leech_match_and_parse(
 static void announce_match_and_parse(
     struct client *c, char *req, regmatch_t pmatch[])
 {
-    c->listening_port = atoi(req+pmatch[1].rm_so);
+    client_set_listening_port(c, atoi(req+pmatch[1].rm_so));
     pmatch[1] = pmatch[0];
     seed_leech_match_and_parse(c, req, &pmatch[1]);
 }
@@ -255,7 +257,7 @@ static int prot_announce(struct client *c, char *req_value)
     if (ret < 0)
         return -1;
     announce_match_and_parse(c, req_value, match);
-    write_ok(c->sock);
+    write_ok(c->socket);
     return 0;
 }
 
@@ -270,7 +272,7 @@ static int prot_update(struct client *c, char *req_value)
     if (ret < 0)
         return -1;
     update_match_and_parse(c, req_value, match);
-    write_ok(c->sock);
+    write_ok(c->socket);
     return 0;
 }
 
@@ -423,7 +425,7 @@ static int prot_look(struct client *c, char *req_value)
         l = prot_look_process_criterions(c, criterions);
         file_list_str = prot_look_build_file_list(l);
         int len = asprintf(&response, "list [%s]\n",  file_list_str);
-        socket_write_string(c->sock, len, response);
+        socket_write_string(c->socket, len, response);
         free(file_list_str);
         free(response);
         ret = 0;
@@ -442,29 +444,23 @@ static void str_trim_prot_getfile(char *req)
 }
 
 static char *prot_getfile_build_peer_string_list(
-    struct client *current, struct list *cli)
+    struct client *current, struct hash_table *cli)
 {
-    char *out = NULL;
-    char *tmp = strdup("");
-    unsigned len = 0;
+    char *output = strdup("");
+    if (cli == NULL)
+        return output;
 
-    if (cli == NULL || (len = list_size(cli)) == 0)
-        return strdup("");
-
-    for (unsigned i = 1; i <= len; ++i) {
-        struct client *c = list_get(cli, i);
-        if (c == current)
-            continue;
-        char *addr = ip_stringify(c->addr.sin_addr.s_addr);
-        asprintf(&out, "%s%s%s:%hd", tmp, i > 1 ? " " : "",
-                 addr, c->listening_port);
-        free(addr);
-        free(tmp);
-        tmp = out;
+    void build_list(const char *n, void *c_, void *ctx)
+    {
+        if (c_ != current) {
+            char *tmp = output;
+            struct client *c = c_;
+            asprintf(&output, "%s %s", output, c->listen_addr_key);
+            free(tmp);
+        }
     }
-    if (out == NULL)
-        out = strdup("");
-    return out;
+    ht_for_each(cli, &build_list, NULL);
+    return output;
 }
 
 static int prot_getfile(struct client *c, char *req_value)
@@ -489,7 +485,7 @@ static int prot_getfile(struct client *c, char *req_value)
     }
     len = asprintf(&response, "peers %s [%s]\n", req_value, endpoints_list);
     dump(response);
-    socket_write_string(c->sock, len, response);
+    socket_write_string(c->socket, len, response);
 
     free(response);
     free(endpoints_list);
