@@ -134,11 +134,12 @@ public class Tracker {
         }
 
 	for (int i = 0; i < filesStr.length; i += 4) {	    
-	    int receivedPieceSize = Integer.parseInt(filesStr[i+2]);
-	    checkPieceSize(receivedPieceSize);
+            // int receivedPieceSize = Integer.parseInt(filesStr[i+2]);
+	    // checkPieceSize(receivedPieceSize);
 	    File file = FileManager.addFile(
                 filesStr[i], 
                 Integer.parseInt(filesStr[i+1]),
+                Integer.parseInt(filesStr[i+2]),
                 filesStr[i+3]
             );
 	    files.add(file);

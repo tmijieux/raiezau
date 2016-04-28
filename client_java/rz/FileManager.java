@@ -76,11 +76,12 @@ class FileManager {
         return insertFile(newFile);
     }
 
-    public static File addFile(String name, long length, String key) {
+    public static File addFile(String name, long length,
+                               int pieceSize, String key) {
 	File f = filesByKey.get(key);
 	if (f != null)
 	    return f;
-        File newFile = new File(name, length, key);
+        File newFile = new File(name, length, pieceSize, key);
         return insertFile(newFile);
     }
     

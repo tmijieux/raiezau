@@ -5,7 +5,7 @@ import java.io.*;
 import java.security.*;
 
 class File implements Serializable {
-    private static final int pieceSize = Config.getInt("piece-size");
+
 
     private java.io.File jFile;
     private RandomAccessFile file;
@@ -15,6 +15,7 @@ class File implements Serializable {
     private String key;
     private long length; // length in byte
     private boolean seeded;
+    private int pieceSize;
     private List<FilePeer> peers;
     
     private File(String name, boolean seeded) {
@@ -34,10 +35,11 @@ class File implements Serializable {
     /**
      * For uncompleted files
      */
-    public File(String name, long length, String key) {
+    public File(String name, long length, int pieceSize, String key) {
 	this(name, false);
 	this.length = length;
 	this.key = key;
+        this.pieceSize = pieceSize;
 	this.bufferMap = new BufferMap(this);
     }
 
@@ -49,6 +51,7 @@ class File implements Serializable {
         try {
             this.key    = this.MD5Hash();
 	    this.length = this.file.length();
+            this.pieceSize = Config.getInt("piece-size");
         } catch (IOException e) {
             throw new RuntimeException(e.toString() + name);
         }
@@ -63,7 +66,7 @@ class File implements Serializable {
         String filePath = name;
         if (name.charAt(0) != '/') {
             String dir = Config.get("completed-files-directory");
-            filePath =  dir +'/'+ name;
+            filePath = dir +'/'+ name;
         }
 	return filePath;
     }
@@ -73,8 +76,7 @@ class File implements Serializable {
     }
 
     public String announceSeed() {
-	return name + " " + length + " " +
-            Config.getInt("piece-size") + " " + key;
+	return name + " " + length + " " + pieceSize + " " + key;
     }
     
     /* ------------- Piece read / write -------------*/
