@@ -1,5 +1,6 @@
 package rz;
 
+import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 import java.lang.*;
@@ -43,7 +44,7 @@ public abstract class Peer {
         try {
             socket = new Socket(ip, port);
             this.connected = true;
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

@@ -66,17 +66,6 @@ class FileManager {
     }
     
     private static File insertFile(File newFile) {
-        File f = filesByKey.get(newFile.getKey());
-        if (f != null) {
-            /*
-	    Log.warning(
-                "file " + newFile.getName() + " with key "+
-                newFile.getKey() + " is already present in "+
-                "the file store and it is know as '"+f.getName()+"'.");
-	    */
-            newFile = null;
-            return f;
-        }
         filesByKey.put(newFile.getKey(), newFile);
 	Log.info("Inserted file " + newFile);
         return newFile;
@@ -88,6 +77,9 @@ class FileManager {
     }
 
     public static File addFile(String name, long length, String key) {
+	File f = filesByKey.get(key);
+	if (f != null)
+	    return f;
         File newFile = new File(name, length, key);
         return insertFile(newFile);
     }

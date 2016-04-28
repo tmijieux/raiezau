@@ -7,7 +7,7 @@ import java.util.regex.*;
 import java.lang.*;
 
 public class Tracker {
-    Socket socket;
+    private Socket socket;
 
     public Tracker(String ip, short port) throws IOException {
 	socket = new Socket(ip, port);
@@ -95,6 +95,15 @@ public class Tracker {
 	}
     }
 
+    private void checkPieceSize(int receivedPieceSize) {
+	int localPieceSize = Config.getInt("piece-size");
+	if (localPieceSize != receivedPieceSize) {
+	    throw new RZInvalidResponseException(
+		"Remote and local piece size do not match: " + 
+		localPieceSize + " !=  "+ receivedPieceSize);
+	}
+    }
+
     private List<File> receiveLook() {
 	Matcher match;
 	List<File> files = new ArrayList<File>();
@@ -117,15 +126,9 @@ public class Tracker {
             );
         }
 
-	for (int i = 0; i < filesStr.length; i += 4) {
-            int localPieceSize = Config.getInt("piece-size");
-            int receivedPieceSize = Integer.parseInt(filesStr[i+2]);
-	    if (localPieceSize != receivedPieceSize) {
-		throw new RZInvalidResponseException(
-                    "Remote and local piece size do not match: " + 
-		    localPieceSize + " !=  "+ receivedPieceSize);
-            }
-	    
+	for (int i = 0; i < filesStr.length; i += 4) {	    
+	    int receivedPieceSize = Integer.parseInt(filesStr[i+2]);
+	    checkPieceSize(receivedPieceSize);
 	    File file = FileManager.addFile(
                 filesStr[i], 
                 Integer.parseInt(filesStr[i+1]),

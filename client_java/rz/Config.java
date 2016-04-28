@@ -1,7 +1,7 @@
 package rz;
 
-import java.util.*;
 import java.io.*;
+import java.util.*;
 
 class Config {
     private static final String DEFAULT_INIT_PATH = "config.ini";
@@ -17,10 +17,8 @@ class Config {
             FileInputStream in = new FileInputStream(path);
 	    props.load(in);
             in.close();
-	} catch (Exception e) {
-            System.err.println(
-                "Cannot load configuration file '"+ path +"'");
-            System.exit(1);
+	} catch (IOException e) {
+            Log.abort("Cannot load configuration file '"+ path +"'");
 	}
     }
 

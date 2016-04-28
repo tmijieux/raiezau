@@ -1,9 +1,5 @@
 package rz;
 
-import java.net.*;
-import java.util.*;
-import java.util.regex.*;
-import java.lang.*;
 import java.lang.reflect.*;
 
 class ServerThread implements Runnable {
@@ -18,8 +14,8 @@ class ServerThread implements Runnable {
 	    while (true) {
                 peer.handleRequest();
 	    }
-	} catch (Exception e) {
-	    Log.severe("Exception in client reception: %s", e.toString());
+	} catch (ReflectiveOperationException e) {
+	    Log.severe("Exception in client: %s", e.toString());
 	}
     }
 }

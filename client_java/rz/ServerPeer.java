@@ -1,8 +1,6 @@
 package rz;
 
 import java.util.*;
-import java.util.regex.*;
-import java.lang.*;
 import java.lang.reflect.*;
 
 class ServerPeer extends Peer {
@@ -16,15 +14,6 @@ class ServerPeer extends Peer {
 	putProtocol("receiveGetpieces");
     }
     
-    public ServerPeer(Socket s) {
-        super(s);
-    }
-    
-    @Override
-    protected boolean sendCallBack() {
-        return true;
-    }
-
     private static void putProtocol(String method) {
 	try {
 	    String key = method.substring(
@@ -35,8 +24,16 @@ class ServerPeer extends Peer {
 	}
     }
 
-    public void handleRequest()
-	throws RZNoMatchException, ReflectiveOperationException {
+    public ServerPeer(Socket s) {
+        super(s);
+    }
+    
+    @Override
+    protected boolean sendCallBack() {
+        return true;
+    }
+
+    public void handleRequest() throws ReflectiveOperationException {
 	String protocolKey = socket.receiveWord();
         
 	if (!protocol.containsKey(protocolKey)) {

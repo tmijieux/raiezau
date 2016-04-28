@@ -48,24 +48,12 @@ class StrategyTest implements Strategy {
 	lr.addSizeLT(2048);
         List<File> files = testLook(lr);
 
-	File file;
-	try {
-	    file = files.get(0);
-	} catch (Exception e) {
-	    Log.warning(e.toString());
-	    return;
-	}
+	File file = files.get(0);
 	Log.info("File: " + file);
 	testGetfile(file);
 
 	List<FilePeer> peers = file.getPeerList();
-	FilePeer peer;
-	try {
-	    peer = peers.get(0);
-	} catch (Exception e) {
-	    Log.warning(e.toString());
-	    return;
-	}
+	FilePeer peer = peers.get(0);
 	Log.info("File: " + file);
 	peer.doInterested(file);
 	Log.info("File: " + file);
@@ -79,8 +67,13 @@ class StrategyTest implements Strategy {
 
     @Override
     public void share() {
-	testTracker();
-	testPeer();
-	Log.info("Test finished :)");
+	try {
+	    testTracker();
+	    testPeer();
+	    Log.info("Test finished :)");
+	} catch (IndexOutOfBoundsException e) {
+	    Log.warning(e.toString());
+	    Log.info("Couldn't finish test!");
+	}
     }
 }
