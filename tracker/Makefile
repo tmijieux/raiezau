@@ -1,6 +1,6 @@
 TARGET=trackme
 SRC=$(wildcard *.c) $(wildcard ../cutil/*.c)
-CFLAGS=-Wall -std=gnu99 -I..
+CFLAGS+=-Wall -std=gnu99 -I..
 DEBUG=1
 ifdef DEBUG
 	CFLAGS+=-ggdb -O0 -DDEBUG

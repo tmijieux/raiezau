@@ -49,6 +49,8 @@ static void protocol_init(void)
     ht_add_entry(request_handlers, "look", &prot_look);
     ht_add_entry(request_handlers, "getfile", &prot_getfile);
 }
+
+#ifdef DEBUG
 static void dump(const char *s)
 {
     int i = 0;
@@ -59,6 +61,7 @@ static void dump(const char *s)
     puts("");
     printf("length: %d\n", i);
 }
+#endif
 
 static req_handler_t get_request_handler(const char *buf_c)
 {
@@ -151,6 +154,7 @@ void handle_request(struct client *c)
     c->can_rehear = 1;
     client_dec_ref(c);
     pthread_kill(network_thread, SIGUSR1); // THINK ME
+    pthread_exit(NULL);
 }
 
 static struct list *get_seed_file_list(const char *seed_str)
@@ -484,9 +488,12 @@ static int prot_getfile(struct client *c, char *req_value)
         endpoints_list = prot_getfile_build_peer_string_list(c, f->clients);
     }
     len = asprintf(&response, "peers %s [%s]\n", req_value, endpoints_list);
-    dump(response);
-    socket_write_string(c->socket, len, response);
 
+    #ifdef DEBUG
+    //    dump(response);
+    #endif
+
+    socket_write_string(c->socket, len, response);
     free(response);
     free(endpoints_list);
 

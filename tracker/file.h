@@ -26,12 +26,12 @@ void file_add_client(struct file *f, struct client *c);
 void file_remove_client(struct file *f, struct client *c);
 
 struct file *file_get_by_key(const char *md5_key);
-struct file *file_get_by_name(const char *name);
+struct list *file_get_by_name(const char *name);
 
 struct file *file_get_or_create(
     char *filename, uint32_t length, uint32_t piece_size, char *md5_str);
 
 struct list *file_list(void);
-
+void file_print_peer_list(struct file *f);
 
 #endif //FILE_H
