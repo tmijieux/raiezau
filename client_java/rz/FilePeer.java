@@ -18,7 +18,11 @@ public class FilePeer extends Peer {
 	sendInterested(file);
 	String protocolKey = socket.receiveWord();
 	if (protocolKey.compareTo("have") == 0)
-	    receiveHave();
+	    try {
+		receiveHave();
+	    } catch (RZNoFileException e) {
+		Log.warning(e.toString());
+	    }
 	else
 	    throw new RZInvalidResponseException("Wrong response in interested");
     }
@@ -27,8 +31,12 @@ public class FilePeer extends Peer {
 	sendHave(file);
 	String protocolKey = socket.receiveWord();
 	if (protocolKey.compareTo("have") == 0) {
-	    byte[] bufferMap = receiveHave();
-            this.bm = BufferMap.fromByteArray(bufferMap);
+	    try {
+		byte[] bufferMap = receiveHave();
+		this.bm = BufferMap.fromByteArray(bufferMap);
+	    } catch (RZNoFileException e) {
+		Log.warning(e.toString());
+	    }
 	} else {
 	    throw new RZInvalidResponseException("Wrong response in have");
         }
@@ -38,7 +46,11 @@ public class FilePeer extends Peer {
 	sendGetpieces(file, index);
 	String protocolKey = socket.receiveWord();
 	if (protocolKey.compareTo("data") == 0)
-	    receiveData();
+	    try {
+		receiveData();
+	    } catch (RZNoFileException e) {
+		Log.warning(e.toString());
+	    }
 	else
 	    throw new RZInvalidResponseException("Wrong response in getpieces");
     }

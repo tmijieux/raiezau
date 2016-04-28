@@ -1,6 +1,7 @@
 package rz;
 
 import java.net.*;
+import java.security.*;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
@@ -79,8 +80,8 @@ public class Tracker {
 	    Log.warning(this + " is not responding.");
 	    return;
 	}
-	String key = match.group(1);
 
+	String key = match.group(1);
 	if (!file.isKey(key)) {
 	    throw new RZWrongKeyException("getfile: wrong key");
         }
@@ -91,7 +92,13 @@ public class Tracker {
 
 	String[] peers = match.group(2).split("\\s+");
 	for(String peer : peers) {
-	    file.addPeer(new FilePeer(peer, file));
+	    try {
+		FilePeer fp = new FilePeer(peer, file); 
+		file.addPeer(fp);
+	    } catch (InvalidParameterException e) {
+		Log.warning(e.toString());
+		socket.sendError();
+	    }
 	}
     }
 

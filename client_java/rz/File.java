@@ -27,7 +27,7 @@ class File implements Serializable {
         try {
             this.file = new RandomAccessFile(jFile, "rw");
 	} catch (IOException e) {
-            throw new RuntimeException("File exception: " + filePath + e.toString());
+            throw new RuntimeException(e.toString() + filePath);
         }
     }
 
@@ -50,7 +50,7 @@ class File implements Serializable {
             this.key    = this.MD5Hash();
 	    this.length = this.file.length();
         } catch (IOException e) {
-            throw new RuntimeException("File exception: " + name + e.toString());
+            throw new RuntimeException(e.toString() + name);
         }
 	this.bufferMap = new BufferMap(this);
     }

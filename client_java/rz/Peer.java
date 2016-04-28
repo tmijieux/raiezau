@@ -1,5 +1,6 @@
 package rz;
 
+import java.security.*;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
@@ -33,7 +34,7 @@ public abstract class Peer {
     public Peer(String peerSockAddr) {
 	String[] ipPort = peerSockAddr.split(":");
 	if (ipPort.length != 2) {
-	    throw new RuntimeException(
+	    throw new InvalidParameterException(
                 "Wrong group 'addr:port': \"" + peerSockAddr + '"');
         }
         this.ip   = ipPort[0];
@@ -57,7 +58,6 @@ public abstract class Peer {
 	    return String.format("[peer: %s:%d]", ip, port);
     }
     
-
     /* -------------------- SEND -------------------- */
 
     private void send(String format, Object ... args) {
@@ -113,7 +113,7 @@ public abstract class Peer {
 	Log.severe("Received error! " + socket);
     }
     
-    public byte[] receiveHave() {
+    public byte[] receiveHave() throws RZNoFileException {
 	File file = getFileWithReception();
 	byte[] bufferMap = socket.receiveByte(file.getPieceCount());
 	if (sendCallBack())
@@ -121,12 +121,12 @@ public abstract class Peer {
         return bufferMap;
     }
     
-    public void receiveInterested() {
+    public void receiveInterested() throws RZNoFileException {
 	File file = getFileWithReception();
 	sendHave(file);
     }
     
-    public void receiveGetpieces() {
+    public void receiveGetpieces() throws RZNoFileException {
 	File file = getFileWithReception();
 	socket.receiveByte(1); // '['
 	ArrayList<Integer> indexList = new ArrayList<Integer>();
@@ -140,7 +140,7 @@ public abstract class Peer {
 	sendData(file, index);
     }
 				    
-    public void receiveData() {
+    public void receiveData() throws RZNoFileException {
         File file = getFileWithReception();
 	socket.receiveByte(1); // '['
         while (true) {
@@ -155,7 +155,7 @@ public abstract class Peer {
 
     /* ---------------------------------------- */
 
-    private File getFileWithReception() {
+    private File getFileWithReception() throws RZNoFileException {
 	String hash = socket.receiveHash();
 	File file = FileManager.getByKey(hash);
 	if (file == null) {

@@ -25,7 +25,7 @@ class StrategyAdvanced implements Strategy {
 	lr.addSizeLE(maxFileSize);
     }
 
-    private File chooseFile(List<File> files) {
+    private File chooseFile(List<File> files) throws RZNoFileException{
 	for (File file : files) {
 	    if (!file.isSeeded())
 		return file;
@@ -33,7 +33,9 @@ class StrategyAdvanced implements Strategy {
 	throw new RZNoFileException("No file to seed.");
     }
 
-    private FilePeer chooseFilePeer(List<FilePeer> peers) {
+    private FilePeer chooseFilePeer(List<FilePeer> peers) throws RZNoPeerException {
+	if (peers.size() == 0)
+	    throw new RZNoPeerException("No peer to choose.");
 	return peers.get(random.nextInt() % peers.size());
     }
 
@@ -50,7 +52,7 @@ class StrategyAdvanced implements Strategy {
 	return Utils.convertIntegers(index);
     }
 
-    private void downloadFile(File file) {
+    private void downloadFile(File file) throws RZNoPeerException {
 	tracker.doGetfile(file);
 	Log.info("Downloading " + file);
 	List<FilePeer> peers = file.getPeerList();
@@ -65,7 +67,7 @@ class StrategyAdvanced implements Strategy {
 	    try {
 		File file = chooseFile(FileManager.getFileList());
 		downloadFile(file);
-	    } catch (RZNoFileException e) {
+	    } catch (RZNoPeerException | RZNoFileException e) {
 		newLookRequest(true);
 		tracker.doLook(lr);
 	    } catch (RZNoPartException e) {

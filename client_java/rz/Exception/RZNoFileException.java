@@ -2,7 +2,7 @@ package rz;
 
 import java.lang.Exception;
 
-public class RZNoFileException extends RuntimeException {
+public class RZNoFileException extends Exception {
     public RZNoFileException() {
 	super();
     }
