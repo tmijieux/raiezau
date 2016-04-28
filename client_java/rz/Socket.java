@@ -66,7 +66,7 @@ class Socket {
     }
     
     public void sendError() {
-	send("error");
+	send("error\n");
     }
     
     private byte[] ArrayCharToByte(char[] t) {

@@ -12,6 +12,10 @@ class StrategyAdvanced implements Strategy {
     private final int MAX_BCL = 50;
     private final int MAX_PARTS = 5;
 
+    private int randInt() {
+	return Math.abs(random.nextInt());
+    }
+
     public StrategyAdvanced(Tracker tracker) {
 	this.tracker = tracker;
 	random = new Random();
@@ -36,14 +40,14 @@ class StrategyAdvanced implements Strategy {
     private FilePeer chooseFilePeer(List<FilePeer> peers) throws RZNoPeerException {
 	if (peers.size() == 0)
 	    throw new RZNoPeerException("No peer to choose.");
-	return peers.get(random.nextInt() % peers.size());
+	return peers.get(randInt() % peers.size());
     }
 
     private int[] chooseParts(FilePeer peer) throws RZNoPartException {
 	BufferMap bm = peer.getBufferMap();
 	List<Integer> index = new ArrayList<Integer>();
 	for(int i = 0; i < MAX_BCL && index.size() < MAX_PARTS; i++) {
-	    int part = random.nextInt() % peer.getPieceCount();
+	    int part = randInt() % peer.getPieceCount();
 	    if(!bm.isCompleted(part))
 		index.add(part);
 	}

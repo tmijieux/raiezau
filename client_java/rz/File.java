@@ -5,8 +5,6 @@ import java.io.*;
 import java.security.*;
 
 class File implements Serializable {
-
-
     private java.io.File jFile;
     private RandomAccessFile file;
 
@@ -16,12 +14,12 @@ class File implements Serializable {
     private long length; // length in byte
     private boolean seeded;
     private int pieceSize;
-    private List<FilePeer> peers;
+    private Map<String, FilePeer> peers;
     
     private File(String name, boolean seeded) {
 	this.name = name;
 	this.seeded = seeded;
-	this.peers = new ArrayList<FilePeer>();
+	this.peers = new HashMap<String, FilePeer>();
 
 	String filePath = getFilePath();
 	this.jFile = new java.io.File(filePath);
@@ -69,10 +67,6 @@ class File implements Serializable {
             filePath = dir +'/'+ name;
         }
 	return filePath;
-    }
-
-    public void addPeer(FilePeer peer) {
-	peers.add(peer);
     }
 
     public String announceSeed() {
@@ -128,8 +122,13 @@ class File implements Serializable {
 	return pieceSize;
     }
     
+    public void addPeer(FilePeer peer) {
+	if (!peers.containsKey(peer.toString()))
+	    peers.put(peer.toString(), peer);
+    }
+
     public List<FilePeer> getPeerList() {
-	return peers;
+	return new ArrayList<FilePeer>(peers.values());
     }
     
     public String getKey() {

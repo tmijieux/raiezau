@@ -36,9 +36,11 @@ public class Tracker {
 	socket.send("getfile %s\n", file.getKey());
 	try {
 	    receiveGetfile(file);
-	} catch (RZNoPeerException | RZInvalidResponseException e) {
+	} catch (RZInvalidResponseException e) {
 	    Log.warning(this + " " + e.toString());
 	    socket.sendError();
+	} catch (RZNoPeerException e) {
+	    Log.warning(this + " " + e.toString());
 	}
     }
 
@@ -46,11 +48,13 @@ public class Tracker {
 	socket.send("look [%s]\n", lr);
 	try {
 	    return receiveLook();
-	} catch (RZNoFileException | RZInvalidResponseException e) {
+	} catch (RZInvalidResponseException e) {
 	    Log.warning(this + " " + e.toString());
 	    socket.sendError();
-	    return new ArrayList<File>();
+	} catch (RZNoFileException e) {
+	    Log.warning(this + " " + e.toString());
 	}
+	return new ArrayList<File>();
     }
 
     private String listenString(int port) {

@@ -29,9 +29,11 @@ public class FilePeer extends Peer {
 	try {
 	    checkProtocolKey("data");
 	    receiveData();
-	} catch (RZInvalidResponseException | RZNoFileException e) {
+	} catch (RZInvalidResponseException e) {
 	    Log.warning(e.toString());
 	    socket.sendError();
+	} catch (RZNoFileException e) {
+	    Log.warning(e.toString());
 	}
     }
 
@@ -49,9 +51,11 @@ public class FilePeer extends Peer {
 	    checkProtocolKey("have");
 	    byte[] bufferMap = receiveHave();
 	    this.bm = BufferMap.fromByteArray(bufferMap);
-	} catch (RZInvalidResponseException | RZNoFileException e) {
+	} catch (RZInvalidResponseException e) {
 	    Log.warning(e.toString());
 	    socket.sendError();
+	} catch (RZNoFileException e) {
+	    Log.warning(e.toString());
 	}
     }
 
