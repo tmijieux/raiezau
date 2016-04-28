@@ -242,7 +242,7 @@ static void print_peer_list(char *file_id)
         if (f != NULL)
             file_print_peer_list(f);
         else {
-            printf("No such file: %s\n", file_id);
+            printf(_("No such file: %s\n"), file_id);
         }
     }
 }
@@ -304,7 +304,7 @@ static char **my_completion(const char *text, int start,  int end)
 static char *my_generator(const char* text, int state)
 {
     static char *cmd [] = {
-        "quit", "exit", "help" ,"client", "file", NULL };
+        "quit", "exit", "help" ,"client", "file", "peers", "ls", NULL };
     static int list_index, len;
     char *name;
 
