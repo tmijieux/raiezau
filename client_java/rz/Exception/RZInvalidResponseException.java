@@ -2,7 +2,7 @@ package rz;
 
 import java.lang.Exception;
 
-public class RZInvalidResponseException extends RuntimeException {
+public class RZInvalidResponseException extends Exception {
     public RZInvalidResponseException() {
 	super();
     }

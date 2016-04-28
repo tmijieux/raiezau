@@ -33,7 +33,8 @@ class ServerPeer extends Peer {
         return true;
     }
 
-    public void handleRequest() throws ReflectiveOperationException {
+    public void handleRequest()
+	throws ReflectiveOperationException, RZNoMatchException {
 	String protocolKey = socket.receiveWord();
         
 	if (!protocol.containsKey(protocolKey)) {

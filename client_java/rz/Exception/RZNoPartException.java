@@ -2,7 +2,7 @@ package rz;
 
 import java.lang.Exception;
 
-public class RZNoPartException extends RuntimeException {
+public class RZNoPartException extends Exception {
     RZNoPartException() {
 	super();
     }

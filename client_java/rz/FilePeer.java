@@ -16,43 +16,43 @@ public class FilePeer extends Peer {
 
     public void doInterested(File file) {
 	sendInterested(file);
-	String protocolKey = socket.receiveWord();
-	if (protocolKey.compareTo("have") == 0)
-	    try {
-		receiveHave();
-	    } catch (RZNoFileException e) {
-		Log.warning(e.toString());
-	    }
-	else
-	    throw new RZInvalidResponseException("Wrong response in interested");
+	handleHaveReception();
     }
     
     public void doHave(File file) {
 	sendHave(file);
-	String protocolKey = socket.receiveWord();
-	if (protocolKey.compareTo("have") == 0) {
-	    try {
-		byte[] bufferMap = receiveHave();
-		this.bm = BufferMap.fromByteArray(bufferMap);
-	    } catch (RZNoFileException e) {
-		Log.warning(e.toString());
-	    }
-	} else {
-	    throw new RZInvalidResponseException("Wrong response in have");
-        }
+	handleHaveReception();
     }
     
     public void doGetpieces(File file, int[] index) {
 	sendGetpieces(file, index);
+	try {
+	    checkProtocolKey("data");
+	    receiveData();
+	} catch (RZInvalidResponseException | RZNoFileException e) {
+	    Log.warning(e.toString());
+	    socket.sendError();
+	}
+    }
+
+    private void checkProtocolKey(String expected) 
+	throws RZInvalidResponseException {
 	String protocolKey = socket.receiveWord();
-	if (protocolKey.compareTo("data") == 0)
-	    try {
-		receiveData();
-	    } catch (RZNoFileException e) {
-		Log.warning(e.toString());
-	    }
-	else
-	    throw new RZInvalidResponseException("Wrong response in getpieces");
+	if (protocolKey.compareTo(expected) != 0)
+	    throw new RZInvalidResponseException(
+		"Wrong protocol key: " + expected + "!="
+		+ protocolKey);
+    }
+
+    private void handleHaveReception() {
+	try {
+	    checkProtocolKey("have");
+	    byte[] bufferMap = receiveHave();
+	    this.bm = BufferMap.fromByteArray(bufferMap);
+	} catch (RZInvalidResponseException | RZNoFileException e) {
+	    Log.warning(e.toString());
+	    socket.sendError();
+	}
     }
 
     public BufferMap getBufferMap() {

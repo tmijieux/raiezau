@@ -25,7 +25,7 @@ public enum PatternMatcher {
 	return match.matches();
     }
 
-    public Matcher getMatcher(String str) {
+    public Matcher getMatcher(String str) throws RZNoMatchException {
 	Matcher match = pattern.matcher(str);
 
 	if (!match.matches()) {

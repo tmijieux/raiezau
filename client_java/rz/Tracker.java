@@ -22,14 +22,35 @@ public class Tracker {
 	doDeclare("update", files);
     }
 
+    private void doDeclare(String announcement, List<File> files) {
+	sendDeclare(announcement, files);
+	try {
+	    receiveDeclare();
+	} catch (RZInvalidResponseException e) {
+	    Log.warning(this + " " + e.toString());
+	    socket.sendError();
+	}
+    }
+
     public void doGetfile(File file) {
 	socket.send("getfile %s\n", file.getKey());
-	receiveGetfile(file);
+	try {
+	    receiveGetfile(file);
+	} catch (RZNoPeerException | RZInvalidResponseException e) {
+	    Log.warning(this + " " + e.toString());
+	    socket.sendError();
+	}
     }
 
     public List<File> doLook(LookRequest lr) {
 	socket.send("look [%s]\n", lr);
-	return receiveLook();
+	try {
+	    return receiveLook();
+	} catch (RZNoFileException | RZInvalidResponseException e) {
+	    Log.warning(this + " " + e.toString());
+	    socket.sendError();
+	    return new ArrayList<File>();
+	}
     }
 
     private String listenString(int port) {
@@ -54,41 +75,25 @@ public class Tracker {
 	return "seed ["+seed+"]";
     }
 
-    private void doDeclare(String announcement, List<File> files) {
-	sendDeclare(announcement, files);
-	receiveDeclare();
-    }
-
     private void sendDeclare(String announcement, List<File> files) {
 	socket.send("%s %s %s\n", announcement,
                     seedString(files), leechString(files));
     }
 
-    private void receiveDeclare() {
-	try {
-	    socket.receiveAndGetMatcher(PatternMatcher.OK);
-	} catch (RZNoResponseException e) {
-	    Log.warning(this + " is not responding.");
-	}
+    private void receiveDeclare() throws RZInvalidResponseException {
+	socket.receiveAndGetMatcher(PatternMatcher.OK);
     }
 
-    private void receiveGetfile(File file) {
-	Matcher match;
-	try {
-	    match = socket.receiveAndGetMatcher(PatternMatcher.GETFILE);
-	} catch (RZNoResponseException e) {
-	    Log.warning(this + " is not responding.");
-	    return;
-	}
+    private void receiveGetfile(File file)
+	throws RZNoPeerException, RZInvalidResponseException {
+	Matcher match = socket.receiveAndGetMatcher(
+	    PatternMatcher.GETFILE);
 
-	String key = match.group(1);
-	if (!file.isKey(key)) {
-	    throw new RZWrongKeyException("getfile: wrong key");
-        }
+	if (!file.isKey(match.group(1)))
+	    throw new RZWrongKeyException("in getfile.");
 
-	if (PatternMatcher.EMPTY.matches(match.group(2))) {
-	    return;
-        }
+	if (PatternMatcher.EMPTY.matches(match.group(2)))
+	    throw new RZNoPeerException();
 
 	String[] peers = match.group(2).split("\\s+");
 	for(String peer : peers) {
@@ -102,28 +107,13 @@ public class Tracker {
 	}
     }
 
-    private void checkPieceSize(int receivedPieceSize) {
-	int localPieceSize = Config.getInt("piece-size");
-	if (localPieceSize != receivedPieceSize) {
-	    throw new RZInvalidResponseException(
-		"Remote and local piece size do not match: " + 
-		localPieceSize + " !=  "+ receivedPieceSize);
-	}
-    }
+    private List<File> receiveLook()
+	throws RZNoFileException, RZInvalidResponseException {
+	Matcher match = socket.receiveAndGetMatcher(
+	    PatternMatcher.LOOK);
 
-    private List<File> receiveLook() {
-	Matcher match;
-	List<File> files = new ArrayList<File>();
-	try {
-	    match = socket.receiveAndGetMatcher(PatternMatcher.LOOK);
-	} catch (RZNoResponseException e) {
-	    Log.warning(this + " is not responding.");
-	    return files;
-	}
-
-	if (PatternMatcher.EMPTY.matches(match.group(1))) {
-	    return files;
-        }
+	if (PatternMatcher.EMPTY.matches(match.group(1)))
+	    throw new RZNoFileException();
 
 	String[] filesStr = match.group(1).split("\\s+");
 	if (filesStr.length % 4 != 0) {
@@ -133,9 +123,8 @@ public class Tracker {
             );
         }
 
+	List<File> files = new ArrayList<File>();
 	for (int i = 0; i < filesStr.length; i += 4) {	    
-            // int receivedPieceSize = Integer.parseInt(filesStr[i+2]);
-	    // checkPieceSize(receivedPieceSize);
 	    File file = FileManager.addFile(
                 filesStr[i], 
                 Integer.parseInt(filesStr[i+1]),

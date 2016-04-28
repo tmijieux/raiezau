@@ -39,7 +39,7 @@ class StrategyAdvanced implements Strategy {
 	return peers.get(random.nextInt() % peers.size());
     }
 
-    private int[] chooseParts(FilePeer peer) {
+    private int[] chooseParts(FilePeer peer) throws RZNoPartException {
 	BufferMap bm = peer.getBufferMap();
 	List<Integer> index = new ArrayList<Integer>();
 	for(int i = 0; i < MAX_BCL && index.size() < MAX_PARTS; i++) {
@@ -52,7 +52,7 @@ class StrategyAdvanced implements Strategy {
 	return Utils.convertIntegers(index);
     }
 
-    private void downloadFile(File file) throws RZNoPeerException {
+    private void downloadFile(File file) throws RZNoPeerException, RZNoPartException {
 	tracker.doGetfile(file);
 	Log.info("Downloading " + file);
 	List<FilePeer> peers = file.getPeerList();

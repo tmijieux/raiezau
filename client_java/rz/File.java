@@ -81,7 +81,7 @@ class File implements Serializable {
     
     /* ------------- Piece read / write -------------*/
 
-    public byte[] readPiece(int pieceIndex) {
+    public byte[] readPiece(int pieceIndex) throws RZNoPartException {
 	long startPos = pieceSize * pieceIndex;
 	byte[] data = new byte[pieceSize];
 	if (!bufferMap.isCompleted(pieceIndex))

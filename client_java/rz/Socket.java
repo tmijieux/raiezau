@@ -141,7 +141,7 @@ class Socket {
 	receiveByte(1);
     }
 
-    public String receiveLine() {
+    public String receiveLine() throws RZNoResponseException {
         String response = null;
         try {
             response = from.readLine();
@@ -149,9 +149,8 @@ class Socket {
             Log.debug(e.toString());
         }
 
-        if (response == null) {
+        if (response == null)
 	    throw new RZNoResponseException("No response from " + this);
-        }
 
 	Log.info("Receive %s '%s'", this, response);
 	return response;
@@ -166,7 +165,8 @@ class Socket {
         System.err.println("");
     }
 
-    public Matcher receiveAndGetMatcher(PatternMatcher patMatcher) {
+    public Matcher receiveAndGetMatcher(PatternMatcher patMatcher) 
+	throws RZNoMatchException, RZNoResponseException {
 	String str = receiveLine();
         return patMatcher.getMatcher(str);
     }

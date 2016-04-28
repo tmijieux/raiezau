@@ -90,7 +90,11 @@ public abstract class Peer {
             send("%d:", index[i]);
 	    Log.info("Will send byte " + i);
 	    Log.info("part is " + index[i]);
-	    socket.sendByte(file.readPiece(index[i]));
+	    try {
+		socket.sendByte(file.readPiece(index[i]));
+	    } catch (RZNoPartException e) {
+		socket.sendError();
+	    }
         }
 	// the space at the end IS important
         send("] ");

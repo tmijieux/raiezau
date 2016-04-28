@@ -14,7 +14,8 @@ class ServerThread implements Runnable {
 	    while (true) {
                 peer.handleRequest();
 	    }
-	} catch (ReflectiveOperationException e) {
+	} catch (ReflectiveOperationException |
+		 RZNoMatchException e) {
 	    Log.severe("Exception in client: %s", e.toString());
 	}
     }
