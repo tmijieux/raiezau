@@ -7,8 +7,11 @@ import java.lang.*;
 import java.lang.reflect.*;
 
 class FileManager {
+    private FileManager() {
+    }
+
     private static final Map<String, File> filesByKey;
-        
+    
     static {
         filesByKey = new HashMap<String, File>();
         String dirname = Config.get("completed-files-directory");

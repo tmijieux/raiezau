@@ -4,6 +4,9 @@ import java.io.*;
 import java.util.*;
 
 class Config {
+    private Config() {
+    }
+
     private static final String DEFAULT_INIT_PATH = "config.ini";
     private static final Properties props = new Properties();
 

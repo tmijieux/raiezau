@@ -51,7 +51,7 @@ public abstract class Peer {
     }
     
     @Override
-        public String toString() {
+    public String toString() {
 	if (socket != null)
 	    return String.format("[peer: %s]", socket);
 	else
