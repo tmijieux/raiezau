@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 cd $(dirname $0)
 
 yaml=yaml-0.1.5
