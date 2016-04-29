@@ -30,6 +30,8 @@ class Client {
 	putConstructor("sleepy",   StrategySleepy.class);
 	putConstructor("test",     StrategyTest.class);
 	putConstructor("advanced", StrategyAdvanced.class);
+	putConstructor("TestPartialFile", StrategyTestPartialFile.class);
+	putConstructor("TestPartialFile2", StrategyTestPartialFile2.class);
     }
 
     /**
