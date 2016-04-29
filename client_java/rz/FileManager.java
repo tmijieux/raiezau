@@ -25,15 +25,15 @@ class FileManager {
 
     private static void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread()
-            {
-                @Override
-                public void run() {
-                    for (Map.Entry<String,File> e : filesByKey.entrySet()) {
-                        File f = e.getValue();
-                        FileManager.saveFileState(f);
-                    }
+        {
+            @Override
+            public void run() {
+                for (Map.Entry<String,File> e : filesByKey.entrySet()) {
+                    File f = e.getValue();
+                    FileManager.saveFileState(f);
                 }
-            });
+            }
+        });
     }
 
     private static void loadFileFromDirectory(java.io.File folder, Method fileJob) {
@@ -65,7 +65,8 @@ class FileManager {
     }
 
     public static void loadIncompleteFile(java.io.File fileEntry) {
-	restoreFileState(fileEntry);
+	File f = restoreFileState(fileEntry);
+        insertFile(f);
     }
 
     public static void loadCompleteFile(java.io.File fileEntry) {
