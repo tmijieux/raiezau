@@ -62,9 +62,14 @@ class File implements Serializable {
     }
 
 
-    public void reinitPeers()
+    public void reinitIncompleteFile()
     {
         peers = new HashMap<String, FilePeer>();
+        try {
+            file = new RandomAccessFile(jFile, "rw");
+        } catch(FileNotFoundException e) {
+            Log.severe(jFile +": " + e);
+        }
     }
     
     private String getFilePath() {
