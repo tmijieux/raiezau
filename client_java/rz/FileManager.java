@@ -129,7 +129,7 @@ class FileManager {
     public static void saveFileState(File file) {
 	try {
 	    FileOutputStream saveFile =
-                new FileOutputStream("./" + file.getName() +".ser");
+                new FileOutputStream(Config.get("partial-files-directory") + "/" + file.getName() +".ser");
 	    ObjectOutputStream out = new ObjectOutputStream(saveFile);
 	    out.writeObject(file);
 	    out.close();
