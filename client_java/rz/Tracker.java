@@ -89,7 +89,7 @@ public class Tracker {
     }
 
     private void receiveGetfile(File file)
-	throws RZNoPeerException, RZInvalidResponseException {
+      throws RZNoPeerException, RZInvalidResponseException {
 	Matcher match = socket.receiveAndGetMatcher(
 	    PatternMatcher.GETFILE);
 
@@ -112,7 +112,7 @@ public class Tracker {
     }
 
     private List<File> receiveLook()
-	throws RZNoFileException, RZInvalidResponseException {
+      throws RZNoFileException, RZInvalidResponseException {
 	Matcher match = socket.receiveAndGetMatcher(
 	    PatternMatcher.LOOK);
 

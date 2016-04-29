@@ -11,7 +11,7 @@ class FileManager {
     }
 
     private static final Map<String, File> filesByKey;
-    
+
     static {
         filesByKey = new HashMap<String, File>();
         String dirname = Config.get("completed-files-directory");
@@ -20,6 +20,20 @@ class FileManager {
             fileDir.mkdir();
         }
         loadCompleteFileFromDirectory(fileDir);
+        registerShutdownHook();
+    }
+
+    private static void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread()
+            {
+                @Override
+                public void run() {
+                    for (Map.Entry<String,File> e : filesByKey.entrySet()) {
+                        File f = e.getValue();
+                        FileManager.saveFileState(f);
+                    }
+                }
+            });
     }
 
     private static void loadFileFromDirectory(java.io.File folder, Method fileJob) {
@@ -38,7 +52,7 @@ class FileManager {
 		    Log.severe(e.toString());
 		}
 	    }
-	}	
+	}
     }
 
     private static void loadFileFromDirectory(java.io.File folder, String name) {
@@ -57,17 +71,17 @@ class FileManager {
     public static void loadCompleteFile(java.io.File fileEntry) {
 	String name = fileEntry.getName();
 	Log.info("loading file " + name);
-	addCompleteFile(name);	
+	addCompleteFile(name);
     }
 
     private static void loadIncompleteFileFromDirectory(java.io.File folder) {
 	loadFileFromDirectory(folder, "loadIncompleteFile");
     }
-    
+
     private static void loadCompleteFileFromDirectory(java.io.File folder) {
 	loadFileFromDirectory(folder, "loadCompleteFile");
     }
-    
+
     private static File insertFile(File newFile) {
         filesByKey.put(newFile.getKey(), newFile);
 	Log.info("Inserted file " + newFile);
@@ -87,7 +101,7 @@ class FileManager {
         File newFile = new File(name, length, pieceSize, key);
         return insertFile(newFile);
     }
-    
+
     public static void saveFileState(File file) {
 	try {
 	    FileOutputStream saveFile =
@@ -97,7 +111,7 @@ class FileManager {
 	    out.close();
 	    saveFile.close();
 	} catch (IOException e){
-            
+            Log.info("exception : "+ e);
 	}
     }
 
@@ -110,7 +124,7 @@ class FileManager {
 	    in.close();
 	    saveFile.close();
 	} catch (IOException | ClassNotFoundException e) {
-            
+            Log.info("exception : "+ e);
 	}
 	return f;
     }
