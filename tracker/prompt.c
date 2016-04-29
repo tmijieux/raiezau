@@ -144,6 +144,7 @@ static bool eval(const char *command_str)
             EVAL_EI(command, "loul", printf("lol\n"))
             EVAL_EI(command, "lulz", printf("TG\n"))
             #endif
+            EVAL_EI(command, "whoami", printf("tracker\n"))
             EVAL_EI(command, "quit", ret_quit = true)
             EVAL_EI(command, "exit", ret_quit = true)
             EVAL_E( printf(
@@ -304,7 +305,9 @@ static char **my_completion(const char *text, int start,  int end)
 static char *my_generator(const char* text, int state)
 {
     static char *cmd [] = {
-        "quit", "exit", "help" ,"client", "file", "peers", "ls", NULL };
+        "quit", "exit", "help" ,"client",
+        "file", "peers", "ls", "whoami", NULL
+    };
     static int list_index, len;
     char *name;
 
