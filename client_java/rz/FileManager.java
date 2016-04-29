@@ -76,7 +76,7 @@ class FileManager {
 
     public static void loadIncompleteFile(java.io.File fileEntry) {
 	File f = restoreFileState(fileEntry);
-        f.reinitPeers();
+        f.reinitIncompleteFile();
         insertFile(f);
     }
 
