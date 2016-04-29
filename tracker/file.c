@@ -109,7 +109,7 @@ struct list *file_list(void)
 void file_print_peer_list(struct file *f)
 {
     if (ht_entry_count(f->clients) == 0) {
-        printf("%s: No peers\n", f->filename);
+        printf("%s|%s: No peers\n", f->filename, f->md5_str);
         return;
     }
 
