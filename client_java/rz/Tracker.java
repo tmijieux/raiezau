@@ -97,18 +97,10 @@ public class Tracker {
 	    throw new RZWrongKeyException("in getfile.");
 
 	if (PatternMatcher.EMPTY.matches(match.group(2)))
-	    throw new RZNoPeerException();
+	    throw new RZNoPeerException("in getfile.");
 
 	String[] peers = match.group(2).split("\\s+");
-	for(String peer : peers) {
-	    try {
-		FilePeer fp = new FilePeer(peer, file); 
-		file.addPeer(fp);
-	    } catch (InvalidParameterException e) {
-		Log.warning(e.toString());
-		socket.sendError();
-	    }
-	}
+	parseGetfilePeers(peers, file);
     }
 
     private List<File> receiveLook()
@@ -117,16 +109,32 @@ public class Tracker {
 	    PatternMatcher.LOOK);
 
 	if (PatternMatcher.EMPTY.matches(match.group(1)))
-	    throw new RZNoFileException();
+	    throw new RZNoFileException("in look.");
 
 	String[] filesStr = match.group(1).split("\\s+");
 	if (filesStr.length % 4 != 0) {
             throw new RZInvalidResponseException(
-                "Invalid list size in look response. " +
+                "Invalid list size in look response: " +
                 filesStr.toString()
             );
         }
 
+	return parseLookFiles(filesStr);
+    }
+
+    private void parseGetfilePeers(String[] peers, File file) {
+	for(String peer : peers) {
+	    try {
+		FilePeer fp = new FilePeer(peer, file); 
+		file.addPeer(fp);
+	    } catch (InvalidParameterException e) {
+		Log.warning(e.toString());
+		socket.sendError();
+	    }
+	}	
+    }
+
+    private List<File> parseLookFiles(String[] filesStr) {
 	List<File> files = new ArrayList<File>();
 	for (int i = 0; i < filesStr.length; i += 4) {	    
 	    File file = FileManager.addFile(
@@ -137,6 +145,6 @@ public class Tracker {
             );
 	    files.add(file);
 	}
-	return files;
+	return files;	
     }
 }

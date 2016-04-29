@@ -110,7 +110,6 @@ public abstract class Peer {
 	return out;
     }
 
-    
     /* -------------------- Reception -------------------- */
     
     public void receiveError() {
