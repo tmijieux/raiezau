@@ -6,7 +6,8 @@ import java.security.*;
 
 class File implements Serializable {
     private java.io.File jFile;
-    private RandomAccessFile file;
+    
+    private transient RandomAccessFile file;
 
     private BufferMap bufferMap;
     private String name;
@@ -14,7 +15,7 @@ class File implements Serializable {
     private long length; // length in byte
     private boolean seeded;
     private int pieceSize;
-    private Map<String, FilePeer> peers;
+    private transient  Map<String, FilePeer> peers;
     
     private File(String name, boolean seeded) {
 	this.name = name;
@@ -60,6 +61,17 @@ class File implements Serializable {
         return MD5.hash(new FileInputStream(jFile));
     }
 
+
+    public void reinitIncompleteFile()
+    {
+        peers = new HashMap<String, FilePeer>();
+        try {
+            file = new RandomAccessFile(jFile, "rw");
+        } catch(FileNotFoundException e) {
+            Log.severe(jFile +": " + e);
+        }
+    }
+    
     private String getFilePath() {
         String filePath = name;
         if (name.charAt(0) != '/') {

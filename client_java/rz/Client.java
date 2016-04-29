@@ -30,7 +30,12 @@ class Client {
 	putConstructor("sleepy",   StrategySleepy.class);
 	putConstructor("test",     StrategyTest.class);
 	putConstructor("advanced", StrategyAdvanced.class);
+<<<<<<< HEAD
 	putConstructor("prompt",   StrategyPrompt.class);
+=======
+	putConstructor("TestPartialFile", StrategyTestPartialFile.class);
+	putConstructor("TestPartialFile2", StrategyTestPartialFile2.class);
+>>>>>>> a77afcfbcf7ea7c43d9b78ac412c0b4a2c9bf02e
     }
 
     /**

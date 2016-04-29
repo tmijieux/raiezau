@@ -11,15 +11,39 @@ class FileManager {
     }
 
     private static final Map<String, File> filesByKey;
-    
-    static {
+    private static final Map<String, File> filesByName;
+
+    static {	
         filesByKey = new HashMap<String, File>();
+        filesByName = new HashMap<String, File>();
+ 		
+        String dirnameIncomplete = Config.get("partial-files-directory");
+        java.io.File incompleteFileDir = new java.io.File(dirnameIncomplete);
+        if (!incompleteFileDir.exists()) {
+            incompleteFileDir.mkdir();
+        }
+	loadIncompleteFileFromDirectory(incompleteFileDir);
+
         String dirname = Config.get("completed-files-directory");
         java.io.File fileDir = new java.io.File(dirname);
         if (!fileDir.exists()) {
             fileDir.mkdir();
         }
         loadCompleteFileFromDirectory(fileDir);
+        registerShutdownHook();
+    }
+
+    private static void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread()
+        {
+            @Override
+            public void run() {
+                for (Map.Entry<String,File> e : filesByKey.entrySet()) {
+                    File f = e.getValue();
+                    FileManager.saveFileState(f);
+                }
+            }
+        });
     }
 
     private static void loadFileFromDirectory(java.io.File folder, Method fileJob) {
@@ -38,7 +62,7 @@ class FileManager {
 		    Log.severe(e.toString());
 		}
 	    }
-	}	
+	}
     }
 
     private static void loadFileFromDirectory(java.io.File folder, String name) {
@@ -51,25 +75,33 @@ class FileManager {
     }
 
     public static void loadIncompleteFile(java.io.File fileEntry) {
-	restoreFileState(fileEntry);
+	File f = restoreFileState(fileEntry);
+        f.reinitIncompleteFile();
+        insertFile(f);
     }
 
     public static void loadCompleteFile(java.io.File fileEntry) {
 	String name = fileEntry.getName();
 	Log.info("loading file " + name);
-	addCompleteFile(name);	
+	addCompleteFile(name);
     }
 
     private static void loadIncompleteFileFromDirectory(java.io.File folder) {
 	loadFileFromDirectory(folder, "loadIncompleteFile");
     }
-    
+
     private static void loadCompleteFileFromDirectory(java.io.File folder) {
 	loadFileFromDirectory(folder, "loadCompleteFile");
     }
-    
+
     private static File insertFile(File newFile) {
+        String name = newFile.getName();
+        File f = filesByName.get(name);
+        if (f != null)
+            return f;
+        
         filesByKey.put(newFile.getKey(), newFile);
+        filesByName.put(name, newFile);
 	Log.info("Inserted file " + newFile);
         return newFile;
     }
@@ -87,17 +119,17 @@ class FileManager {
         File newFile = new File(name, length, pieceSize, key);
         return insertFile(newFile);
     }
-    
+
     public static void saveFileState(File file) {
 	try {
 	    FileOutputStream saveFile =
-                new FileOutputStream("./" + file.getName() +".ser");
+                new FileOutputStream(Config.get("partial-files-directory") + "/" + file.getName() +".ser");
 	    ObjectOutputStream out = new ObjectOutputStream(saveFile);
 	    out.writeObject(file);
 	    out.close();
 	    saveFile.close();
 	} catch (IOException e){
-            
+            Log.info("exception : "+ e);
 	}
     }
 
@@ -110,7 +142,7 @@ class FileManager {
 	    in.close();
 	    saveFile.close();
 	} catch (IOException | ClassNotFoundException e) {
-            
+            Log.info("exception : "+ e);
 	}
 	return f;
     }
