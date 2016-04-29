@@ -11,9 +11,12 @@ class FileManager {
     }
 
     private static final Map<String, File> filesByKey;
+    private static final Map<String, File> filesByName;
 
     static {
         filesByKey = new HashMap<String, File>();
+        filesByName = new HashMap<String, File>();
+        
         String dirname = Config.get("completed-files-directory");
         java.io.File fileDir = new java.io.File(dirname);
         if (!fileDir.exists()) {
@@ -84,7 +87,12 @@ class FileManager {
     }
 
     private static File insertFile(File newFile) {
+        String name = newFile.getName();
+        File f = filesByName.get(name);
+        if (f != null)
+            return f;
         filesByKey.put(newFile.getKey(), newFile);
+        filesByName.put(newFile.getName(), newFile);
 	Log.info("Inserted file " + newFile);
         return newFile;
     }
