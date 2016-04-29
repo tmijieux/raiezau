@@ -1,8 +1,9 @@
 package rz;
 
 import java.util.*;
+import java.io.*;
 
-public class BufferMap {
+public class BufferMap implements Serializable{
     private BitSet bitSet;
 
     public BufferMap(int size) {

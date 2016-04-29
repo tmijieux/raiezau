@@ -13,14 +13,29 @@ class FileManager {
     private static final Map<String, File> filesByKey;
 
     static {
-        filesByKey = new HashMap<String, File>();
+	filesByKey = new HashMap<String, File>();
+		
+        String dirnameIncomplete = Config.get("partial-files-directory");
+        java.io.File incompleteFileDir = new java.io.File(dirnameIncomplete);
+        if (!incompleteFileDir.exists()) {
+            incompleteFileDir.mkdir();
+        }
+	loadIncompleteFileFromDirectory(incompleteFileDir);
+
+	
+
         String dirname = Config.get("completed-files-directory");
         java.io.File fileDir = new java.io.File(dirname);
         if (!fileDir.exists()) {
             fileDir.mkdir();
         }
         loadCompleteFileFromDirectory(fileDir);
+	
+        
+
+	
         registerShutdownHook();
+	
     }
 
     private static void registerShutdownHook() {
@@ -85,7 +100,7 @@ class FileManager {
 
     private static File insertFile(File newFile) {
         filesByKey.put(newFile.getKey(), newFile);
-	Log.info("Inserted file " + newFile);
+	Log.info("Inserted file " + newFile + "key : "+ newFile.getKey());
         return newFile;
     }
 

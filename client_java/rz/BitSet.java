@@ -1,6 +1,9 @@
 package rz;
 
-class BitSet {
+import java.io.*;
+
+
+class BitSet implements Serializable{
     private byte[] bits;
 
     public BitSet(int size) {
