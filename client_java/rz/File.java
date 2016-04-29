@@ -61,6 +61,12 @@ class File implements Serializable {
         return MD5.hash(new FileInputStream(jFile));
     }
 
+
+    public void reinitPeers()
+    {
+        peers = new HashMap<String, FilePeer>();
+    }
+    
     private String getFilePath() {
         String filePath = name;
         if (name.charAt(0) != '/') {
