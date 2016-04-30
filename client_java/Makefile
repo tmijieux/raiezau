@@ -14,10 +14,8 @@ src: build
 run:
 	$(RM) completed/fifi.dat
 	@java -classpath build/:jyaml/ rz.Client
-
 run2:
 	@java -classpath build/:jyaml/ rz.Client config2.ini
-
 run3:
 	$(RM) completed/fifi.dat
 	@java -classpath build/:jyaml/ rz.Client config3.ini
@@ -25,8 +23,7 @@ run4:
 	@java -classpath build/:jyaml/ rz.Client config4.ini
 run5:
 	@java -classpath build/:jyaml/ rz.Client config5.ini	
-
-run4:
+run6:
 	@java -classpath build/:jyaml/ rz.Client config6.ini
 
 debug:

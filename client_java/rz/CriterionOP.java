@@ -13,6 +13,14 @@ public enum CriterionOP {
 	this.text = text;
     }
 
+    static CriterionOP getCriterion(String name) {
+	for(CriterionOP c : CriterionOP.values()) {
+	    if (c.toString().compareTo(name) == 0) 
+		return c;
+	}
+	throw new RuntimeException("NoSuchCriterion: " + name);
+    }
+
     @Override
     public String toString() {
 	return text;

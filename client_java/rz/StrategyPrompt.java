@@ -8,36 +8,63 @@ class StrategyPrompt implements Strategy {
     private static String PROMPT = "> ";
     private static Map<String, Method> cmds =
 	new HashMap<String, Method>();
+    private static Map<String, Method> lookCmds =
+	new HashMap<String, Method>();
 
     static {
 	// general
-	putCmd("quit", "cmdQuit");
-	putCmd("q",    "cmdQuit");
-	putCmd("exit", "cmdQuit");
-	putCmd("help", "cmdHelp");
-	putCmd("h",    "cmdHelp");
-	putCmd("ls",   "cmdLS");
+	putPromptCmd("quit", "cmdQuit");
+	putPromptCmd("q",    "cmdQuit");
+	putPromptCmd("exit", "cmdQuit");
+	putPromptCmd("stop", "cmdQuit");
+	putPromptCmd("help", "cmdHelp");
+	putPromptCmd("h",    "cmdHelp");
+	putPromptCmd("ls",   "cmdLS");
 
 	// tracker
-	putCmd("update", "cmdUpdate");
-	putCmd("up",     "cmdUpdate");
-	putCmd("getfile", "cmdGetfile");
-	putCmd("getf",    "cmdGetfile");
+	putPromptCmd("update",  "cmdUpdate");
+	putPromptCmd("up",      "cmdUpdate");
+	putPromptCmd("getfile", "cmdGetfile");
+	putPromptCmd("getf",    "cmdGetfile");
+	putPromptCmd("gf",      "cmdGetfile");
+	putPromptCmd("look",    "cmdLook");
+	putPromptCmd("lk",      "cmdLook");
 
 	// peer
-	putCmd("interested", "cmdInterested");
-	putCmd("in",         "cmdInterested");
-	putCmd("have", "cmdHave");
-	putCmd("hv",   "cmdHave");
-	putCmd("getpieces", "cmdGetpieces");
-	putCmd("getp",      "cmdGetpieces");
+	putPromptCmd("interested", "cmdInterested");
+	putPromptCmd("in",         "cmdInterested");
+	putPromptCmd("have", "cmdHave");
+	putPromptCmd("hv",   "cmdHave");
+	putPromptCmd("getpieces", "cmdGetpieces");
+	putPromptCmd("getp",      "cmdGetpieces");
+	putPromptCmd("gp",        "cmdGetpieces");
+
+	// look
+	putLookCmd("size", "lookCmdSize");
+	putLookCmd("key",  "lookCmdKey");
+	putLookCmd("file", "lookCmdFilename");
+	putLookCmd("name", "lookCmdFilename");
+	putLookCmd("done", "cmdQuit");
+	putLookCmd("quit", "cmdQuit");
+	putLookCmd("stop", "cmdQuit");
+	putLookCmd("q",    "cmdQuit");
+	putLookCmd("exit", "cmdQuit");
     }
 
-    private static void putCmd(String key, String methodName) {
+    private static void putPromptCmd(String key, String methodName) {
+	putCmd(cmds, key, methodName);
+    }
+
+    private static void putLookCmd(String key, String methodName) {
+	putCmd(lookCmds, key, methodName);
+    }
+
+    private static void putCmd(Map<String, Method> map, String key,
+			       String methodName) {
 	try {
 	    Method method = StrategyPrompt.class.getMethod(
 		methodName, String[].class);
-	    cmds.put(key, method);
+	    map.put(key, method);
 	} catch (ReflectiveOperationException e) {
 	    Log.severe(e.toString());
 	}	
@@ -45,45 +72,91 @@ class StrategyPrompt implements Strategy {
 
     private Tracker tracker;
     private Console console;
-
+    private List<File> files;
+    private LookRequest lr = null;
+    private boolean bcl;
+    
     public StrategyPrompt(Tracker tracker) {
 	this.tracker = tracker;
 	this.console = System.console();
+	this.files   = FileManager.getFileList();
+	this.bcl     = true;
     }
 
     @Override
     public void share() {
 	console.printf("Starting prompt: waiting for input.\n");
-	while(true) {
+	listenCmds(cmds);
+	console.printf("Bye-bye...\n");
+    }
+
+    private void listenCmds(Map<String, Method> map) {
+	while(bcl) {
 	    String[] args = askInput();
-	    analyseCmd(args);
+	    invokeCmd(map, args);
 	}
     }
 
-    private void analyseCmd(String[] args) {
-	if (!cmds.containsKey(args[0])) {
+    private void updateFiles() {
+	this.files = FileManager.getFileList();
+    }
+
+    private void invokeCmd(Map<String, Method> map, String[] args) {
+	if (!map.containsKey(args[0])) {
 	    cmdError(args);
 	} else {
-	    Method method = cmds.get(args[0]);
+	    Method method = map.get(args[0]);
 	    try {
 		method.invoke(this, (Object) args);
 	    } catch (ReflectiveOperationException | 
 		     IllegalArgumentException e) {
 		console.printf("Internal error!\n");
-		Log.severe(e.toString() + method.toString());
+		Log.severe("%s\nin %s\n", 
+			   e.toString(), method.toString());
 	    }
 	}
     }
 
-    public void LSFiles(List<File> files) throws RZNoFileException {
-	if (files.size() == 0)
-	    throw new RZNoFileException();
+    private File getFile(String[] args) {
+	if (args.length >= 2) {
+	    int index = Integer.parseInt(args[1]);
+	    return files.get(index);
+	} else {
+	    return askFile();
+	}
+    }
+
+    private void LSFiles() {
+	updateFiles();
 	console.printf("File list:\n");
 	for(int i = 0; i < files.size(); i++) {
 	    File file = files.get(i);
-	    console.printf("[%d]: %s '%s'\n", 
-			   i, file.getName(), file.getKey());
+	    StringColorer colorer;
+	    if (file.isSeeded())
+		colorer = StringColorer.GREEN;
+	    else
+		colorer = StringColorer.RED;
+	    String number = colorer.format("[%d]", i);
+	    console.printf(
+		"%s:\t%s\t%dp x%dB\t'%s'\n", number, file.getName(), 
+		file.getPieceCount(), file.getPieceSize(), 
+		file.getKey());
 	}
+    }
+
+    private List<FilePeer> LSPeers(File file) {
+	List<FilePeer> peers = file.getPeerList();
+	console.printf("Peer list for %s:\n", file.getName());
+	for(int i = 0; i < peers.size(); i++) {
+	    FilePeer peer = peers.get(i);
+	    console.printf("[%d]: %s\n", i, peer.toString());
+	}
+	return peers;
+    }
+
+    private void LSBufferMap(BufferMap bm) {
+	console.printf("BufferMap:\n");
+	console.printf("%s\n", bm.toString());
     }
 
     /* ------------------ ASK ------------------*/
@@ -105,47 +178,30 @@ class StrategyPrompt implements Strategy {
 
     private int askIndex(int min, int max) {
 	int index = -1;
-	while(true) {
-	    String[] args = askInput("select index: ");
-	    index = Integer.parseInt(args[0]);
-	    if (min < index || index <= max)
-		break;
-	    console.printf("Wrong index!\n");
-	}
+	String[] args = askInput("select index: ");
+	index = Integer.parseInt(args[0]);
 	return index;
     }
 
-    private File askFile() throws RZNoFileException {
-	List<File> files = FileManager.getFileList();
-	LSFiles(files);
+    private File askFile() {
+	LSFiles();
 	int index = askIndex(0, files.size());
 	return files.get(index);
     }
 
-    private FilePeer askFilePeer(File file) throws RZNoPeerException {
-	List<FilePeer> peers = file.getPeerList();
-	if (peers.size() == 0)
-	    throw new RZNoPeerException();
-	console.printf("Peer list for file %s:\n", file.getName());
-	for(int i = 0; i < peers.size(); i++) {
-	    FilePeer peer = peers.get(i);
-	    console.printf("[%d]: %s '%s'\n", i, peer.toString());
-	}
+    private FilePeer askFilePeer(File file) {
+	List<FilePeer> peers = LSPeers(file);
 	int index = askIndex(0, peers.size());
 	return peers.get(index);	
     }
 
-    private int[] askIndex(BufferMap bm) {
-	console.printf("BufferMap: \n");
-	console.printf("%s\n", bm.toString());
+    private int[] askParts(BufferMap bm) {
+	LSBufferMap(bm);
 	List<Integer> index = new ArrayList<Integer>();
 	String[] str = askInput("select parts: ");
 	for (String i : str) {
 	    int part = Integer.parseInt(i);
-	    if (bm.isCompleted(part))
-		index.add(part);
-	    else
-		console.printf("Part %d ignored.\n", part);
+	    index.add(part);
 	}
 	return Utils.convertIntegers(index);
     }
@@ -157,77 +213,78 @@ class StrategyPrompt implements Strategy {
     }
 
     public void cmdQuit(String[] args) {
-	console.printf("Bye-bye...\n");
-	System.exit(0);
+	this.bcl = false;
     }
 
     public void cmdHelp(String[] args) {
-	// TODO
-	console.printf("%s\n", cmds.toString());
+	console.printf("Send help!\n");
     }
 
     public void cmdLS(String[] args) {
-	try {
-	    List<File> files = FileManager.getFileList();
-	    LSFiles(files);
-	} catch (RZNoFileException e) {
-	    console.printf("No files :(\n");
+	if (args.length >= 2) {
+	    File file = getFile(args);
+	    LSPeers(file);
+	} else {
+	    LSFiles();
 	}
     }
 
     public void cmdUpdate(String[] args) {
-	List<File> files = FileManager.getFileList();
+	files = FileManager.getFileList();
 	tracker.doUpdate(files);
     }
 
     public void cmdGetfile(String[] args) {
-	try {
-	    File file = askFile();
-	    tracker.doGetfile(file);
-	} catch (RZNoFileException e) {
-	    console.printf("No files :(\n");
-	}
+	File file = getFile(args);
+	tracker.doGetfile(file);
+	LSPeers(file);
     }
 
     public void cmdLook(String[] args) {
-	LookRequest lr = new LookRequest();
-	// TODO
+	this.lr = new LookRequest();
+	console.printf("Creating look request:\n");
+	listenCmds(lookCmds);
+	files = tracker.doLook(lr);
+	LSFiles();
+	this.bcl = true;
     }
 
     public void cmdInterested(String[] args) {
-	try {
-	    File file = askFile();
-	    FilePeer peer = askFilePeer(file);
-	    peer.doInterested(file);
-	} catch (RZNoFileException e) {
-	    console.printf("No files :(\n");
-	} catch (RZNoPeerException e) {
-	    console.printf("No peers for this file :(\n");
-	}
+	File file = getFile(args);
+	FilePeer peer = askFilePeer(file);
+	peer.doInterested(file);
     }
 
     public void cmdHave(String[] args) {
-	try {
-	    File file = askFile();
-	    FilePeer peer = askFilePeer(file);
-	    peer.doHave(file);
-	} catch (RZNoFileException e) {
-	    console.printf("No files :(\n");
-	} catch (RZNoPeerException e) {
-	    console.printf("No peers for this file :(\n");
-	}
+	File file = getFile(args);
+	FilePeer peer = askFilePeer(file);
+	peer.doHave(file);
     }
 
-    public void cmdGetpieces(String[] args){
-	try {
-	    File file = askFile();
-	    FilePeer peer = askFilePeer(file);
-	    int[] index = askIndex(peer.getBufferMap());
-	    peer.doGetpieces(file, index);
-	} catch (RZNoFileException e) {
-	    console.printf("No files :(\n");
-	} catch (RZNoPeerException e) {
-	    console.printf("No peers for this file :(\n");
-	}	
+    public void cmdGetpieces(String[] args) {
+	File file = getFile(args);
+	FilePeer peer = askFilePeer(file);
+	int[] index = askParts(peer.getBufferMap());
+	peer.doGetpieces(file, index);
+	LSBufferMap(file.getBufferMap());
+    }
+
+    /* ------------------ Look ------------------*/
+
+    public void lookCmdSize(String[] args) {
+	CriterionOP op = CriterionOP.getCriterion(args[1]);
+	int size = Integer.parseInt(args[2]);
+	lr.addSizeCriterion(op, size);
+	console.printf("Added size criterion.\n");
+    }
+
+    public void lookCmdKey(String[] args) {
+	lr.addKey(args[1]);
+	console.printf("Added key criterion.\n");
+    }
+
+    public void lookCmdFilename(String[] args) {
+	lr.addFilename(args[1]);
+	console.printf("Added filename criterion.\n");
     }
 }

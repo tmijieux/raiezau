@@ -18,20 +18,23 @@ class LookRequest {
 	criterions.add(Criterion.CriterionKey(key));
     }
 
+    void addSizeCriterion(CriterionOP c, int size) {
+	criterions.add(Criterion.CriterionSize(c, size));
+    }
     void addSizeEQ(int size) {
-	criterions.add(Criterion.CriterionSize(CriterionOP.EQ, size));
+	addSizeCriterion(CriterionOP.EQ, size);
     }
     void addSizeLT(int size) {
-	criterions.add(Criterion.CriterionSize(CriterionOP.LT, size));
+	addSizeCriterion(CriterionOP.LT, size);
     }
     void addSizeLE(int size) {
-	criterions.add(Criterion.CriterionSize(CriterionOP.LE, size));
+	addSizeCriterion(CriterionOP.LE, size);
     }
     void addSizeGT(int size) {
-	criterions.add(Criterion.CriterionSize(CriterionOP.GT, size));
+	addSizeCriterion(CriterionOP.GT, size);
     }
     void addSizeGE(int size) {
-	criterions.add(Criterion.CriterionSize(CriterionOP.GE, size));
+	addSizeCriterion(CriterionOP.GE, size);
     }
 
     private List<String> mapToString() {
