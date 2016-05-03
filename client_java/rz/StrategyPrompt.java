@@ -5,7 +5,6 @@ import java.util.*;
 import java.lang.reflect.*;
 
 class StrategyPrompt implements Strategy {
-    private static String PROMPT = "> ";
     private static Map<String, Method> cmds =
 	new HashMap<String, Method>();
     private static Map<String, Method> lookCmds =
@@ -74,13 +73,13 @@ class StrategyPrompt implements Strategy {
     private Console console;
     private List<File> files;
     private LookRequest lr = null;
-    private boolean bcl;
+    private boolean loop;
     
     public StrategyPrompt(Tracker tracker) {
 	this.tracker = tracker;
 	this.console = System.console();
 	this.files   = FileManager.getFileList();
-	this.bcl     = true;
+	this.loop    = true;
     }
 
     @Override
@@ -91,9 +90,14 @@ class StrategyPrompt implements Strategy {
     }
 
     private void listenCmds(Map<String, Method> map) {
-	while(bcl) {
-	    String[] args = askInput();
-	    invokeCmd(map, args);
+	try {
+	    while(loop) {
+		String[] args = askInput();
+		invokeCmd(map, args);
+	    } 
+	} catch (EOFException e) {
+	    // End of input, exiting loop
+	    console.printf("\n");
 	}
     }
 
@@ -117,7 +121,7 @@ class StrategyPrompt implements Strategy {
 	}
     }
 
-    private File getFile(String[] args) {
+    private File getFile(String[] args) throws EOFException {
 	if (args.length >= 2) {
 	    int index = Integer.parseInt(args[1]);
 	    return files.get(index);
@@ -161,41 +165,43 @@ class StrategyPrompt implements Strategy {
 
     /* ------------------ ASK ------------------*/
 
-    private String[] askInput(String prompt) {
+    private String[] askInput(String prompt) throws EOFException {
 	String command = null;
 	while(true) {
 	    console.printf("> " + prompt);
 	    command = console.readLine();
+	    if (command == null)
+		throw new EOFException();
 	    if (!PatternMatcher.EMPTY.matches(command))
 		break;
 	}
 	return command.split("\\s+");	
     }
 
-    private String[] askInput() {
+    private String[] askInput() throws EOFException {
 	return askInput("");
     }
 
-    private int askIndex(int min, int max) {
+    private int askIndex(int min, int max) throws EOFException {
 	int index = -1;
 	String[] args = askInput("select index: ");
 	index = Integer.parseInt(args[0]);
 	return index;
     }
 
-    private File askFile() {
+    private File askFile() throws EOFException {
 	LSFiles();
 	int index = askIndex(0, files.size());
 	return files.get(index);
     }
 
-    private FilePeer askFilePeer(File file) {
+    private FilePeer askFilePeer(File file) throws EOFException {
 	List<FilePeer> peers = LSPeers(file);
 	int index = askIndex(0, peers.size());
 	return peers.get(index);	
     }
 
-    private int[] askParts(BufferMap bm) {
+    private int[] askParts(BufferMap bm) throws EOFException {
 	LSBufferMap(bm);
 	List<Integer> index = new ArrayList<Integer>();
 	String[] str = askInput("select parts: ");
@@ -213,14 +219,14 @@ class StrategyPrompt implements Strategy {
     }
 
     public void cmdQuit(String[] args) {
-	this.bcl = false;
+	this.loop = false;
     }
 
     public void cmdHelp(String[] args) {
 	console.printf("Send help!\n");
     }
 
-    public void cmdLS(String[] args) {
+    public void cmdLS(String[] args) throws EOFException {
 	if (args.length >= 2) {
 	    File file = getFile(args);
 	    LSPeers(file);
@@ -234,7 +240,7 @@ class StrategyPrompt implements Strategy {
 	tracker.doUpdate(files);
     }
 
-    public void cmdGetfile(String[] args) {
+    public void cmdGetfile(String[] args) throws EOFException {
 	File file = getFile(args);
 	tracker.doGetfile(file);
 	LSPeers(file);
@@ -246,22 +252,22 @@ class StrategyPrompt implements Strategy {
 	listenCmds(lookCmds);
 	files = tracker.doLook(lr);
 	LSFiles();
-	this.bcl = true;
+	this.loop = true;
     }
 
-    public void cmdInterested(String[] args) {
+    public void cmdInterested(String[] args) throws EOFException {
 	File file = getFile(args);
 	FilePeer peer = askFilePeer(file);
 	peer.doInterested(file);
     }
 
-    public void cmdHave(String[] args) {
+    public void cmdHave(String[] args) throws EOFException {
 	File file = getFile(args);
 	FilePeer peer = askFilePeer(file);
 	peer.doHave(file);
     }
 
-    public void cmdGetpieces(String[] args) {
+    public void cmdGetpieces(String[] args) throws EOFException {
 	File file = getFile(args);
 	FilePeer peer = askFilePeer(file);
 	int[] index = askParts(peer.getBufferMap());
