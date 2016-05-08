@@ -85,18 +85,17 @@ class StrategyPrompt implements Strategy {
     @Override
     public void share() {
 	console.printf("Starting prompt: waiting for input.\n");
-	listenCmds(cmds);
+	listenCmds(cmds, "> ");
 	console.printf("Bye-bye...\n");
     }
 
-    private void listenCmds(Map<String, Method> map) {
+    private void listenCmds(Map<String, Method> map, String prompt) {
 	try {
 	    while(loop) {
-		String[] args = askInput();
+		String[] args = askInput(prompt);
 		invokeCmd(map, args);
 	    } 
 	} catch (EOFException e) {
-	    // End of input, exiting loop
 	    console.printf("\n");
 	}
     }
@@ -114,9 +113,9 @@ class StrategyPrompt implements Strategy {
 		method.invoke(this, (Object) args);
 	    } catch (ReflectiveOperationException | 
 		     IllegalArgumentException e) {
-		console.printf("Internal error!\n");
-		Log.severe("%s\nin %s\n", 
-			   e.toString(), method.toString());
+		console.printf("Invalid argument!\n");
+		Log.info("Invalid argument: %s\nin %s\n", 
+			 e.toString(), method.toString());
 	    }
 	}
     }
@@ -168,7 +167,7 @@ class StrategyPrompt implements Strategy {
     private String[] askInput(String prompt) throws EOFException {
 	String command = null;
 	while(true) {
-	    console.printf("> " + prompt);
+	    console.printf(prompt);
 	    command = console.readLine();
 	    if (command == null)
 		throw new EOFException();
@@ -178,13 +177,9 @@ class StrategyPrompt implements Strategy {
 	return command.split("\\s+");	
     }
 
-    private String[] askInput() throws EOFException {
-	return askInput("");
-    }
-
     private int askIndex(int min, int max) throws EOFException {
 	int index = -1;
-	String[] args = askInput("select index: ");
+	String[] args = askInput("> select index: ");
 	index = Integer.parseInt(args[0]);
 	return index;
     }
@@ -204,7 +199,7 @@ class StrategyPrompt implements Strategy {
     private int[] askParts(BufferMap bm) throws EOFException {
 	LSBufferMap(bm);
 	List<Integer> index = new ArrayList<Integer>();
-	String[] str = askInput("select parts: ");
+	String[] str = askInput("> select parts: ");
 	for (String i : str) {
 	    int part = Integer.parseInt(i);
 	    index.add(part);
@@ -226,9 +221,10 @@ class StrategyPrompt implements Strategy {
 	console.printf("Send help!\n");
     }
 
-    public void cmdLS(String[] args) throws EOFException {
+    public void cmdLS(String[] args) {
 	if (args.length >= 2) {
-	    File file = getFile(args);
+	    int index = Integer.parseInt(args[1]);
+	    File file = files.get(index);
 	    LSPeers(file);
 	} else {
 	    LSFiles();
@@ -240,39 +236,55 @@ class StrategyPrompt implements Strategy {
 	tracker.doUpdate(files);
     }
 
-    public void cmdGetfile(String[] args) throws EOFException {
-	File file = getFile(args);
-	tracker.doGetfile(file);
-	LSPeers(file);
+    public void cmdGetfile(String[] args) {
+	try {
+	    File file = getFile(args);
+	    tracker.doGetfile(file);
+	    LSPeers(file);
+	} catch (EOFException e) {
+	    console.printf("\n");
+	}
     }
 
     public void cmdLook(String[] args) {
 	this.lr = new LookRequest();
 	console.printf("Creating look request:\n");
-	listenCmds(lookCmds);
+	listenCmds(lookCmds, "look > ");
 	files = tracker.doLook(lr);
 	LSFiles();
 	this.loop = true;
     }
 
-    public void cmdInterested(String[] args) throws EOFException {
-	File file = getFile(args);
-	FilePeer peer = askFilePeer(file);
-	peer.doInterested(file);
+    public void cmdInterested(String[] args) {
+	try {
+	    File file = getFile(args);
+	    FilePeer peer = askFilePeer(file);
+	    peer.doInterested(file);
+	} catch (EOFException e) {
+	    console.printf("\n");
+	}
     }
 
-    public void cmdHave(String[] args) throws EOFException {
-	File file = getFile(args);
-	FilePeer peer = askFilePeer(file);
-	peer.doHave(file);
+    public void cmdHave(String[] args) {
+	try {
+	    File file = getFile(args);
+	    FilePeer peer = askFilePeer(file);
+	    peer.doHave(file);
+	} catch (EOFException e) {
+	    console.printf("\n");
+	}
     }
 
-    public void cmdGetpieces(String[] args) throws EOFException {
-	File file = getFile(args);
-	FilePeer peer = askFilePeer(file);
-	int[] index = askParts(peer.getBufferMap());
-	peer.doGetpieces(file, index);
-	LSBufferMap(file.getBufferMap());
+    public void cmdGetpieces(String[] args) {
+	try {
+	    File file = getFile(args);
+	    FilePeer peer = askFilePeer(file);
+	    int[] index = askParts(peer.getBufferMap());
+	    peer.doGetpieces(file, index);
+	    LSBufferMap(file.getBufferMap());
+	} catch (EOFException e) {
+	    console.printf("\n");
+	}
     }
 
     /* ------------------ Look ------------------*/
