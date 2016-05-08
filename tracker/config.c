@@ -115,7 +115,7 @@ void print_help(void)
 
            "\t-c N, --conf=N\n"
            "\t\tset the configuration file path to N\n"
-           "\t\tdefault is `.' (working directory)\n\n"
+           "\t\tdefault is `./config.yaml' (in working directory)\n\n"
 
            "\t-d, --daemon, --daemonize\n"
            "\t\tdetach the server from the console and run in background\n\n"

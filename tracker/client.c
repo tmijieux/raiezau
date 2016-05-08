@@ -134,7 +134,6 @@ void client_dec_ref(struct client *c)
         delete_client(c);
 }
 
-
 #ifdef DEBUG
 const char *client_to_string(struct client *c)
 {

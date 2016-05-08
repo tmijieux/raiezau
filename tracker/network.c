@@ -229,7 +229,6 @@ void server_run(uint32_t addr, uint16_t port)
             rz_debug("no new connection\n");
         }
         handle_incoming_data();
-        //handle_pending_clients();
         clean_fds();
         rz_debug("\n\n---------------------------------\n");
     }

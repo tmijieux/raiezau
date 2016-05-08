@@ -133,16 +133,8 @@ static bool eval(const char *command_str)
             EVAL_EI(command, "help", prompt_command_help(len, command))
             EVAL_EI(command, "ls", prompt_command_ls())
             EVAL_EI(command, "peers", prompt_command_peers(len, command))
-            #ifdef RUDE_LOLZ
-            EVAL_EI(command, "tg", printf("T'es fier de toi?\n"))
-            EVAL_EI(command, "TG", printf("T'es fier de toi?\n"))
-            EVAL_EI(command, "Tg", printf("T'es fier de toi?\n"))
-            EVAL_EI(command, "tG", printf("T'es fier de toi?\n"))
-            EVAL_EI(command, "fuck", printf("TG\n"))
-            EVAL_EI(command, "lol", printf("lel\n"))
-            EVAL_EI(command, "lel", printf("loul\n"))
-            EVAL_EI(command, "loul", printf("lol\n"))
-            EVAL_EI(command, "lulz", printf("TG\n"))
+            #ifdef SECRET
+            EVAL_EI(command, "super_secret", puts("coucou!"))
             #endif
             EVAL_EI(command, "whoami", printf("tracker\n"))
             EVAL_EI(command, "quit", ret_quit = true)
@@ -179,6 +171,9 @@ static const char *get_command_help(const char *cmd)
         GET_EI(cmd, "help", _("\thelp cmd: display the help for 'cmd'"))
         GET_EI(cmd, "quit", quit_str)
         GET_EI(cmd, "exit", quit_str)
+        GET_EI(cmd, "peers",
+               _("No arguments: print the list of all peers\n"
+                 "With arguments: print peers for given file(s)"))
         GET_E( _("\tNo help for this command. Sorry."));
     #undef GET_I
     #undef GET_EI
@@ -285,9 +280,9 @@ static void prompt_command_help(int len, char **command)
 static void prompt_command_ls(void)
 {
     char *cmd[] = {"", "list"};
-    printf("File list:\n");
+    printf(_("File list:\n"));
     prompt_command_file(2, cmd);
-    printf("\nPeer list:\n");
+    printf(_("\nPeer list:\n"));
     prompt_command_client(2, cmd);
 }
 
