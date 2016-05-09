@@ -63,4 +63,8 @@ class BitSet implements Serializable{
     public String toString() {
         return toHexString();
     }
+
+    public int size() {
+        return bits.length;
+    }
 }

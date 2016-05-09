@@ -118,7 +118,8 @@ public abstract class Peer {
     
     public byte[] receiveHave() throws RZNoFileException {
 	File file = getFileWithReception();
-	byte[] bufferMap = socket.receiveByte(file.getPieceCount());
+	byte[] bufferMap = socket.receiveByte(file.getBufferMapSize());
+        System.err.println("file.getPieceCount! "  + file.getPieceCount());
 	if (sendCallBack())
 	    sendHave(file);
         return bufferMap;

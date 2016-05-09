@@ -25,10 +25,6 @@ INITIALIZER(file_init)
     file_by_hash = ht_create(0, NULL);
     file_by_name = ht_create(0, NULL);
 
-    #ifdef DEBUG
-    file_new("test1", 10000, 1024, "deadcafebeefbabe");
-    file_new("test2", 5000, 512, "8905e92afeb80fc7722ec89eb0bf0966");
-    #endif
 }
 
 static void file_register(const struct file *f)

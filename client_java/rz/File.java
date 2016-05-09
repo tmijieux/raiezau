@@ -42,6 +42,10 @@ class File implements Serializable {
 	this.bufferMap = new BufferMap(this);
     }
 
+    public int getBufferMapSize() {
+        return bufferMap.size();
+    }
+    
     /**
      * For seeded file
      */
@@ -60,7 +64,6 @@ class File implements Serializable {
     private String MD5Hash() throws IOException {
         return MD5.hash(new FileInputStream(jFile));
     }
-
 
     public void reinitIncompleteFile()
     {

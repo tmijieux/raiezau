@@ -29,6 +29,10 @@ public class BufferMap implements Serializable{
 	return bitSet.test(partNumber);
     }
 
+    public int size() {
+        return bitSet.size();
+    }
+    
     @Override
     public String toString() {
         return bitSet.toString();
