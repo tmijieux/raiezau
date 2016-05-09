@@ -3,6 +3,7 @@ package rz;
 import java.util.*;
 import java.io.*;
 import java.security.*;
+import java.nio.channels.FileChannel;
 
 class File implements Serializable {
     private java.io.File jFile;
@@ -15,7 +16,7 @@ class File implements Serializable {
     private long length; // length in byte
     private boolean seeded;
     private int pieceSize;
-    private transient  Map<String, FilePeer> peers;
+    private transient Map<String, FilePeer> peers;
     
     private File(String name, boolean seeded) {
 	this.name = name;
@@ -109,6 +110,12 @@ class File implements Serializable {
         try {
             file.seek(pos);
             file.write(data);
+            if (index == getPieceCount() - 1) {
+                FileChannel chan;
+                chan = new FileOutputStream(jFile, true).getChannel();
+                chan.truncate(length);
+                chan.close();
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -105,8 +105,7 @@ public class Tracker {
 
     private List<File> receiveLook()
       throws RZNoFileException, RZInvalidResponseException {
-	Matcher match = socket.receiveAndGetMatcher(
-	    PatternMatcher.LOOK);
+	Matcher match = socket.receiveAndGetMatcher( PatternMatcher.LOOK);
 
 	if (PatternMatcher.EMPTY.matches(match.group(1)))
 	    throw new RZNoFileException("in look.");
