@@ -26,6 +26,12 @@ run5:
 run6:
 	@java -classpath build/:jyaml/ rz.Client config6.ini
 
+demo:
+	$(RM) completed_DEMO/* partial_DEMO/*
+	@java -classpath build/:jyaml/ rz.Client configDEMO.ini
+demo_serveur:
+	@java -classpath build/:jyaml/ rz.Client configDEMO_SERVEUR.ini
+
 debug:
 	@jdb -sourcepath . -classpath build/:jyaml/ rz.Client
 
