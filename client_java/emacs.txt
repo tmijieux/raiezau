@@ -1,0 +1,43 @@
+
+http://www.oracle.com/technetwork/java/codeconventions-150003.pdf
+https://www.emacswiki.org/emacs/IndentingC
+
+mon style java:
+
+(defun javahook ()
+  (progn
+    (c-add-style "java-mine" 
+                 '("java"
+                   (c-basic-offset . 4)
+                   (c-hanging-braces-alist
+                    ((substatement-open)
+                     (block-close . c-snug-do-while)
+                     (extern-lang-open after)
+                     (inexpr-class-open after)
+                     (inexpr-class-close before)))
+                   (c-offsets-alist
+                    (substatement-open . 0)
+                    (innamespace . [0])
+                    (arglist-intro . '+))))
+    (c-set-style "java-mine")))
+
+(add-hook 'java-mode-hook 'javahook)
+
+
+la ligne (extraite de ce qui précède) qui permet de mettre les
+arguments en retrait, après avoir fait un retour a la ligne juste
+derriere une parenthèse, c'est :
+    (c-offsets-alist
+     ...
+      ((arglist-intro '+)))
+
+et de préférence
+(setq indent-tabs-mode nil)  ; pas de tabulation
+M-x untabify
+
+
+
+sinon pour regler un problème d'indentation quelconque
+faites C-c C-s sur l'element mal indenté,
+regarder le nom de la propriété et ajouté le dans 
+le code lisp en prenant pour modèle le reste 

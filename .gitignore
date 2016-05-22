@@ -10,3 +10,25 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+*~
+\#*#
+*.class
+build/
+*.o
+a.out
+*.a
+*.d
+.deps/
+.#*
+.*.swp
+TAGS
+*.log
+*.log.*
+*.jar
+*.lck
+*.tar
+*.gz
+yaml-0.1.5/
+yaml_path
+usr
+*.ser
