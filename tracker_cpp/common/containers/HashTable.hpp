@@ -25,7 +25,7 @@ public:
     void forEach(std::function<void(char*key, void*data)> func);
     int size() const;
     List *toList();
-    
+
 private:
     struct h_entry *m_head;
     pthread_rwlock_t m_rwlock;

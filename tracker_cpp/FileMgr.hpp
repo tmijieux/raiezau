@@ -13,12 +13,12 @@ class FileMgr;
 class FileMgr : public FileMap {
 public:
     static FileMgr &instance();
-    
+
     File *getFile(std::string fileName, size_t fileSize,
                          size_t pieceSize, std::string hash);
     const FileSet &getSet();
     std::pair<FileMap::iterator, bool> insert(File *);
-    
+
 private:
     FileMgr() = default;
     FileSet _fileSet;

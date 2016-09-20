@@ -66,13 +66,13 @@ template<size_t (File::*field)() const>
 static void make_num_field(CriterionVec &v, string name)
 {
     typedef shared_ptr<CriterionBase> _;
-    
+
     LT<field> lt; GT<field> gt; LEQ<field> leq; GEQ<field> geq;
     EQI<field, true> eq; EQI<field, false> neq;
-    
+
     v.push_back(_(mCriterion("=\"", name, eq)));
     v.push_back(_(mCriterion("!=\"", name, neq)));
-    
+
     v.push_back(_(mCriterion(">=\"", name, geq)));
     v.push_back(_(mCriterion("<=\"", name, leq)));
     v.push_back(_(mCriterion(">\"", name, gt)));
@@ -99,6 +99,6 @@ CriterionVec CriterionVec::initCriterions()
     ::make_num_field<&File::pieceSize>(v, "piecesize");
     ::make_string_field<&File::name>(v, "filename");
     ::make_string_field<&File::hash>(v, "hash");
-    
+
     return v;
 }

@@ -14,7 +14,7 @@ public:
         EmptyStackException() = default;
         EmptyStackException(std::string str): std::range_error(str) {};
     };
-    
+
     Stack(size_t bufSize);
     virtual ~Stack();
 
@@ -24,7 +24,7 @@ public:
 
     bool isEmpty();
     size_t size();
-    
+
 private:
     int m_head;
     std::vector<T> m_buf;
@@ -72,5 +72,5 @@ size_t Stack<T>::size()
 {
     return m_head;
 }
-    
+
 #endif //STACK_H

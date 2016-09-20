@@ -56,7 +56,7 @@ int Socket::makeListener(string addr, uint16_t port)
     int s;
     struct sockaddr_in si;
     int yes[1] = { 1 };
-    
+
     memset(&si, 0, sizeof si);
     CHK(socket, s = socket(AF_INET, SOCK_STREAM, 0));
     CHK(setsockopt, setsockopt(

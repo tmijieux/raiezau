@@ -10,10 +10,10 @@ public:
     ~SocketWriter();
     bool eventHandler(uint32_t events) override;
     void rearm();
-    
+
     static int makeSockFD(int sock);
 
-    
+
 private:
     int _sfd;
     Buffer *_buf;

@@ -9,14 +9,14 @@ class CircularBuffer : public Buffer {
 public:
     CircularBuffer(size_t capacity);
     virtual ~CircularBuffer();
-    
+
     virtual int write(uint8_t *data, size_t size) override;
     virtual int write(void *data, size_t size) override;
-    
+
     virtual int writeToFd(int fd) override;
     virtual int read(uint8_t *data, size_t size) override;
     virtual int read(void *data, size_t size) override;
-    
+
     virtual int peek(uint8_t *data, size_t size) override;
     virtual int peek(void *data, size_t size) override;
 

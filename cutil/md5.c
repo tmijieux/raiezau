@@ -25,7 +25,7 @@ int md5_hash_file(FILE *f, unsigned char *md5_hash)
         MD5_Update(&mdContext, data, bytes);
     MD5_Final(md5_hash, &mdContext);
     rewind(f);
-    return 0; 
+    return 0;
 }
 
 static char *md5_asprint(const unsigned char *md5_hash)
@@ -41,7 +41,7 @@ int md5_str_hash_file(FILE *f, char **md5_hash_str)
 {
     int ret;
     unsigned char md5_hash[MD5_DIGEST_LENGTH];
-    
+
     ret = md5_hash_file(f, md5_hash);
     if (ret < 0)
         return ret;
@@ -58,11 +58,11 @@ int md5_hash_buf(
     } else if (0 == size) {
         return 0;
     }
-    
+
     MD5_CTX mdContext;
     int bytes = 0;
     const unsigned char *data = buf;
-    
+
     MD5_Init(&mdContext);
     while ( data < buf+size ) {
         bytes = min(1024, (buf+size)-data);

@@ -9,7 +9,7 @@ class ServerSocket : public Socket {
 public:
     ServerSocket(int sock);
     ServerSocket(string addr, uint16_t port);
-    
+
 protected:
     virtual bool eventHandler(uint32_t events) override final;
     virtual bool acceptHandler() = 0;

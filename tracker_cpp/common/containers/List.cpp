@@ -12,7 +12,7 @@ public:
     void *getData() { return m_data; }
     void setData(void *data) { m_data = data; }
     bool isSentinel() { return m_isSentinel; }
-    
+
 private:
     void *m_data;
     ListNode *m_next;
@@ -46,7 +46,7 @@ List::List()
 {
     pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
     m_mutex = m;
-    
+
     pthread_mutex_lock(&m_mutex);
     m_frontSentinel = new ListNode(NULL, true);
     m_frontSentinel->setNext(new ListNode(NULL, true));
@@ -60,7 +60,7 @@ List::~List()
 {
     ListNode *node = m_frontSentinel->getNext();
     ListNode *tmp = NULL;
-    
+
     while (!node->isSentinel()) {
 	tmp = node->getNext();
         delete node;

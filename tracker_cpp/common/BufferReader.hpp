@@ -14,7 +14,7 @@ public:
 
 
     BufferReader &operator>>(std::string &left);
-    
+
     template<typename T>
     BufferReader &operator>>(T &left)
     {

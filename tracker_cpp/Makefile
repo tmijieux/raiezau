@@ -19,8 +19,8 @@ endif
 
 LDFLAGS= -L. -lpthread -lcrypto  -fsanitize=undefined -fsanitize=address
 
-OBJ=$(SRC:.cpp=.o) 
-DEP=$(SRC:.cpp=.d) 
+OBJ=$(SRC:.cpp=.o)
+DEP=$(SRC:.cpp=.d)
 
 all: $(TARGET)
 
@@ -33,7 +33,7 @@ $(TARGET): $(OBJ)
 	@$(CC) -MM $(CFLAGS) $*.cpp > $*.d
 	$(CC) -c $(CFLAGS) $*.cpp -o $*.o
 
-clean: 
+clean:
 	$(RM) $(OBJ) $(DEP) *.d *.o
 
 mrproper: clean

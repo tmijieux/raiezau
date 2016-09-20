@@ -42,10 +42,10 @@ void EventManager::registerEvent(Event *ev)
 {
     struct epoll_event epoll_ev;
     memset(&epoll_ev, 0, sizeof epoll_ev);
-    
+
     epoll_ev.events = ev->_events;
     epoll_ev.data.fd = ev->_fd;
-    
+
     makeNonBlockingFD(ev->_fd);
     epoll_ctl(_epollHandle, EPOLL_CTL_ADD, ev->_fd, &epoll_ev);
     _events.insert(std::make_pair(ev->_fd, ev));

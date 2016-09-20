@@ -34,7 +34,7 @@ std::string File::to_string()
     ss << _fileName << " " << _fileSize << " " << _pieceSize << " " <<_hash;
     return ss.str();
 }
-    
+
 size_t File::size() const
 {
     return _fileSize;

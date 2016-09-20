@@ -42,7 +42,6 @@ int ht_add_entry(struct hash_table *h, const char *key, void *data)
     pthread_rwlock_wrlock(&h->rwlock);
     HASH_ADD_STR(h->h, key, entry);
     pthread_rwlock_unlock(&h->rwlock);
-
     return 0;
 }
 

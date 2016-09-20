@@ -1,0 +1,15 @@
+package "rz"
+version "0.1"
+purpose "transfering files over the internet"
+usage ""
+description "peer to peer server"
+versiontext "v0.1"
+
+option "port" p "server listening port" optional
+        int default="8080"
+
+option "config" c "input config file path"
+        string default="./config.yaml"
+
+option "daemonize" d  "send the server in background"
+

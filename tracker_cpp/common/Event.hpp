@@ -8,7 +8,7 @@ class Event;
 
 class Event {
     friend class EventManager;
-    
+
 public:
     Event(int fd, uint32_t events, bool autoDelete = false);
     virtual bool eventHandler(uint32_t events) = 0;
@@ -19,7 +19,7 @@ public:
 
 protected:
     virtual void onRegister(EventManager*) {}
-    
+
 private:
     int _fd;
     uint32_t _events;

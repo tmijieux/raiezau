@@ -45,7 +45,7 @@ int regex_exec(const char *regexp, const char *str,
 {
     int err = 0;
     regex_t reg;
-    
+
     err = regcomp(&reg, regexp, REG_EXTENDED | REG_ICASE);
     if (err != 0) {
         char err_s[500] = {0};

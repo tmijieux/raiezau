@@ -37,7 +37,7 @@ int CircularBuffer::write(uint8_t *data, size_t size)
     } else {
         abort();
     }
-    return -1;  
+    return -1;
 }
 
 int CircularBuffer::write(void *data, size_t size)
@@ -62,7 +62,7 @@ int CircularBuffer::read(uint8_t *data, size_t size)
     } else {
         abort();
     }
-    return -1;    
+    return -1;
 }
 
 int CircularBuffer::read(void *data, size_t size)
@@ -104,7 +104,7 @@ void CircularBuffer::resize(float factor)
 {
     if (factor <= 1)
         return;
-    
+
     size_t size = _size;
     size_t new_cap = _capacity * factor;
     uint8_t *nbuf = new uint8_t[new_cap];
@@ -112,7 +112,7 @@ void CircularBuffer::resize(float factor)
     this->read(nbuf, min(size, new_cap));
     _r = 0;
     _w = size;
-    
+
     delete [] _buf;
     _buf = nbuf;
     _size = size;
@@ -169,7 +169,7 @@ void CircularBuffer::reset()
 bool CircularBuffer::contains(char c) const
 {
     size_t i;
-    
+
     if (_r < _w) {
         for (i= _r; i < _w; ++i)
             if (_buf[i] == (uint8_t) c)
@@ -199,7 +199,7 @@ string CircularBuffer::readUntil(char c)
 {
     string s;
     s.clear();
-    
+
     if (_r > _w) {
         while (_r < _capacity && _buf[_r] != (uint8_t) c) {
             s += (char) _buf[_r++];

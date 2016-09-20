@@ -14,20 +14,20 @@ typedef std::set<File*> FileSet;
 class File {
     friend class FileMap;
     friend class FileMgr;
-    
+
 public:
     typedef std::set<Peer*> PeerSet;
-    
+
     bool operator==(const File&);
     void addPeer(Peer *);
     const PeerSet &getPeers();
     std::string to_string();
-    
+
     size_t size() const;
     size_t pieceSize() const;
     std::string hash() const;
     std::string name() const;
-    
+
 private:
     File(std::string fileName, size_t fileSize,
          size_t pieceSize, std::string hash);

@@ -11,7 +11,7 @@ class EventManager;
 using std::string;
 
 class EventManager {
-    
+
 public:
     EventManager();
     ~EventManager();
@@ -20,12 +20,12 @@ public:
     void rearmEvent(Event*);
     void unregisterEvent(Event*);
     void mainLoop();
-    
+
     static void makeNonBlockingFD(int fd);
 private:
-    
+
     void cleanDeleteList();
-    
+
     int _epollHandle;
     uint32_t _eventCount;
     std::unordered_map<int, Event*> _events;

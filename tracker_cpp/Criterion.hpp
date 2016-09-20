@@ -32,16 +32,16 @@ mCriterion(std::string delimiter, std::string keyword, PRED_U predicate)
 {
     return new Criterion<PRED_U>(delimiter, keyword, predicate);
 }
-    
+
 template<typename PRED_T>
 class Criterion : public CriterionBase {
 public:
-    
+
     Criterion(std::string delimiter, std::string keyword, PRED_T predicate):
         _delim(delimiter), _keyword(keyword), _predicate(predicate)
     {
     }
-    
+
     //Criterion(Criterion&) = delete;
 
     bool match(std::string value)

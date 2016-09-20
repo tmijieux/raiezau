@@ -29,12 +29,12 @@ int main(int argc, char * const argv[])
 
     char *str = "abc!=def!=ghi!=jkl";
     char **tab;
-    
+
     int n = string_split2(str, "!=", &tab);
 
     for (int i = 0; i < n; ++i)
         puts(tab[i]);
-    
+
     return EXIT_SUCCESS;
 }
 

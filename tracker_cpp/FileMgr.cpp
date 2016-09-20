@@ -19,7 +19,7 @@ File *FileMgr::getFile(string fileName, size_t fileSize,
         f = it->second;
     } else
         sFileMgr.insert(f);
-    
+
     return f;
 }
 

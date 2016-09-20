@@ -18,10 +18,10 @@ bool ServerSocket::eventHandler(uint32_t /*events*/)
     while ((s = accept(_sock)) >= 0)
         _readBuf->write(&s, sizeof s);
     int save_errno = errno;
-    
+
     if (!acceptHandler())
         return false;
-    
+
     errno = save_errno;
     if (errno != EAGAIN && errno != EWOULDBLOCK)
         return false;

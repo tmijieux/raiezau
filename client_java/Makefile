@@ -22,7 +22,7 @@ run3:
 run4:
 	@java -classpath build/:jyaml/ rz.Client config4.ini
 run5:
-	@java -classpath build/:jyaml/ rz.Client config5.ini	
+	@java -classpath build/:jyaml/ rz.Client config5.ini
 run6:
 	@java -classpath build/:jyaml/ rz.Client config6.ini
 

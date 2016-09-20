@@ -7,13 +7,13 @@ endif
 
 SRC=$(wildcard *.c)
 OBJ=$(SRC:.c=.o)
-DEP=$(SRC:.c=.d) 
+DEP=$(SRC:.c=.d)
 
 all: $(OBJ)
 
 -include $(DEP)
 
-clean: 
+clean:
 	$(RM) *.o *.d
 
 %.o: %.c

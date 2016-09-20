@@ -64,11 +64,11 @@ size_t list_size(const struct list *list)
 struct list *list_new(int flags, ...)
 {
     struct list *list = calloc(sizeof(*list), 1);
-    
+
     pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
     list->m = m;
     pthread_mutex_lock(&list->m);
-    
+
     list->front_sentinel = node_new(NULL, SENTINEL_NODE);
     node_set_next(list->front_sentinel, node_new(NULL, 1));
     list->flags = flags;

@@ -15,7 +15,7 @@ struct h_entry {
     h_entry(string key, void *data):
         key(strdup(key.c_str())), data(data) {}
     ~h_entry() { delete key; }
-        
+
     char *key;
     void *data;
     UT_hash_handle hh;

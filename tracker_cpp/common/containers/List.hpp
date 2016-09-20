@@ -12,7 +12,7 @@ class List {
     friend class ListImpl;
 public:
     enum flags { ELEM, FREE };
-    
+
     List();
     virtual ~List();
 
@@ -29,13 +29,13 @@ public:
     HashTable *toHashTable(std::function<const char*(void*)> keyname_func);
     void forEach(std::function<void(void*)> func);
     List *map(std::function<void*(void*)> func);
-    
+
 private:
     ListNode *getNode(unsigned n);
 
     ListNode *m_frontSentinel;
     ListNode *m_last;
-    
+
     void (*free_element)(void*);
     ListNode *m_cursor;
     size_t m_size;

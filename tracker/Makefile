@@ -10,8 +10,8 @@ endif
 
 LDFLAGS= -L. -lyaml -lcrypto -lpthread -lreadline
 
-OBJ=$(SRC:.c=.o) 
-DEP=$(SRC:.c=.d) 
+OBJ=$(SRC:.c=.o)
+DEP=$(SRC:.c=.d)
 
 all: $(TARGET)
 
@@ -24,7 +24,7 @@ $(TARGET): $(OBJ)
 	@gcc -MM $(CFLAGS) $*.c > $*.d
 	gcc -c $(CFLAGS) $*.c -o $*.o
 
-clean: 
+clean:
 	$(RM) $(OBJ) $(DEP) *.d *.o
 	make -C ../cutil clean
 

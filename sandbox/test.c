@@ -49,12 +49,12 @@ int main(int argc, char * const argv[])
 {
     int s, s2, ret;
     char buf[10];
-    
+
     make_listener_socket(INADDR_ANY, 1234, &s);
     struct sockaddr_in si = {0};
     socklen_t addr_len = sizeof si;
 
-    
+
     s2 = accept(s, &si, &addr_len);
 
 
@@ -67,7 +67,7 @@ int main(int argc, char * const argv[])
         fprintf(stderr, "read: %s\n", strerror(errno));
     }
     printf("ret: %d\n", ret);
-    
+
     return EXIT_SUCCESS;
 }
 

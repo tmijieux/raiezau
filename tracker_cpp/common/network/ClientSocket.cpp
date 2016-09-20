@@ -55,10 +55,10 @@ bool ClientSocket::eventHandler(uint32_t /*events*/)
         _readBuf->write(buf, len);
     }
     int save_errno = errno;
-    
+
     if (!readHandler())
         return false;
-    
+
     errno = save_errno;
     return (len != 0 && (errno == EAGAIN || errno == EWOULDBLOCK));
 }

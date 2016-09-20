@@ -27,7 +27,7 @@ bool SocketWriter::eventHandler(uint32_t /*events*/)
     size_t bsize = _buf->size();
     if (bsize == 0)
         return true;
-    
+
     int r;
     if ((r = _buf->writeToFd(_sfd)) > 0 && (size_t) r < bsize)
         this->rearm();

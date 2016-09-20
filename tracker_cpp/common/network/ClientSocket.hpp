@@ -20,10 +20,10 @@ public:
     virtual uint32_t getRemoteIP() const;
 protected:
     virtual bool readHandler() = 0;
-    
+
 private:
     virtual bool eventHandler(uint32_t events) override final;
-    
+
     Buffer *_writeBuf;
     SocketWriter *_sockWriter;
     EventManager &_eventManager;

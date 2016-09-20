@@ -10,13 +10,13 @@ public:
 
     void write(uint8_t *data, size_t size);
     void write(void *data, size_t size);
-    
+
     BufferWriter &operator<<(const std::string &left)
     {
         write((uint8_t*) left.c_str(), left.length()+1);
         return *this;
     }
-    
+
     template<typename T>
     BufferWriter &operator<<(const T &left)
     {

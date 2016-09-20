@@ -15,7 +15,7 @@
 
 using namespace std;
 
-  
+
 class rz_exception : public exception {
 public:
     rz_exception(const std::string s): _s(s) {}
@@ -74,7 +74,7 @@ void Peer::parseAnnounceSeed(string seed)
 void Peer::parseAnnounceLeech(string leech)
 {
     _leech.clear();
-    
+
     vector<string> v;
     v = split(leech, ' ');
     v.erase(
@@ -94,7 +94,7 @@ void Peer::handleAnnounce(stringstream &line)
 {
     bool listen, seed, leech;
     listen = seed = leech = false;
-    
+
     string keyword, argument, garbage;
 
     if (_announced)
@@ -130,7 +130,7 @@ void Peer::handleAnnounce(stringstream &line)
     }
     if (!listen || !seed || !leech)
         throw rz_exception("invalid request");
-    
+
     _announced = true;
     sendOK();
 }
@@ -199,7 +199,7 @@ string fileListString(FileSet s)
 void Peer::parseLook(string look)
 {
     vector<string> v = split(look, ' ');
-    
+
     FileSet s = sFileMgr.getSet();
     for (auto it = v.begin(); it != v.end(); ++it)
         s = parseCriterion(*it, s);
@@ -211,7 +211,7 @@ void Peer::handleLook(stringstream& line)
 {
     if (!_announced)
         throw rz_exception("not announced.");
-    
+
     string garbage, argument;
     getline(line, garbage, '[');
     getline(line, argument, ']');
@@ -241,7 +241,7 @@ std::string Peer::to_string() const
     stringstream ss;
     char addr[20] = {0};
     uint32_t ip = getRemoteIP();
-    
+
     inet_ntop(AF_INET, &ip, addr, 19);
     ss << addr << ":" << _listeningPort;
     return ss.str();
@@ -290,7 +290,7 @@ bool Peer::readHandler()
         ss >> keyword;
         if (keyword == "")
             continue; // allow empty lines
-        
+
         auto it = sHandlerMap.find(keyword);
         if (it == sHandlerMap.end()) {
             sendErrorNotice(string("unexpected keyword '") + keyword + "'");
@@ -299,7 +299,7 @@ bool Peer::readHandler()
                 return false;
             continue;
         }
-        
+
         PeerHandler handler = it->second;
         try {
             (this->*handler)(ss);

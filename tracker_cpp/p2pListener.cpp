@@ -7,21 +7,21 @@ p2pListener::p2pListener(ThreadPool &tp, uint16_t port, EventManager &eventManag
     _threadPool(tp),
     _eventManager(eventManager)
 {
-    
+
 }
 
 bool p2pListener::acceptHandler()
 {
     while (_readBuf->size() > 0) {
         int accepted;
-        
+
         if (_readBuf->size() < sizeof accepted) {
             // unexpected error
             rz_debug("unexpected listener error\n");
             rz_debug("suspending listener ...\n");
             return false;
         }
-            
+
         *_readBuf >> accepted;
 
         Peer *peer = new Peer(accepted, _eventManager);
